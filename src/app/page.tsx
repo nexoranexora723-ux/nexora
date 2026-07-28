@@ -10,6 +10,7 @@ import { CheckoutDialog } from '@/components/nexora/checkout-dialog'
 import { LoginDialog } from '@/components/nexora/auth/login-dialog'
 import { StoreView } from '@/components/nexora/views/store-view'
 import { DashboardView } from '@/components/nexora/views/dashboard-view'
+import { ReportsView } from '@/components/nexora/views/reports-view'
 import { ProductsView } from '@/components/nexora/views/products-view'
 import { InventoryView } from '@/components/nexora/views/inventory-view'
 import { SuppliersView } from '@/components/nexora/views/suppliers-view'
@@ -20,6 +21,11 @@ import { FinanceView } from '@/components/nexora/views/finance-view'
 import { NaiosView } from '@/components/nexora/views/naios-view'
 import { UsersView } from '@/components/nexora/views/users-view'
 import { RolesView } from '@/components/nexora/views/roles-view'
+import { DocumentsView } from '@/components/nexora/views/documents-view'
+import { NotificationsView } from '@/components/nexora/views/notifications-view'
+import { AutomationView } from '@/components/nexora/views/automation-view'
+import { IntegrationsView } from '@/components/nexora/views/integrations-view'
+import { AuditView } from '@/components/nexora/views/audit-view'
 import { SettingsView } from '@/components/nexora/views/settings-view'
 import { useAuth } from '@/lib/auth-store'
 import { ModuleKey, NaiosRecommendation } from '@/lib/types'
@@ -30,7 +36,7 @@ export default function NexoraPage() {
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [loginOpen, setLoginOpen] = useState(false)
   const queryClient = useQueryClient()
-  const { isAuthenticated, isLoading, user } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth()
 
   // Validate session on mount
   const { data: session } = useQuery({
@@ -42,23 +48,20 @@ export default function NexoraPage() {
     staleTime: 5 * 60 * 1000,
   })
 
-  // Update auth store when session resolves
   useEffect(() => {
     if (session) {
       useAuth.getState().setUser(session.user, session.user ? undefined : [])
     }
   }, [session])
 
-  // Show login dialog if not authenticated (but allow store browsing)
   useEffect(() => {
     if (!isLoading && !isAuthenticated && active !== 'store') {
-      // Allow store view without auth; prompt login for admin modules
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoginOpen(true)
     }
   }, [isLoading, isAuthenticated, active])
 
-  // NAIOS alerts for the sidebar badge
+  // NAIOS alerts
   const { data: alerts = [] } = useQuery<NaiosRecommendation[]>({
     queryKey: ['naios-alerts'],
     queryFn: async () => {
@@ -84,6 +87,7 @@ export default function NexoraPage() {
     switch (active) {
       case 'store': return <StoreView />
       case 'dashboard': return <DashboardView onNavigate={handleNavigate} alerts={alerts} onAlertsChange={refreshAlerts} />
+      case 'reports': return <ReportsView />
       case 'products': return <ProductsView />
       case 'inventory': return <InventoryView />
       case 'suppliers': return <SuppliersView />
@@ -94,12 +98,16 @@ export default function NexoraPage() {
       case 'naios': return <NaiosView alerts={alerts} onAlertsChange={refreshAlerts} />
       case 'users': return <UsersView />
       case 'roles': return <RolesView />
+      case 'documents': return <DocumentsView />
+      case 'notifications': return <NotificationsView />
+      case 'automation': return <AutomationView />
+      case 'integrations': return <IntegrationsView />
+      case 'audit': return <AuditView />
       case 'settings': return <SettingsView />
       default: return null
     }
   }
 
-  // Loading state
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">

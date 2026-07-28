@@ -1,48 +1,62 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { FinanceService } from '@/server/services/finance.service'
+import {
+  createTransactionSchema,
+  transactionQuerySchema,
+} from '@/lib/schemas/finance.schema'
 
-// NEXORA — Finance endpoint (transactions + cash flow)
-export async function GET() {
-  const transactions = await db.transaction.findMany({ orderBy: { date: 'desc' } })
+// NEXORA — Finance API
+// GET: overview (transactions + summary + monthly + categories) OR filtered transactions
+// POST: create a manual transaction
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url)
+    const hasFilters =
+      searchParams.has('q') ||
+      searchParams.has('type') ||
+      searchParams.has('category') ||
+      searchParams.has('dateFrom') ||
+      searchParams.has('dateTo') ||
+      searchParams.has('sort')
 
-  const income = transactions.filter((t) => t.type === 'INCOME').reduce((s, t) => s + t.amount, 0)
-  const expenses = transactions.filter((t) => t.type === 'EXPENSE').reduce((s, t) => s + t.amount, 0)
+    // If no filters → return the full overview payload (keeps backward compat with the
+    // existing finance-view which expects { transactions, summary, expensesByCategory, monthly })
+    if (!hasFilters) {
+      const overview = await FinanceService.getOverview()
+      return NextResponse.json(overview)
+    }
 
-  // Expenses by category
-  const byCategory = new Map<string, number>()
-  for (const t of transactions.filter((t) => t.type === 'EXPENSE')) {
-    byCategory.set(t.category, (byCategory.get(t.category) ?? 0) + t.amount)
+    const query = transactionQuerySchema.parse({
+      q: searchParams.get('q') ?? undefined,
+      type: searchParams.get('type') ?? undefined,
+      category: searchParams.get('category') ?? undefined,
+      dateFrom: searchParams.get('dateFrom') ?? undefined,
+      dateTo: searchParams.get('dateTo') ?? undefined,
+      sort: searchParams.get('sort') ?? 'date_desc',
+    })
+    const transactions = await FinanceService.listTransactions(query)
+    return NextResponse.json({ transactions })
+  } catch (error) {
+    console.error('GET /api/finance error:', error)
+    return NextResponse.json({ error: 'Error al obtener finanzas' }, { status: 500 })
   }
-  const expensesByCategory = Array.from(byCategory.entries()).map(([category, amount]) => ({ category, amount }))
+}
 
-  // Monthly cash flow (last 6 months)
-  const now = new Date()
-  const monthly: { month: string; income: number; expenses: number }[] = []
-  for (let i = 5; i >= 0; i--) {
-    const m = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const next = new Date(now.getFullYear(), now.getMonth() - i + 1, 1)
-    const mIncome = transactions
-      .filter((t) => t.type === 'INCOME' && new Date(t.date) >= m && new Date(t.date) < next)
-      .reduce((s, t) => s + t.amount, 0)
-    const mExpenses = transactions
-      .filter((t) => t.type === 'EXPENSE' && new Date(t.date) >= m && new Date(t.date) < next)
-      .reduce((s, t) => s + t.amount, 0)
-    monthly.push({ month: m.toLocaleDateString('es-CO', { month: 'short' }), income: mIncome, expenses: mExpenses })
+export async function POST(req: Request) {
+  try {
+    const body = await req.json()
+    const parsed = createTransactionSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 },
+      )
+    }
+    const tx = await FinanceService.createTransaction(parsed.data)
+    return NextResponse.json(tx, { status: 201 })
+  } catch (error) {
+    console.error('POST /api/finance error:', error)
+    const message = error instanceof Error ? error.message : 'Error al crear transacción'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
-
-  return NextResponse.json({
-    transactions: transactions.map((t) => ({
-      id: t.id,
-      type: t.type,
-      category: t.category,
-      description: t.description,
-      amount: t.amount,
-      currencyCode: t.currencyCode,
-      reference: t.reference,
-      date: t.date.toISOString(),
-    })),
-    summary: { income, expenses, profit: income - expenses, balance: income - expenses },
-    expensesByCategory,
-    monthly,
-  })
 }

@@ -3,6 +3,7 @@
 export type ModuleKey =
   | 'store'
   | 'dashboard'
+  | 'reports'
   | 'products'
   | 'inventory'
   | 'suppliers'
@@ -13,6 +14,11 @@ export type ModuleKey =
   | 'naios'
   | 'users'
   | 'roles'
+  | 'documents'
+  | 'notifications'
+  | 'automation'
+  | 'integrations'
+  | 'audit'
   | 'settings'
 
 export type Role =

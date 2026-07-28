@@ -1,38 +1,41 @@
 import { NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { OrderService } from '@/server/services/order.service'
+import { createOrderSchema, orderQuerySchema } from '@/lib/schemas/order.schema'
 
-// NEXORA — Sales Orders endpoint
-export async function GET() {
-  const orders = await db.order.findMany({
-    include: {
-      customer: { select: { id: true, firstName: true, lastName: true, email: true, city: true } },
-      items: { include: { product: { select: { id: true, name: true, sku: true } } } },
-    },
-    orderBy: { createdAt: 'desc' },
-  })
+// NEXORA — Sales Orders API
+// GET: list with filters/sort  | POST: create (transactional: order+items+income+inventory+LTV)
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url)
+    const query = orderQuerySchema.parse({
+      q: searchParams.get('q') ?? undefined,
+      status: searchParams.get('status') ?? undefined,
+      customerId: searchParams.get('customerId') ?? undefined,
+      sort: searchParams.get('sort') ?? 'created_desc',
+    })
+    const orders = await OrderService.list(query)
+    return NextResponse.json(orders)
+  } catch (error) {
+    console.error('GET /api/orders error:', error)
+    return NextResponse.json({ error: 'Error al obtener pedidos' }, { status: 500 })
+  }
+}
 
-  return NextResponse.json(
-    orders.map((o) => ({
-      id: o.id,
-      number: o.number,
-      status: o.status,
-      customer: o.customer,
-      items: o.items.map((it) => ({
-        id: it.id,
-        product: it.product,
-        quantity: it.quantity,
-        unitPrice: it.unitPrice,
-        total: it.total,
-      })),
-      subtotal: o.subtotal,
-      shippingCost: o.shippingCost,
-      tax: o.tax,
-      discount: o.discount,
-      total: o.total,
-      currencyCode: o.currencyCode,
-      paymentMethod: o.paymentMethod,
-      trackingNumber: o.trackingNumber,
-      createdAt: o.createdAt.toISOString(),
-    })),
-  )
+export async function POST(req: Request) {
+  try {
+    const body = await req.json()
+    const parsed = createOrderSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
+        { status: 400 },
+      )
+    }
+    const order = await OrderService.create(parsed.data)
+    return NextResponse.json(order, { status: 201 })
+  } catch (error) {
+    console.error('POST /api/orders error:', error)
+    const message = error instanceof Error ? error.message : 'Error al crear pedido'
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
 }

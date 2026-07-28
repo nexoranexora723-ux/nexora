@@ -1,6 +1,7 @@
 import {
   Store, LayoutDashboard, Sparkles, Package, Warehouse, Truck, ShoppingCart,
-  Receipt, Users, Wallet, Settings, Shield, KeyRound, LucideIcon,
+  Receipt, Users, Wallet, Settings, Shield, KeyRound, Bell, FileText, Zap, Plug,
+  BarChart3, Activity, LucideIcon,
 } from 'lucide-react'
 import { ModuleKey } from '@/lib/types'
 
@@ -27,6 +28,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: 'Administración',
     items: [
       { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, description: 'Visión general del negocio' },
+      { key: 'reports', label: 'BI y Reportes', icon: BarChart3, description: 'Business Intelligence' },
       { key: 'naios', label: 'NAIOS', icon: Sparkles, description: 'Asistente inteligente' },
     ],
   },
@@ -53,10 +55,20 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    label: 'Plataforma',
+    items: [
+      { key: 'automation', label: 'Automatización', icon: Zap, description: 'Workflows y reglas' },
+      { key: 'integrations', label: 'Integraciones', icon: Plug, description: 'Conectores externos' },
+    ],
+  },
+  {
     label: 'Sistema',
     items: [
       { key: 'users', label: 'Usuarios', icon: Users, description: 'Gestión de usuarios y acceso' },
       { key: 'roles', label: 'Roles y Permisos', icon: Shield, description: 'RBAC · Control de permisos' },
+      { key: 'documents', label: 'Documentos', icon: FileText, description: 'Gestión documental' },
+      { key: 'notifications', label: 'Notificaciones', icon: Bell, description: 'Centro de comunicaciones' },
+      { key: 'audit', label: 'Auditoría', icon: Activity, description: 'Logs y seguridad' },
       { key: 'settings', label: 'Configuración', icon: Settings, description: 'Ajustes de la empresa' },
     ],
   },

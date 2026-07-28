@@ -634,6 +634,51 @@ model Transaction {
 }
 
 // ============================================================================
+// CAPA 9 — NOTIFICACIONES & DOCUMENTOS
+// ============================================================================
+
+model Notification {
+  id          String   @id @default(cuid())
+  companyId   String   @map("company_id")
+  userId      String?  @map("user_id")
+  type        String   // info | warning | error | success | system | finance | purchases | sales | inventory | marketing | naios
+  priority    String   @default("MEDIUM") // LOW | MEDIUM | HIGH | CRITICAL
+  title       String
+  message     String
+  data        String?  // JSON string
+  readAt      DateTime? @map("read_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([companyId, userId])
+  @@index([readAt])
+  @@index([priority])
+  @@map("notifications")
+}
+
+model Document {
+  id          String    @id @default(cuid())
+  companyId   String    @map("company_id")
+  name        String
+  fileId      String?   @map("file_id")
+  url         String
+  category    String    @default("general") // invoice | contract | catalog | proforma | guarantee | manual | legal | marketing | other
+  tags        String?   // comma-separated
+  entityType  String?   @map("entity_type") // product | order | supplier | customer | purchase
+  entityId    String?   @map("entity_id")
+  status      String    @default("ACTIVE") // ACTIVE | ARCHIVED
+  ownerId     String?   @map("owner_id")
+  version     Int       @default(1)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  @@index([companyId])
+  @@index([category])
+  @@index([entityType, entityId])
+  @@map("documents")
+}
+
+// ============================================================================
 // CAPA 10 — IA (NAIOS)
 // ============================================================================
 
@@ -664,3 +709,89 @@ model NaiosConversation {
   @@index([createdAt])
   @@map("naios_conversations")
 }
+
+// ============================================================================
+// CAPA 11 — AUTOMATIZACIÓN (Workflows)
+// ============================================================================
+
+model Workflow {
+  id            String   @id @default(cuid())
+  companyId     String   @map("company_id")
+  name          String
+  description   String?
+  triggerType   String   @map("trigger_type") // product_created | order_created | inventory_low | payment_received | customer_created | supplier_created | manual | scheduled
+  triggerConfig String?  @map("trigger_config") // JSON
+  conditions    String?  // JSON array of {field, operator, value}
+  actions       String?  // JSON array of {type, config}
+  status        String   @default("ACTIVE") // ACTIVE | INACTIVE
+  lastRunAt     DateTime? @map("last_run_at")
+  runCount      Int      @default(0) @map("run_count")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  executions    WorkflowExecution[]
+
+  @@index([companyId])
+  @@index([status])
+  @@map("workflows")
+}
+
+model WorkflowExecution {
+  id          String    @id @default(cuid())
+  workflowId  String    @map("workflow_id")
+  triggerData String?   @map("trigger_data") // JSON
+  status      String    // RUNNING | COMPLETED | FAILED
+  startedAt   DateTime  @default(now()) @map("started_at")
+  finishedAt  DateTime? @map("finished_at")
+  error       String?
+  result      String?   // JSON
+
+  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([workflowId])
+  @@index([status])
+  @@map("workflow_executions")
+}
+
+// ============================================================================
+// CAPA 12 — INTEGRACIONES (External connectors)
+// ============================================================================
+
+model Integration {
+  id          String    @id @default(cuid())
+  companyId   String    @map("company_id")
+  provider    String    // shopify | stripe | paypal | dhl | fedex | whatsapp | slack | gmail | openai | anthropic | s3 | r2 | ...
+  category    String    // ecommerce | payments | logistics | messaging | email | ai | storage
+  name        String
+  config      String?   // JSON (encrypted in prod)
+  status      String    @default("DISCONNECTED") // CONNECTED | DISCONNECTED | ERROR
+  lastSyncAt  DateTime? @map("last_sync_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  logs        IntegrationLog[]
+
+  @@index([companyId])
+  @@index([provider])
+  @@map("integrations")
+}
+
+model IntegrationLog {
+  id            String   @id @default(cuid())
+  integrationId String   @map("integration_id")
+  direction     String   // in | out
+  request       String?  // JSON
+  response      String?  // JSON
+  statusCode    Int?     @map("status_code")
+  duration      Int?     // ms
+  status        String   // SUCCESS | ERROR
+  error         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  integration Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+
+  @@index([integrationId])
+  @@index([createdAt])
+  @@map("integration_logs")
+}
+

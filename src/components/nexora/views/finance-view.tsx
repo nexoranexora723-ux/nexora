@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useFinance, useDeleteTransaction } from '@/hooks/use-finance'
 import { useMemo, useState } from 'react'
 import {
   Bar,
@@ -16,27 +16,32 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { PageHeader } from '@/components/nexora/stat-card'
-import { Transaction } from '@/lib/types'
+import { TransactionFormDialog } from '@/components/nexora/finance/transaction-form-dialog'
+import type { TransactionView } from '@/server/services/finance.service'
 import { formatCurrency, formatCompact, formatDate, formatPercent } from '@/lib/format'
-import { Wallet, TrendingUp, TrendingDown, DollarSign, PieChart } from 'lucide-react'
+import { Wallet, TrendingUp, TrendingDown, DollarSign, PieChart, Plus, MoreHorizontal, Pencil, Trash2, Receipt } from 'lucide-react'
 import { cn } from '@/lib/utils'
-
-interface FinanceSummary {
-  income: number
-  expenses: number
-  profit: number
-  balance: number
-}
-
-interface FinanceData {
-  transactions: Transaction[]
-  summary: FinanceSummary
-  expensesByCategory: { category: string; amount: number }[]
-  monthly: { month: string; income: number; expenses: number }[]
-}
+import { useToast } from '@/hooks/use-toast'
+import { useQueryClient } from '@tanstack/react-query'
 
 type Filter = 'all' | 'income' | 'expense'
+
+// Category label map (Spanish)
+const CATEGORY_LABELS: Record<string, string> = {
+  SALES: 'Ventas',
+  PURCHASES: 'Compras',
+  SHIPPING: 'Envíos',
+  SALARY: 'Nómina',
+  MARKETING: 'Marketing',
+  RENT: 'Arriendo',
+  UTILITY: 'Servicios',
+  COMMISSION: 'Comisiones',
+  TAX: 'Impuestos',
+  OTHER: 'Otro',
+}
 
 // Category → color mapping for the bars
 const CATEGORY_COLORS = [
@@ -52,14 +57,16 @@ const CATEGORY_COLORS = [
 
 export function FinanceView() {
   const [filter, setFilter] = useState<Filter>('all')
+  const [formOpen, setFormOpen] = useState(false)
+  const [editing, setEditing] = useState<TransactionView | null>(null)
+  const [defaultType, setDefaultType] = useState<'INCOME' | 'EXPENSE'>('EXPENSE')
+  const [deleteTarget, setDeleteTarget] = useState<TransactionView | null>(null)
 
-  const { data, isLoading } = useQuery<FinanceData>({
-    queryKey: ['finance'],
-    queryFn: async () => {
-      const res = await fetch('/api/finance')
-      return res.json()
-    },
-  })
+  const { toast } = useToast()
+  const qc = useQueryClient()
+  const deleteMut = useDeleteTransaction()
+
+  const { data, isLoading } = useFinance()
 
   const summary = data?.summary
   const margin = summary && summary.income > 0 ? (summary.profit / summary.income) * 100 : 0
@@ -76,9 +83,45 @@ export function FinanceView() {
     return list.length > 0 ? Math.max(...list.map((c) => c.amount)) : 0
   }, [data?.expensesByCategory])
 
+  const handleNew = (type: 'INCOME' | 'EXPENSE' = 'EXPENSE') => {
+    setEditing(null)
+    setDefaultType(type)
+    setFormOpen(true)
+  }
+
+  const handleEdit = (t: TransactionView) => {
+    setEditing(t)
+    setFormOpen(true)
+  }
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    try {
+      await deleteMut.mutateAsync(deleteTarget.id)
+      toast({ title: 'Transacción eliminada', description: deleteTarget.description })
+      setDeleteTarget(null)
+      qc.invalidateQueries({ queryKey: ['dashboard'] })
+    } catch (err) {
+      toast({
+        title: 'Error',
+        description: err instanceof Error ? err.message : 'No se pudo eliminar',
+        variant: 'destructive',
+      })
+    }
+  }
+
   return (
     <div className="space-y-6">
-      <PageHeader title="Finanzas" description="Ingresos, gastos y flujo de caja" icon={Wallet} />
+      <PageHeader
+        title="Finanzas"
+        description="Ingresos, gastos y flujo de caja · CRUD completo"
+        icon={Wallet}
+        action={
+          <Button className="gap-1.5" onClick={() => handleNew('EXPENSE')}>
+            <Plus className="h-4 w-4" /> Nueva transacción
+          </Button>
+        }
+      />
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -138,6 +181,16 @@ export function FinanceView() {
             </p>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Quick actions */}
+      <div className="grid grid-cols-2 gap-3 sm:max-w-md">
+        <Button variant="outline" className="gap-1.5" onClick={() => handleNew('INCOME')}>
+          <TrendingUp className="h-4 w-4 text-emerald-500" /> Registrar ingreso
+        </Button>
+        <Button variant="outline" className="gap-1.5" onClick={() => handleNew('EXPENSE')}>
+          <TrendingDown className="h-4 w-4 text-rose-500" /> Registrar gasto
+        </Button>
       </div>
 
       {/* Cash flow chart + expenses by category */}
@@ -220,7 +273,7 @@ export function FinanceView() {
                 return (
                   <div key={c.category} className="space-y-1">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-medium">{c.category}</span>
+                      <span className="font-medium">{CATEGORY_LABELS[c.category] ?? c.category}</span>
                       <span className="tabular-nums text-muted-foreground">{formatCurrency(c.amount)}</span>
                     </div>
                     <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
@@ -274,13 +327,14 @@ export function FinanceView() {
                   <TableHead>Descripción</TableHead>
                   <TableHead>Referencia</TableHead>
                   <TableHead className="text-right">Monto</TableHead>
+                  <TableHead className="w-12"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   Array.from({ length: 6 }).map((_, i) => (
                     <TableRow key={i}>
-                      {Array.from({ length: 6 }).map((_, j) => (
+                      {Array.from({ length: 7 }).map((_, j) => (
                         <TableCell key={j}>
                           <Skeleton className="h-5 w-full" />
                         </TableCell>
@@ -289,15 +343,22 @@ export function FinanceView() {
                   ))
                 ) : filteredTransactions.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
-                      No hay transacciones que mostrar
+                    <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
+                      <div className="flex flex-col items-center gap-2">
+                        <Receipt className="h-10 w-10 text-muted-foreground/40" />
+                        <p>No hay transacciones que mostrar</p>
+                        <Button className="mt-2 gap-1.5" size="sm" onClick={() => handleNew('EXPENSE')}>
+                          <Plus className="h-4 w-4" /> Nueva transacción
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredTransactions.map((t) => {
                     const isIncome = t.type === 'INCOME'
+                    const isProtected = t.category === 'SALES' && t.reference?.startsWith('ORD-')
                     return (
-                      <TableRow key={t.id}>
+                      <TableRow key={t.id} className="group">
                         <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
                           {formatDate(t.date)}
                         </TableCell>
@@ -316,7 +377,7 @@ export function FinanceView() {
                         </TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="font-normal">
-                            {t.category}
+                            {CATEGORY_LABELS[t.category] ?? t.category}
                           </Badge>
                         </TableCell>
                         <TableCell className="max-w-xs">
@@ -334,6 +395,27 @@ export function FinanceView() {
                           {isIncome ? '+' : '−'}
                           {formatCurrency(t.amount, t.currencyCode)}
                         </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleEdit(t)} disabled={isProtected}>
+                                <Pencil className="mr-2 h-3.5 w-3.5" /> Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-rose-600"
+                                onClick={() => setDeleteTarget(t)}
+                                disabled={isProtected}
+                              >
+                                <Trash2 className="mr-2 h-3.5 w-3.5" /> Eliminar
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
                       </TableRow>
                     )
                   })
@@ -343,6 +425,28 @@ export function FinanceView() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Form dialog */}
+      <TransactionFormDialog open={formOpen} onOpenChange={setFormOpen} transaction={editing} defaultType={defaultType} />
+
+      {/* Delete confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar transacción?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se eliminará <strong>{deleteTarget?.description}</strong> ({formatCurrency(deleteTarget?.amount ?? 0)}).
+              Esta acción no se puede deshacer y afectará los totales del período.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-rose-600 hover:bg-rose-700">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
