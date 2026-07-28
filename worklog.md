@@ -106,3 +106,41 @@ Stage Summary:
 - Resuelve ítem de auditoría: Zustand ahora se usa (cart store con persist).
 - Resuelve ítem de auditoría: DOC-002 §3 "Tienda" ahora implementada.
 - Loop e-commerce cerrado: browse → cart → checkout → order → admin panel.
+
+---
+Task ID: products-pro
+Agent: main (Z.ai Code)
+Task: Construir módulo profesional de Gestión de Productos (ERP-grade) según spec del usuario
+
+Work Log:
+- Ampliado schema Prisma: Product con 10 campos nuevos (internalCode, barcode, subcategoryId, length/width/height, color, countryOfOrigin, tags). Nuevos modelos: ProductVideo, ProductVariant (con 3 opciones: color/talla/capacidad). ProductImage con isPrimary. Category con relación subproducts.
+- Creado src/lib/schemas/product.schema.ts: Zod schemas completos (createProductSchema con superRefine para validación de margen, updateProductSchema derivado, productQuerySchema, productVariantSchema, productImageSchema, productVideoSchema). Preprocess para campos numéricos opcionales (NaN → undefined).
+- Creado src/server/services/product.service.ts: ProductService class con list/getById/create/update/softDelete/setStatus/stats. Resuelve ítem crítico de auditoría (capa de servicios faltante). Función enrich() que calcula margin, marginPct, stock, available, minStock.
+- Creado src/app/api/products/route.ts (GET list + POST create) y src/app/api/products/[id]/route.ts (GET + PUT + DELETE + PATCH status). Validación Zod en POST/PUT. Manejo de errores con try/catch.
+- Creado src/app/api/catalog/route.ts: endpoint lookup de brands/categories/suppliers para el form.
+- Creado src/hooks/use-products.ts: hooks de dominio (useProducts, useProduct, useCreateProduct, useUpdateProduct, useDeleteProduct, useToggleProductStatus). Resuelve duplicación de useQuery detectada en auditoría.
+- Creado src/components/nexora/products/product-form-dialog.tsx: formulario profesional con React Hook Form + Zod resolver. 6 secciones numeradas: Información básica, Clasificación, Precios y margen (con cálculo live), Atributos físicos, Multimedia (imágenes/videos dinámicos con useFieldArray), Variantes (dinámicas). Selects para marca/categoría/subcategoría/proveedor. Cálculo de margen en tiempo real. Validación de duplicados de SKU.
+- Reescrito src/components/nexora/views/products-view.tsx: vista integradora profesional con 4 StatCards (Total/Valor inventario/Margen promedio/Stock crítico), toolbar (búsqueda + filtros por estado + sort + toggle tabla/tarjetas), ProductsTable (tabla completa con dropdown de acciones: Editar/Desactivar/Eliminar), ProductsCards (grid de tarjetas con hover), AlertDialog de confirmación de eliminación, toast feedback.
+- DB reset + re-seed necesario porque db:push no altera tablas existentes en SQLite.
+- Verificación Agent Browser end-to-end:
+  1. Productos carga con 8 productos sembrados + stats cards
+  2. Click "Nuevo producto" → form de 6 secciones abre
+  3. Fill nombre + SKU + precios → Click "Crear producto" → POST 201 Created
+  4. Producto "iPhone 15 Pro Max Test" aparece al tope de la lista
+  5. Toggle "Vista tarjetas" → grid de cards con imágenes
+  6. Click dropdown en fila → "Editar/Desactivar/Eliminar"
+  7. Click "Editar" → form abre con datos precargados + botón "Guardar cambios"
+- Lint: 0 errores, 2 warnings (React Compiler incompatible-library en watch() de RHF — seguro).
+
+Stage Summary:
+- MÓDULO PRODUCTOS profesional completo y verificado.
+- Arquitectura profesional establecida como patrón para los demás módulos:
+  - src/lib/schemas/<module>.schema.ts (Zod)
+  - src/server/services/<module>.service.ts (business logic)
+  - src/app/api/<module>/route.ts + [id]/route.ts (CRUD)
+  - src/hooks/use-<module>.ts (domain hooks)
+  - src/components/nexora/<module>/ (form components)
+  - src/components/nexora/views/<module>-view.tsx (integrator view)
+- Funcionalidades: Crear, Editar, Eliminar (soft delete), Activar/Desactivar, Buscar, Filtrar por estado, Ordenar (5 opciones), Vista tabla + tarjetas, Variantes, Multimedia (imágenes/videos), Validación Zod + RHF, Toast feedback.
+- 8 archivos nuevos, 2 modificados (schema.prisma, products-view.tsx reescrito).
+- Resuelve 2 ítems críticos de auditoría: (1) capa de servicios creada, (2) hooks de dominio eliminan duplicación.

@@ -1,0 +1,3211 @@
+# CONTEXTO
+
+Actúa como un Staff Software Engineer, Software Architect y Senior Full Stack Developer con más de 20 años de experiencia desarrollando ERP, CRM y plataformas SaaS empresariales.
+
+Estás trabajando en NEXORA.
+
+NEXORA NO es una tienda online.
+
+NEXORA es una plataforma inteligente para gestionar empresas de comercio electrónico.
+
+La calidad del código debe ser equivalente a empresas como Shopify, Stripe, Notion o Linear.
+
+---
+
+# IMPORTANTE
+
+Antes de escribir código:
+
+• Analiza completamente el proyecto existente.
+• Reutiliza componentes existentes siempre que sea posible.
+• Respeta la arquitectura actual del proyecto.
+• No rompas funcionalidades existentes.
+• No elimines archivos innecesariamente.
+• No cambies el stack tecnológico.
+
+---
+
+# OBJETIVO
+
+Construir el módulo profesional de Gestión de Productos.
+
+Este módulo será la base del ERP.
+
+Todo el inventario, compras, ventas, NAIOS y proveedores dependerán de este módulo.
+
+---
+
+# FUNCIONALIDADES
+
+El módulo debe permitir:
+
+✅ Crear productos
+
+✅ Editar productos
+
+✅ Eliminar productos
+
+✅ Activar o desactivar productos
+
+✅ Buscar productos
+
+✅ Filtrar productos
+
+✅ Ordenar productos
+
+✅ Vista tipo tabla
+
+✅ Vista tipo tarjetas
+
+---
+
+# INFORMACIÓN DEL PRODUCTO
+
+Cada producto debe contener como mínimo:
+
+• Nombre
+
+• SKU
+
+• Código interno
+
+• Código de barras (opcional)
+
+• Categoría
+
+• Subcategoría
+
+• Marca
+
+• Descripción
+
+• Precio de compra
+
+• Precio de venta
+
+• Margen de ganancia
+
+• Stock actual
+
+• Stock mínimo
+
+• Estado
+
+• Peso
+
+• Dimensiones
+
+• Color
+
+• Material
+
+• Garantía
+
+• País de origen
+
+• Etiquetas
+
+• Fecha de creación
+
+• Fecha de actualización
+
+---
+
+# MULTIMEDIA
+
+Cada producto debe soportar:
+
+• Varias imágenes
+
+• Video
+
+• Imagen principal
+
+• Orden de imágenes
+
+---
+
+# VARIANTES
+
+Debe soportar variantes.
+
+Ejemplo:
+
+Color
+
+Talla
+
+Capacidad
+
+Modelo
+
+Versión
+
+Cada variante tendrá:
+
+SKU
+
+Stock
+
+Precio
+
+Imagen
+
+---
+
+# EXPERIENCIA DE USUARIO
+
+La interfaz debe sentirse moderna.
+
+Debe usar los componentes existentes del proyecto.
+
+No crear componentes duplicados.
+
+---
+
+# VALIDACIONES
+
+Usar:
+
+Zod
+
+React Hook Form
+
+TypeScript estricto
+
+---
+
+# BASE DE DATOS
+
+Si es necesario modificar Prisma:
+
+Hazlo siguiendo buenas prácticas.
+
+No rompas relaciones existentes.
+
+---
+
+# SEGURIDAD
+
+Validar:
+
+Campos obligatorios
+
+Duplicados
+
+SKU repetidos
+
+Errores
+
+---
+
+# RENDIMIENTO
+
+Usar:
+
+Server Components cuando sea posible
+
+Client Components solo cuando sean necesarios
+
+Lazy Loading donde aplique
+
+---
+
+# CÓDIGO
+
+Quiero:
+
+Código limpio
+
+Escalable
+
+Modular
+
+Reutilizable
+
+Profesional
+
+Nada de archivos gigantes.
+
+Nada de funciones enormes.
+
+Separación correcta entre:
+
+UI
+
+Servicios
+
+Acciones
+
+Tipos
+
+Validaciones
+
+---
+
+# DOCUMENTACIÓN
+
+Al finalizar explica:
+
+Qué archivos fueron creados.
+
+Qué archivos fueron modificados.
+
+Por qué.
+
+Qué decisiones arquitectónicas tomaste.
+
+Qué mejoras futuras recomiendas.
+
+---
+
+# IMPORTANTE
+
+No hagas todavía:
+
+Compras
+
+Inventario
+
+Ventas
+
+Clientes
+
+Proveedores
+
+NAIOS
+
+Solo desarrolla el módulo profesional de Productos.  # CONTEXTO
+
+Actúa como un Software Architect, CTO y Senior Full Stack Developer con más de 20 años de experiencia desarrollando ERP empresariales y plataformas de comercio internacional.
+
+Estás desarrollando NEXORA.
+
+NEXORA es una plataforma inteligente para gestionar negocios de comercio electrónico, importaciones y proveedores internacionales.
+
+Este módulo será el centro de todas las compras de la empresa.
+
+NO es una agenda de contactos.
+
+NO es un CRM.
+
+Es un sistema profesional para administrar proveedores nacionales e internacionales.
+
+---
+
+# IMPORTANTE
+
+Antes de escribir código:
+
+• Analiza completamente el proyecto existente.
+• Reutiliza componentes existentes.
+• Respeta la arquitectura del proyecto.
+• No rompas funcionalidades existentes.
+• No elimines archivos innecesariamente.
+• Mantén consistencia con el módulo Productos.
+
+---
+
+# OBJETIVO
+
+Construir el módulo profesional de Gestión de Proveedores.
+
+Todo el sistema de compras dependerá de este módulo.
+
+---
+
+# FUNCIONALIDADES
+
+El sistema debe permitir:
+
+✅ Crear proveedor
+
+✅ Editar proveedor
+
+✅ Eliminar proveedor
+
+✅ Activar / Desactivar proveedor
+
+✅ Buscar proveedor
+
+✅ Filtrar proveedores
+
+✅ Vista tabla
+
+✅ Vista tarjetas
+
+---
+
+# INFORMACIÓN DEL PROVEEDOR
+
+Cada proveedor debe almacenar:
+
+• Nombre comercial
+
+• Nombre legal
+
+• Tipo (Fábrica / Trading Company)
+
+• País
+
+• Ciudad
+
+• Dirección
+
+• Sitio web
+
+• Yupoo
+
+• Alibaba
+
+• Made-in-China
+
+• 1688
+
+• WeChat
+
+• WhatsApp
+
+• Correo
+
+• Persona de contacto
+
+• Cargo
+
+• Idioma
+
+• Zona horaria
+
+• Años de experiencia
+
+• Países a los que exporta
+
+• MOQ
+
+• Batch o calidad disponible
+
+• Categorías que vende
+
+• Marcas disponibles
+
+• Tiempo de producción
+
+• Tiempo de envío
+
+• Métodos de envío
+
+• Métodos de pago
+
+• Garantía
+
+• Política de devoluciones
+
+• Observaciones
+
+• Estado
+
+---
+
+# ARCHIVOS
+
+Cada proveedor debe permitir almacenar:
+
+• Fotografías
+
+• Videos
+
+• Catálogos PDF
+
+• Listas de precios
+
+• Facturas
+
+• Proformas
+
+• Conversaciones
+
+---
+
+# CALIFICACIÓN
+
+Cada proveedor tendrá una puntuación.
+
+Ejemplo:
+
+Calidad
+
+Comunicación
+
+Precio
+
+Tiempo de entrega
+
+Empaque
+
+Garantía
+
+Servicio
+
+Cada criterio será calificable.
+
+El sistema calculará automáticamente una puntuación global.
+
+---
+
+# HISTORIAL
+
+Guardar automáticamente:
+
+• Compras realizadas
+
+• Productos cotizados
+
+• Cambios de precios
+
+• Conversaciones
+
+• Archivos enviados
+
+• Último contacto
+
+---
+
+# DASHBOARD DEL PROVEEDOR
+
+Cada proveedor tendrá una ficha completa mostrando:
+
+Información general
+
+Productos
+
+Compras
+
+Archivos
+
+Historial
+
+Calificaciones
+
+Estadísticas
+
+---
+
+# EXPERIENCIA DE USUARIO
+
+Debe sentirse como un ERP profesional.
+
+Usar los componentes existentes.
+
+No crear componentes duplicados.
+
+---
+
+# VALIDACIONES
+
+Usar:
+
+React Hook Form
+
+Zod
+
+TypeScript estricto
+
+---
+
+# BASE DE DATOS
+
+Si Prisma necesita cambios:
+
+Realizarlos siguiendo buenas prácticas.
+
+Mantener relaciones limpias.
+
+Preparar relaciones futuras con:
+
+Productos
+
+Compras
+
+Inventario
+
+Pedidos
+
+---
+
+# CÓDIGO
+
+Separar correctamente:
+
+UI
+
+Actions
+
+Services
+
+Hooks
+
+Schemas
+
+Types
+
+Utils
+
+No crear archivos gigantes.
+
+No duplicar lógica.
+
+---
+
+# DOCUMENTACIÓN
+
+Al finalizar explica:
+
+Qué archivos fueron creados.
+
+Qué archivos fueron modificados.
+
+Qué decisiones arquitectónicas tomaste.
+
+Qué mejoras futuras recomiendas.
+
+---
+
+# IMPORTANTE
+
+NO desarrollar todavía:
+
+Compras
+
+Inventario
+
+Pedidos
+
+Finanzas
+
+NAIOS
+
+Solo desarrollar el módulo profesional de Gestión de Proveedores.  # CONTEXTO
+
+Actúa como un Software Architect, CTO y Senior Full Stack Developer con más de 20 años de experiencia desarrollando ERP empresariales como SAP Business One, Odoo, Oracle NetSuite y Microsoft Dynamics.
+
+Estás desarrollando NEXORA.
+
+NEXORA es una plataforma inteligente para gestionar empresas de comercio electrónico e importaciones.
+
+Este módulo administrará TODO el ciclo de compras internacionales.
+
+Debe integrarse con:
+
+• Productos
+• Proveedores
+• Inventario
+• Finanzas (futuro)
+• NAIOS (futuro)
+
+---
+
+# IMPORTANTE
+
+Antes de escribir código:
+
+• Analiza completamente el proyecto.
+• Reutiliza componentes existentes.
+• Respeta la arquitectura actual.
+• No rompas funcionalidades existentes.
+• Mantén consistencia con Productos y Proveedores.
+
+---
+
+# OBJETIVO
+
+Construir un módulo profesional de Órdenes de Compra.
+
+Debe permitir administrar todo el proceso desde la cotización hasta la recepción de la mercancía.
+
+---
+
+# FUNCIONALIDADES
+
+El sistema debe permitir:
+
+✅ Crear Orden de Compra
+
+✅ Editar Orden
+
+✅ Cancelar Orden
+
+✅ Duplicar Orden
+
+✅ Buscar
+
+✅ Filtrar
+
+✅ Exportar
+
+---
+
+# ESTADOS
+
+Cada orden tendrá estados.
+
+Ejemplo:
+
+Borrador
+
+Cotizando
+
+Pendiente de pago
+
+Pagada
+
+En producción
+
+Lista para envío
+
+En tránsito
+
+En aduana
+
+Recibida
+
+Cancelada
+
+Cada cambio debe quedar registrado.
+
+---
+
+# INFORMACIÓN GENERAL
+
+Cada orden debe contener:
+
+Número automático
+
+Proveedor
+
+Fecha
+
+Moneda
+
+Responsable
+
+Incoterm
+
+Método de pago
+
+Método de envío
+
+Observaciones
+
+Estado
+
+---
+
+# PRODUCTOS
+
+Cada orden podrá contener múltiples productos.
+
+Cada producto tendrá:
+
+Producto
+
+Variante
+
+Cantidad
+
+Costo unitario
+
+Descuento
+
+Subtotal
+
+Peso
+
+Observaciones
+
+---
+
+# COSTOS
+
+La orden debe calcular automáticamente:
+
+Subtotal
+
+Descuentos
+
+Costo de envío
+
+Seguro
+
+Impuestos
+
+Otros costos
+
+Costo total
+
+Costo promedio por unidad
+
+---
+
+# DOCUMENTOS
+
+Cada orden podrá almacenar:
+
+Factura
+
+Proforma
+
+Packing List
+
+Bill of Lading
+
+Guía
+
+Comprobantes
+
+Archivos PDF
+
+Imágenes
+
+Videos
+
+---
+
+# TRACKING
+
+Cada compra podrá almacenar:
+
+Empresa logística
+
+Número de guía
+
+Tracking
+
+Fecha de envío
+
+Fecha estimada
+
+Fecha real
+
+Estado logístico
+
+---
+
+# HISTORIAL
+
+Registrar automáticamente:
+
+Quién creó la orden
+
+Quién la modificó
+
+Cuándo
+
+Cambios realizados
+
+Cambio de estado
+
+Archivos agregados
+
+---
+
+# DASHBOARD
+
+Cada orden tendrá:
+
+Resumen
+
+Productos
+
+Costos
+
+Archivos
+
+Tracking
+
+Historial
+
+Proveedor
+
+---
+
+# VALIDACIONES
+
+React Hook Form
+
+Zod
+
+TypeScript estricto
+
+---
+
+# BASE DE DATOS
+
+Si Prisma necesita modificaciones:
+
+Realízalas siguiendo buenas prácticas.
+
+Preparar relaciones con:
+
+Productos
+
+Proveedores
+
+Inventario
+
+Finanzas
+
+---
+
+# EXPERIENCIA
+
+Interfaz moderna.
+
+Muy rápida.
+
+Orientada a productividad.
+
+Reutilizar componentes existentes.
+
+---
+
+# CÓDIGO
+
+Separar correctamente:
+
+UI
+
+Services
+
+Actions
+
+Hooks
+
+Schemas
+
+Types
+
+Utils
+
+Nada de archivos gigantes.
+
+Nada de lógica duplicada.
+
+---
+
+# DOCUMENTACIÓN
+
+Al finalizar explica:
+
+Qué archivos fueron creados.
+
+Qué archivos fueron modificados.
+
+Qué relaciones nuevas fueron creadas.
+
+Qué mejoras futuras recomienda.
+
+---
+
+# IMPORTANTE
+
+NO desarrollar todavía:
+
+Inventario
+
+Ventas
+
+Clientes
+
+Finanzas
+
+NAIOS
+
+Solo desarrollar el módulo profesional de Compras.   # CONTEXTO
+
+Actúa como un CTO, Software Architect y Senior ERP Engineer con más de 20 años de experiencia desarrollando sistemas como SAP S/4HANA, Oracle NetSuite, Odoo y Microsoft Dynamics 365.
+
+Estás desarrollando NEXORA.
+
+NEXORA es una plataforma inteligente para administrar empresas de comercio electrónico e importaciones.
+
+Este módulo será el centro de control del inventario.
+
+Debe integrarse con:
+
+• Productos
+• Proveedores
+• Compras
+• Ventas (futuro)
+• Dashboard
+• NAIOS (futuro)
+
+NO es un inventario básico.
+
+Debe ser un sistema profesional preparado para crecer.
+
+---
+
+# IMPORTANTE
+
+Antes de escribir código:
+
+• Analiza completamente el proyecto existente.
+• Reutiliza componentes existentes.
+• Mantén la arquitectura actual.
+• No rompas funcionalidades existentes.
+• Mantén consistencia con Productos, Proveedores y Compras.
+
+---
+
+# OBJETIVO
+
+Construir el módulo profesional de Inventario.
+
+---
+
+# FUNCIONALIDADES
+
+Debe permitir:
+
+✅ Consultar inventario
+
+✅ Buscar productos
+
+✅ Filtrar
+
+✅ Ordenar
+
+✅ Ver movimientos
+
+✅ Ajustes manuales
+
+✅ Entradas
+
+✅ Salidas
+
+✅ Transferencias
+
+---
+
+# STOCK
+
+Cada producto tendrá:
+
+Stock actual
+
+Stock reservado
+
+Stock disponible
+
+Stock mínimo
+
+Stock máximo
+
+Stock en tránsito
+
+Stock comprometido
+
+---
+
+# MOVIMIENTOS
+
+Registrar automáticamente:
+
+Entradas
+
+Salidas
+
+Compras
+
+Ventas
+
+Devoluciones
+
+Ajustes
+
+Transferencias
+
+Cada movimiento debe guardar:
+
+Fecha
+
+Usuario
+
+Motivo
+
+Documento relacionado
+
+Cantidad
+
+Stock antes
+
+Stock después
+
+---
+
+# UBICACIONES
+
+Preparar el sistema para múltiples almacenes.
+
+Cada producto podrá existir en:
+
+Bodega Principal
+
+Bodega Secundaria
+
+En tránsito
+
+Proveedor
+
+Cliente
+
+---
+
+# ALERTAS
+
+El sistema debe generar alertas para:
+
+Stock mínimo
+
+Stock agotado
+
+Stock negativo
+
+Productos sin movimiento
+
+Productos próximos a agotarse
+
+---
+
+# KARDEX
+
+Implementar historial completo de movimientos.
+
+Debe poder visualizar:
+
+Fecha
+
+Tipo
+
+Documento
+
+Cantidad
+
+Saldo
+
+Usuario
+
+---
+
+# DASHBOARD
+
+Mostrar:
+
+Productos con bajo stock
+
+Productos agotados
+
+Productos más vendidos
+
+Productos con mayor rotación
+
+Productos sin movimiento
+
+Entradas recientes
+
+Salidas recientes
+
+---
+
+# REPORTES
+
+Preparar reportes para:
+
+Existencias
+
+Movimientos
+
+Valor del inventario
+
+Rotación
+
+Historial
+
+---
+
+# EXPERIENCIA
+
+Interfaz moderna.
+
+Muy rápida.
+
+Escalable.
+
+Reutilizar componentes existentes.
+
+---
+
+# VALIDACIONES
+
+React Hook Form
+
+Zod
+
+TypeScript estricto
+
+---
+
+# BASE DE DATOS
+
+Si Prisma requiere modificaciones:
+
+Aplicarlas siguiendo buenas prácticas.
+
+Mantener relaciones limpias.
+
+Preparar relaciones con:
+
+Productos
+
+Compras
+
+Ventas
+
+Pedidos
+
+Dashboard
+
+---
+
+# CÓDIGO
+
+Separar correctamente:
+
+UI
+
+Actions
+
+Services
+
+Hooks
+
+Schemas
+
+Types
+
+Utils
+
+No crear archivos gigantes.
+
+No duplicar lógica.
+
+---
+
+# DOCUMENTACIÓN
+
+Al finalizar explicar:
+
+Archivos creados.
+
+Archivos modificados.
+
+Relaciones nuevas.
+
+Decisiones arquitectónicas.
+
+Mejoras futuras.
+
+---
+
+# IMPORTANTE
+
+NO desarrollar todavía:
+
+Ventas
+
+Clientes
+
+Finanzas
+
+Marketing
+
+NAIOS
+
+Solo desarrollar el módulo profesional de Inventario. # CONTEXTO
+
+Actúa como un CTO, Product Designer, UX Architect y Staff Software Engineer con más de 20 años de experiencia desarrollando ERP de clase mundial como SAP S/4HANA, Oracle NetSuite, Microsoft Dynamics, Monday.com, Linear y Shopify Plus.
+
+Estás desarrollando NEXORA.
+
+NEXORA es una plataforma inteligente para administrar empresas de comercio electrónico e importaciones.
+
+Este Dashboard será el CENTRO DE CONTROL de toda la plataforma.
+
+NO es un dashboard básico.
+
+Debe sentirse como el panel principal de una empresa multimillonaria.
+
+Debe ser extremadamente limpio, moderno, rápido y profesional.
+
+---
+
+# IMPORTANTE
+
+Antes de escribir código:
+
+• Analiza completamente el proyecto.
+• Reutiliza componentes existentes.
+• No rompas funcionalidades.
+• Respeta la arquitectura.
+• Mantén consistencia visual.
+
+---
+
+# OBJETIVO
+
+Construir el Dashboard Ejecutivo de NEXORA.
+
+Será la primera pantalla que verá el CEO al iniciar sesión.
+
+Toda la empresa debe poder monitorearse desde aquí.
+
+---
+
+# DISEÑO
+
+Inspirarse en:
+
+Stripe Dashboard
+
+Linear
+
+Notion
+
+Vercel
+
+Shopify Admin
+
+Monday
+
+Apple Human Interface
+
+El diseño debe ser minimalista.
+
+Mucho espacio.
+
+Pocas líneas.
+
+Excelente jerarquía visual.
+
+Dark Mode nativo.
+
+Preparar Light Mode.
+
+---
+
+# SECCIONES
+
+## KPIs
+
+Mostrar:
+
+Ventas del mes
+
+Compras del mes
+
+Utilidad
+
+Productos
+
+Proveedores
+
+Clientes
+
+Pedidos
+
+Inventario
+
+Productos agotados
+
+Productos críticos
+
+---
+
+## GRÁFICAS
+
+Ventas
+
+Compras
+
+Utilidad
+
+Inventario
+
+Rotación
+
+Ingresos
+
+Gastos
+
+---
+
+## INVENTARIO
+
+Productos críticos
+
+Stock bajo
+
+Stock agotado
+
+Últimos movimientos
+
+---
+
+## COMPRAS
+
+Últimas órdenes
+
+Órdenes pendientes
+
+Órdenes en tránsito
+
+Órdenes recibidas
+
+---
+
+## PROVEEDORES
+
+Mejores proveedores
+
+Proveedores inactivos
+
+Últimos proveedores agregados
+
+---
+
+## PRODUCTOS
+
+Productos más vendidos
+
+Productos con mayor utilidad
+
+Productos sin movimiento
+
+Productos nuevos
+
+---
+
+## ALERTAS
+
+Mostrar automáticamente:
+
+Stock bajo
+
+Pedidos pendientes
+
+Compras atrasadas
+
+Productos sin imágenes
+
+Productos sin proveedor
+
+Errores del sistema
+
+---
+
+## ACTIVIDAD RECIENTE
+
+Últimos movimientos realizados por usuarios.
+
+---
+
+## CALENDARIO
+
+Mostrar:
+
+Próximas entregas
+
+Pedidos
+
+Pagos
+
+Recordatorios
+
+---
+
+## NAIOS
+
+Reservar una sección completa para NAIOS.
+
+NO implementar IA todavía.
+
+Solo preparar el espacio.
+
+Ejemplo:
+
+"Buenos días Adrian"
+
+"Hoy tienes 3 productos con stock crítico."
+
+"2 proveedores aún no responden."
+
+"5 pedidos llegaron hoy."
+
+---
+
+# PERSONALIZACIÓN
+
+Cada usuario podrá:
+
+Mover widgets.
+
+Ocultarlos.
+
+Mostrar favoritos.
+
+Guardar layout.
+
+---
+
+# RENDIMIENTO
+
+Debe cargar muy rápido.
+
+Usar:
+
+Server Components
+
+Lazy Loading
+
+Suspense
+
+Optimización de consultas
+
+---
+
+# EXPERIENCIA
+
+El Dashboard debe sentirse premium.
+
+No sobrecargado.
+
+Muy limpio.
+
+Muy fluido.
+
+---
+
+# VALIDACIONES
+
+TypeScript estricto.
+
+No duplicar código.
+
+Separar:
+
+Widgets
+
+Cards
+
+Charts
+
+Hooks
+
+Services
+
+Actions
+
+Types
+
+Utils
+
+---
+
+# DOCUMENTACIÓN
+
+Al finalizar explicar:
+
+Archivos creados.
+
+Archivos modificados.
+
+Arquitectura utilizada.
+
+Decisiones tomadas.
+
+Mejoras futuras.
+
+---
+
+# IMPORTANTE
+
+NO desarrollar todavía:
+
+Clientes
+
+Ventas
+
+Finanzas
+
+Marketing
+
+NAIOS
+
+Solo construir el Dashboard Ejecutivo Profesional.  # CONTEXTO
+
+Actúa como un CTO, Product Architect y Senior Full Stack Developer con más de 20 años de experiencia desarrollando CRM y ERP empresariales similares a Salesforce, HubSpot, Zoho CRM, Odoo, SAP y Microsoft Dynamics.
+
+Estás desarrollando NEXORA.
+
+NEXORA es una plataforma inteligente para gestionar empresas de comercio electrónico, importaciones y ventas.
+
+El módulo CRM será el centro de toda la información relacionada con clientes.
+
+NO será un simple listado de clientes.
+
+Será un CRM profesional preparado para crecer.
+
+---
+
+# IMPORTANTE
+
+Antes de escribir código:
+
+• Analiza completamente el proyecto existente.
+• Reutiliza componentes existentes.
+• Respeta la arquitectura actual.
+• No rompas funcionalidades existentes.
+• Mantén consistencia con Productos, Proveedores, Compras e Inventario.
+
+---
+
+# OBJETIVO
+
+Construir un CRM profesional.
+
+---
+
+# FUNCIONALIDADES
+
+Debe permitir:
+
+✅ Crear clientes
+
+✅ Editar clientes
+
+✅ Eliminar clientes
+
+✅ Activar / Desactivar clientes
+
+✅ Buscar
+
+✅ Filtrar
+
+✅ Ordenar
+
+---
+
+# INFORMACIÓN DEL CLIENTE
+
+Cada cliente debe almacenar:
+
+Nombre
+
+Apellidos
+
+Empresa
+
+NIT
+
+Documento
+
+Correo
+
+Teléfono
+
+WhatsApp
+
+Dirección
+
+Ciudad
+
+Departamento
+
+País
+
+Código Postal
+
+Fecha de registro
+
+Estado
+
+Notas
+
+Etiquetas
+
+Origen del cliente
+
+Responsable comercial
+
+---
+
+# DIRECCIONES
+
+Permitir múltiples direcciones.
+
+Ejemplo:
+
+Casa
+
+Oficina
+
+Bodega
+
+Facturación
+
+Envíos
+
+---
+
+# HISTORIAL
+
+Guardar automáticamente:
+
+Pedidos
+
+Compras
+
+Pagos
+
+Conversaciones
+
+Cotizaciones
+
+Devoluciones
+
+Tickets
+
+---
+
+# FIDELIZACIÓN
+
+Preparar:
+
+Nivel
+
+Puntos
+
+Frecuencia
+
+Valor del cliente
+
+Última compra
+
+---
+
+# DASHBOARD DEL CLIENTE
+
+Mostrar:
+
+Información general
+
+Historial
+
+Pedidos
+
+Pagos
+
+Productos comprados
+
+Actividad
+
+---
+
+# VALIDACIONES
+
+React Hook Form
+
+Zod
+
+TypeScript estricto
+
+---
+
+# EXPERIENCIA
+
+Interfaz moderna.
+
+Muy rápida.
+
+Minimalista.
+
+Reutilizar componentes existentes.
+
+---
+
+# BASE DE DATOS
+
+Preparar relaciones futuras con:
+
+Ventas
+
+Facturación
+
+Pagos
+
+Marketing
+
+NAIOS
+
+---
+
+# CÓDIGO
+
+Separar correctamente:
+
+UI
+
+Services
+
+Actions
+
+Hooks
+
+Schemas
+
+Types
+
+Utils
+
+---
+
+# DOCUMENTACIÓN
+
+Explicar:
+
+Archivos creados.
+
+Archivos modificados.
+
+Arquitectura.
+
+Decisiones técnicas.
+
+Mejoras futuras.
+
+---
+
+# IMPORTANTE
+
+NO desarrollar todavía:
+
+Ventas
+
+Facturación
+
+Marketing
+
+NAIOS
+
+Solo construir el CRM profesional. # CONTEXTO
+
+Actúa como un CTO, Product Architect y Staff Software Engineer con más de 20 años de experiencia desarrollando plataformas empresariales como Shopify Plus, Salesforce Commerce Cloud, SAP S/4HANA, Oracle NetSuite y Microsoft Dynamics 365.
+
+Estás desarrollando NEXORA.
+
+NEXORA NO es simplemente una tienda online.
+
+Es un ERP inteligente para administrar empresas de comercio electrónico.
+
+Este módulo administrará TODO el ciclo comercial.
+
+Debe integrarse perfectamente con:
+
+• Productos
+
+• Inventario
+
+• Clientes
+
+• Compras
+
+• Dashboard
+
+• Finanzas (futuro)
+
+• NAIOS (futuro)
+
+---
+
+# IMPORTANTE
+
+Antes de escribir código:
+
+Analiza completamente el proyecto existente.
+
+Reutiliza componentes.
+
+Respeta la arquitectura.
+
+No rompas funcionalidades existentes.
+
+Mantén consistencia con todos los módulos anteriores.
+
+---
+
+# OBJETIVO
+
+Construir el módulo profesional de Ventas y Pedidos.
+
+---
+
+# FUNCIONALIDADES
+
+Debe permitir:
+
+✅ Crear pedido
+
+✅ Editar pedido
+
+✅ Cancelar pedido
+
+✅ Buscar
+
+✅ Filtrar
+
+✅ Duplicar pedido
+
+✅ Imprimir pedido
+
+✅ Exportar
+
+---
+
+# ESTADOS DEL PEDIDO
+
+Cada pedido tendrá estados.
+
+Ejemplo:
+
+Borrador
+
+Pendiente de pago
+
+Pagado
+
+Preparando
+
+Empacado
+
+Enviado
+
+Entregado
+
+Cancelado
+
+Devuelto
+
+Reembolsado
+
+Cada cambio debe registrarse automáticamente.
+
+---
+
+# INFORMACIÓN GENERAL
+
+Cada pedido contendrá:
+
+Número automático
+
+Cliente
+
+Dirección
+
+Fecha
+
+Moneda
+
+Método de pago
+
+Método de envío
+
+Responsable
+
+Notas
+
+Estado
+
+---
+
+# PRODUCTOS
+
+Cada pedido podrá contener múltiples productos.
+
+Cada producto tendrá:
+
+Producto
+
+Variante
+
+Cantidad
+
+Precio unitario
+
+Descuento
+
+Impuesto
+
+Subtotal
+
+Costo
+
+Margen
+
+---
+
+# CÁLCULOS
+
+El sistema calculará automáticamente:
+
+Subtotal
+
+Descuentos
+
+Impuestos
+
+Costo de envío
+
+Costo total
+
+Utilidad
+
+Margen
+
+---
+
+# PAGOS
+
+Preparar soporte para:
+
+Pago pendiente
+
+Pago parcial
+
+Pago completo
+
+Reembolso
+
+Historial de pagos
+
+---
+
+# ENVÍOS
+
+Guardar:
+
+Empresa transportadora
+
+Número de guía
+
+Tracking
+
+Estado
+
+Fecha de envío
+
+Fecha de entrega
+
+---
+
+# DEVOLUCIONES
+
+Preparar módulo para:
+
+Solicitudes
+
+Aprobación
+
+Reembolso
+
+Cambio
+
+Reposición
+
+---
+
+# HISTORIAL
+
+Registrar automáticamente:
+
+Creación
+
+Ediciones
+
+Cambio de estado
+
+Pagos
+
+Productos agregados
+
+Productos eliminados
+
+Comentarios
+
+---
+
+# DASHBOARD
+
+Cada pedido tendrá:
+
+Resumen
+
+Cliente
+
+Productos
+
+Pagos
+
+Envío
+
+Historial
+
+Documentos
+
+---
+
+# DOCUMENTOS
+
+Generar:
+
+Cotización
+
+Pedido
+
+Factura (preparado)
+
+Recibo
+
+Guía
+
+---
+
+# VALIDACIONES
+
+React Hook Form
+
+Zod
+
+TypeScript estricto
+
+---
+
+# EXPERIENCIA
+
+Interfaz moderna
+
+Minimalista
+
+Muy rápida
+
+Preparada para miles de pedidos
+
+---
+
+# BASE DE DATOS
+
+Preparar relaciones con:
+
+Clientes
+
+Productos
+
+Inventario
+
+Finanzas
+
+Dashboard
+
+NAIOS
+
+---
+
+# CÓDIGO
+
+Separar correctamente:
+
+UI
+
+Services
+
+Actions
+
+Hooks
+
+Schemas
+
+Types
+
+Utils
+
+No duplicar lógica.
+
+No crear archivos gigantes.
+
+---
+
+# DOCUMENTACIÓN
+
+Explicar:
+
+Archivos creados.
+
+Archivos modificados.
+
+Relaciones nuevas.
+
+Decisiones arquitectónicas.
+
+Mejoras futuras.
+
+---
+
+# IMPORTANTE
+
+NO desarrollar todavía:
+
+Finanzas
+
+Marketing
+
+NAIOS
+
+Solo construir el módulo profesional de Ventas y Pedidos.  # CONTEXTO
+
+Actúa como un CTO, ERP Software Architect, Financial Systems Engineer y Senior Full Stack Developer con más de 20 años de experiencia desarrollando plataformas financieras como SAP S/4HANA, Oracle NetSuite, Microsoft Dynamics 365, QuickBooks Enterprise y Odoo Enterprise.
+
+Estás desarrollando NEXORA.
+
+NEXORA es un ERP inteligente para empresas de comercio electrónico e importaciones.
+
+Este módulo será el responsable de controlar completamente la información financiera de la empresa.
+
+Debe integrarse perfectamente con:
+
+• Productos
+• Proveedores
+• Compras
+• Inventario
+• Clientes
+• Ventas
+• Dashboard
+• NAIOS (futuro)
+
+---
+
+# IMPORTANTE
+
+Antes de escribir código:
+
+• Analiza completamente el proyecto existente.
+• Reutiliza componentes existentes.
+• Mantén la arquitectura actual.
+• No rompas funcionalidades.
+• Mantén consistencia con todos los módulos desarrollados anteriormente.
+
+---
+
+# OBJETIVO
+
+Construir un módulo financiero profesional preparado para administrar todas las finanzas de la empresa.
+
+---
+
+# FUNCIONALIDADES
+
+Debe permitir:
+
+✅ Registrar ingresos
+
+✅ Registrar gastos
+
+✅ Registrar pagos
+
+✅ Registrar cobros
+
+✅ Registrar movimientos bancarios
+
+✅ Registrar ajustes
+
+✅ Buscar
+
+✅ Filtrar
+
+✅ Exportar
+
+---
+
+# INGRESOS
+
+Registrar:
+
+Ventas
+
+Ingresos manuales
+
+Otros ingresos
+
+Reembolsos recibidos
+
+Ingresos extraordinarios
+
+---
+
+# GASTOS
+
+Registrar:
+
+Compras
+
+Envíos
+
+Publicidad
+
+Servicios
+
+Nómina
+
+Comisiones
+
+Impuestos
+
+Otros gastos
+
+---
+
+# CUENTAS POR COBRAR
+
+Cada cuenta debe registrar:
+
+Cliente
+
+Monto
+
+Fecha
+
+Estado
+
+Saldo pendiente
+
+Historial de pagos
+
+---
+
+# CUENTAS POR PAGAR
+
+Registrar:
+
+Proveedor
+
+Monto
+
+Fecha
+
+Estado
+
+Pagos realizados
+
+Saldo pendiente
+
+---
+
+# CAJA
+
+Controlar:
+
+Caja principal
+
+Caja menor
+
+Entradas
+
+Salidas
+
+Saldo actual
+
+Historial
+
+---
+
+# CUENTAS BANCARIAS
+
+Permitir múltiples cuentas.
+
+Cada cuenta almacenará:
+
+Banco
+
+Número
+
+Moneda
+
+Saldo
+
+Movimientos
+
+Conciliaciones
+
+---
+
+# FLUJO DE CAJA
+
+Calcular automáticamente:
+
+Ingresos
+
+Gastos
+
+Balance
+
+Liquidez
+
+Flujo mensual
+
+Flujo anual
+
+---
+
+# UTILIDADES
+
+Calcular automáticamente:
+
+Ingresos
+
+Costo
+
+Utilidad Bruta
+
+Gastos Operativos
+
+Utilidad Neta
+
+Margen
+
+---
+
+# REPORTES
+
+Generar:
+
+Estado de Resultados
+
+Flujo de Caja
+
+Balance General
+
+Ingresos por período
+
+Gastos por período
+
+Utilidad por período
+
+Rentabilidad
+
+---
+
+# DASHBOARD
+
+Mostrar:
+
+Ingresos
+
+Gastos
+
+Utilidad
+
+Caja
+
+Bancos
+
+Cuentas por cobrar
+
+Cuentas por pagar
+
+Indicadores financieros
+
+---
+
+# VALIDACIONES
+
+React Hook Form
+
+Zod
+
+TypeScript estricto
+
+---
+
+# EXPERIENCIA
+
+Interfaz moderna
+
+Minimalista
+
+Muy rápida
+
+Preparada para miles de transacciones
+
+---
+
+# BASE DE DATOS
+
+Preparar relaciones con:
+
+Compras
+
+Ventas
+
+Clientes
+
+Proveedores
+
+Dashboard
+
+NAIOS
+
+---
+
+# CÓDIGO
+
+Separar correctamente:
+
+UI
+
+Actions
+
+Services
+
+Hooks
+
+Schemas
+
+Types
+
+Utils
+
+Nada de archivos gigantes.
+
+Nada de lógica duplicada.
+
+---
+
+# DOCUMENTACIÓN
+
+Al finalizar explicar:
+
+Archivos creados.
+
+Archivos modificados.
+
+Relaciones nuevas.
+
+Arquitectura utilizada.
+
+Mejoras futuras.
+
+---
+
+# IMPORTANTE
+
+NO desarrollar todavía:
+
+Marketing
+
+Automatizaciones
+
+NAIOS
+
+Solo construir el módulo profesional de Finanzas y Contabilidad. # CONTEXTO
+
+Actúa como un CTO, Software Architect y Senior Automation Engineer con más de 20 años de experiencia desarrollando plataformas similares a Zapier, Make, n8n, HubSpot Workflows, Salesforce Flow y Microsoft Power Automate.
+
+Estás desarrollando NEXORA.
+
+NEXORA es un ERP inteligente para empresas de comercio electrónico e importaciones.
+
+Este módulo permitirá automatizar procesos internos sin escribir código.
+
+Debe integrarse con TODOS los módulos existentes.
+
+---
+
+# IMPORTANTE
+
+Antes de escribir código:
+
+• Analiza completamente el proyecto.
+• Reutiliza componentes existentes.
+• No rompas funcionalidades.
+• Mantén la arquitectura actual.
+• Mantén consistencia con todo el sistema.
+
+---
+
+# OBJETIVO
+
+Construir un sistema profesional de Automatización de Procesos (Workflow Engine).
+
+Debe permitir crear reglas del tipo:
+
+SI ocurre X → ENTONCES ejecutar Y.
+
+---
+
+# FUNCIONALIDADES
+
+Debe permitir:
+
+✅ Crear automatización
+
+✅ Editar automatización
+
+✅ Activar
+
+✅ Desactivar
+
+✅ Duplicar
+
+✅ Probar
+
+✅ Buscar
+
+✅ Filtrar
+
+---
+
+# DISPARADORES (TRIGGERS)
+
+Permitir iniciar flujos cuando ocurra alguno de estos eventos:
+
+Nuevo cliente
+
+Nuevo producto
+
+Nuevo proveedor
+
+Nueva compra
+
+Nueva venta
+
+Cambio de stock
+
+Pago recibido
+
+Pedido enviado
+
+Pedido entregado
+
+Producto agotado
+
+Proveedor agregado
+
+Inicio de sesión
+
+Fecha programada
+
+Hora programada
+
+Webhook recibido
+
+---
+
+# CONDICIONES
+
+Permitir reglas como:
+
+Mayor que
+
+Menor que
+
+Igual
+
+Distinto
+
+Contiene
+
+No contiene
+
+Vacío
+
+No vacío
+
+Y (AND)
+
+O (OR)
+
+---
+
+# ACCIONES
+
+Permitir ejecutar acciones como:
+
+Enviar correo
+
+Enviar WhatsApp (preparado)
+
+Crear tarea
+
+Actualizar registro
+
+Cambiar estado
+
+Crear notificación
+
+Generar reporte
+
+Crear pedido
+
+Crear compra
+
+Mover inventario
+
+Llamar API
+
+Ejecutar Webhook
+
+Esperar tiempo
+
+---
+
+# EDITOR VISUAL
+
+Crear un constructor visual tipo drag & drop.
+
+El usuario debe poder conectar:
+
+Trigger
+
+Condición
+
+Acción
+
+Acción
+
+Acción
+
+Final
+
+---
+
+# PLANTILLAS
+
+Incluir plantillas listas para usar.
+
+Ejemplos:
+
+Stock bajo
+
+Cliente nuevo
+
+Proveedor nuevo
+
+Pedido entregado
+
+Pago recibido
+
+Compra completada
+
+---
+
+# EJECUCIONES
+
+Guardar historial completo.
+
+Cada ejecución almacenará:
+
+Fecha
+
+Hora
+
+Estado
+
+Duración
+
+Errores
+
+Acciones ejecutadas
+
+Resultado
+
+---
+
+# REGISTRO DE ERRORES
+
+Registrar automáticamente:
+
+Error
+
+Módulo
+
+Hora
+
+Usuario
+
+Workflow
+
+Mensaje
+
+---
+
+# DASHBOARD
+
+Mostrar:
+
+Automatizaciones activas
+
+Automatizaciones inactivas
+
+Ejecuciones hoy
+
+Errores
+
+Flujos más utilizados
+
+---
+
+# VALIDACIONES
+
+React Hook Form
+
+Zod
+
+TypeScript estricto
+
+---
+
+# EXPERIENCIA
+
+Interfaz moderna
+
+Muy visual
+
+Minimalista
+
+Preparada para cientos de automatizaciones
+
+---
+
+# BASE DE DATOS
+
+Preparar relaciones con todos los módulos existentes.
+
+---
+
+# CÓDIGO
+
+Separar correctamente:
+
+UI
+
+Workflow Engine
+
+Actions
+
+Services
+
+Hooks
+
+Schemas
+
+Types
+
+Utils
+
+No duplicar lógica.
+
+No crear archivos gigantes.
+
+---
+
+# DOCUMENTACIÓN
+
+Al finalizar explicar:
+
+Archivos creados.
+
+Archivos modificados.
+
+Arquitectura.
+
+Motor de workflows.
+
+Mejoras futuras.
+
+---
+
+# IMPORTANTE
+
+NO implementar todavía:
+
+IA
+
+Predicciones
+
+Agentes inteligentes
+
+NAIOS
+
+Solo construir el motor profesional de Automatización y Workflows. # CONTEXTO
+
+Actúa como un CTO, AI Architect, Machine Learning Engineer y Senior Software Architect con más de 20 años de experiencia desarrollando sistemas de inteligencia artificial empresariales.
+
+Estás desarrollando NEXORA.
+
+NEXORA NO es solamente un ERP.
+
+NEXORA será una plataforma inteligente cuyo núcleo será NAIOS.
+
+NAIOS significa:
+
+NEXORA Artificial Intelligence Operating System.
+
+NAIOS NO es un chatbot.
+
+NO es un asistente.
+
+NO es un GPT integrado.
+
+NAIOS será el sistema operativo inteligente que supervisará toda la empresa.
+
+---
+
+# IMPORTANTE
+
+Antes de escribir código:
+
+Analiza completamente el proyecto.
+
+Analiza la arquitectura existente.
+
+No rompas ningún módulo.
+
+Respeta toda la arquitectura actual.
+
+No dupliques lógica.
+
+Reutiliza componentes existentes.
+
+---
+
+# OBJETIVO
+
+Construir el núcleo (Core) de NAIOS.
+
+Este módulo NO debe implementar todavía agentes especializados.
+
+Debe construir únicamente la infraestructura principal.
+
+---
+
+# RESPONSABILIDADES
+
+NAIOS deberá ser capaz de:
+
+• Leer información del ERP.
+
+• Analizar información.
+
+• Detectar eventos.
+
+• Generar recomendaciones.
+
+• Generar alertas.
+
+• Mantener memoria.
+
+• Comprender el contexto.
+
+• Coordinar agentes inteligentes.
+
+---
+
+# ARQUITECTURA
+
+Crear una arquitectura modular.
+
+Ejemplo:
+
+NAIOS Core
+
+├── Memory Engine
+
+├── Context Engine
+
+├── Prompt Engine
+
+├── Reasoning Engine
+
+├── Agent Manager
+
+├── Tools Manager
+
+├── Knowledge Base
+
+├── Notifications
+
+├── Scheduler
+
+└── Event Bus
+
+Cada módulo debe estar completamente desacoplado.
+
+---
+
+# MEMORY ENGINE
+
+Crear el sistema de memoria.
+
+Debe permitir:
+
+Memoria temporal
+
+Memoria permanente
+
+Preferencias
+
+Historial
+
+Contexto reciente
+
+Contexto histórico
+
+---
+
+# CONTEXT ENGINE
+
+Construir el motor encargado de entender:
+
+Qué usuario está trabajando.
+
+Qué módulo abrió.
+
+Qué empresa utiliza.
+
+Qué productos consulta.
+
+Qué proveedor revisa.
+
+Qué acción está realizando.
+
+---
+
+# AGENT MANAGER
+
+Preparar el sistema para administrar múltiples agentes IA.
+
+Todavía NO implementarlos.
+
+Solo construir la infraestructura.
+
+---
+
+# KNOWLEDGE BASE
+
+Crear la base de conocimiento.
+
+Debe poder almacenar:
+
+Documentos
+
+Reglas
+
+Procesos
+
+Manual de empresa
+
+Información técnica
+
+---
+
+# TOOLS MANAGER
+
+Preparar el sistema para conectar herramientas.
+
+Ejemplo:
+
+Base de datos
+
+Correos
+
+WhatsApp
+
+Calendario
+
+Archivos
+
+API
+
+---
+
+# EVENT BUS
+
+Preparar el sistema de eventos.
+
+Ejemplos:
+
+Producto agotado.
+
+Nueva compra.
+
+Venta realizada.
+
+Proveedor agregado.
+
+Pago recibido.
+
+---
+
+# NOTIFICACIONES
+
+Preparar un sistema inteligente de notificaciones.
+
+---
+
+# SCHEDULER
+
+Preparar un motor de tareas programadas.
+
+---
+
+# DASHBOARD
+
+Crear el panel principal de NAIOS.
+
+Mostrar:
+
+Estado
+
+Actividad
+
+Eventos
+
+Agentes activos
+
+Últimas recomendaciones
+
+Alertas
+
+---
+
+# EXPERIENCIA
+
+NAIOS debe sentirse como el cerebro de NEXORA.
+
+Minimalista.
+
+Muy elegante.
+
+Muy rápido.
+
+---
+
+# VALIDACIONES
+
+TypeScript estricto.
+
+Arquitectura limpia.
+
+Separación por dominios.
+
+Inyección de dependencias cuando sea apropiado.
+
+---
+
+# BASE DE DATOS
+
+Preparar las entidades necesarias para:
+
+Memoria
+
+Eventos
+
+Agentes
+
+Conversaciones
+
+Conocimiento
+
+Preferencias
+
+---
+
+# CÓDIGO
+
+Separar correctamente:
+
+Core
+
+Services
+
+Providers
+
+Agents
+
+Memory
+
+Context
+
+Tools
+
+Events
+
+Types
+
+Utils
+
+Hooks
+
+UI
+
+No crear archivos gigantes.
+
+No duplicar lógica.
+
+---
+
+# DOCUMENTACIÓN
+
+Al finalizar explicar:
+
+Arquitectura completa.
+
+Módulos creados.
+
+Flujo interno.
+
+Decisiones arquitectónicas.
+
+Cómo crecerá NAIOS en el futuro.
+
+---
+
+# IMPORTANTE
+
+NO implementar todavía:
+
+Agente Financiero
+
+Agente Compras
+
+Agente Inventario
+
+Agente Marketing
+
+Agente CEO
+
+Agente Comercial
+
+Agente Logístico
+
+Agente Proveedores
+
+Solo construir la infraestructura central de NAIOS. 

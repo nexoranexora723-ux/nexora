@@ -133,48 +133,62 @@ model Category {
   createdAt   DateTime   @default(now()) @map("created_at")
   updatedAt   DateTime   @updatedAt @map("updated_at")
 
-  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
-  children Category[] @relation("CategoryTree")
-  products Product[]
+  parent        Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children      Category[] @relation("CategoryTree")
+  products      Product[]
+  subproducts   Product[] @relation("ProductSubcategory")
 
   @@map("categories")
 }
 
 model Product {
-  id             String   @id @default(cuid())
-  sku            String   @unique
-  name           String
-  description    String?
-  brandId        String?  @map("brand_id")
-  categoryId     String?  @map("category_id")
-  supplierId     String?  @map("supplier_id")
-  weight         Float?
-  material       String?
-  warranty       String?
-  purchasePrice  Float    @map("purchase_price")
-  salePrice      Float    @map("sale_price")
-  currencyCode   String   @default("USD") @map("currency_code")
-  status         String   @default("ACTIVE") // ACTIVE | INACTIVE | DISCONTINUED
-  imageUrl       String?  @map("image_url")
-  companyId      String   @map("company_id")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
-  deletedAt      DateTime? @map("deleted_at")
+  id              String   @id @default(cuid())
+  sku             String   @unique
+  internalCode    String?  @map("internal_code")
+  barcode         String?  @map("barcode")
+  name            String
+  description     String?
+  brandId         String?  @map("brand_id")
+  categoryId      String?  @map("category_id")
+  subcategoryId   String?  @map("subcategory_id")
+  supplierId      String?  @map("supplier_id")
+  weight          Float?
+  length          Float?
+  width           Float?
+  height          Float?
+  color           String?
+  material        String?
+  warranty        String?
+  countryOfOrigin String?  @map("country_of_origin")
+  tags            String?  // comma-separated
+  purchasePrice   Float    @map("purchase_price")
+  salePrice       Float    @map("sale_price")
+  currencyCode    String   @default("USD") @map("currency_code")
+  status          String   @default("ACTIVE") // ACTIVE | INACTIVE | DISCONTINUED
+  imageUrl        String?  @map("image_url")
+  companyId       String   @map("company_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  deletedAt       DateTime? @map("deleted_at")
 
   company       Company         @relation(fields: [companyId], references: [id])
   brand         Brand?          @relation(fields: [brandId], references: [id])
   category      Category?       @relation(fields: [categoryId], references: [id])
+  subcategory   Category?       @relation("ProductSubcategory", fields: [subcategoryId], references: [id])
   supplier      Supplier?       @relation(fields: [supplierId], references: [id])
   inventory     Inventory[]
   inventoryMovements InventoryMovement[]
   orderItems    OrderItem[]
   purchaseItems PurchaseOrderItem[]
   images        ProductImage[]
+  videos        ProductVideo[]
+  variants      ProductVariant[]
 
   @@index([companyId])
   @@index([brandId])
   @@index([categoryId])
   @@index([supplierId])
+  @@index([status])
   @@map("products")
 }
 
@@ -185,6 +199,7 @@ model ProductImage {
   url       String
   alt       String?
   position  Int      @default(0)
+  isPrimary Boolean  @default(false) @map("is_primary")
   createdAt DateTime @default(now()) @map("created_at")
 
   product Product @relation(fields: [productId], references: [id])
@@ -192,6 +207,46 @@ model ProductImage {
 
   @@index([productId])
   @@map("product_images")
+}
+
+model ProductVideo {
+  id        String   @id @default(cuid())
+  productId String   @map("product_id")
+  url       String
+  title     String?
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([productId])
+  @@map("product_videos")
+}
+
+model ProductVariant {
+  id          String   @id @default(cuid())
+  productId   String   @map("product_id")
+  sku         String   @unique
+  name        String
+  option1     String?  @map("option_1") // e.g. Color
+  value1      String?  @map("value_1")  // e.g. Negro
+  option2     String?  @map("option_2") // e.g. Talla
+  value2      String?  @map("value_2")  // e.g. M
+  option3     String?  @map("option_3") // e.g. Capacidad
+  value3      String?  @map("value_3")  // e.g. 128GB
+  price       Float
+  stock       Int      @default(0)
+  imageUrl    String?  @map("image_url")
+  weight      Float?
+  barcode     String?
+  status      String   @default("ACTIVE") // ACTIVE | INACTIVE
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([productId])
+  @@map("product_variants")
 }
 
 // ============================================================================

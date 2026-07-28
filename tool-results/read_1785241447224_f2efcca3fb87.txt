@@ -1,0 +1,2002 @@
+     1→     1→# CONTEXTO
+     2→     2→
+     3→     3→Actúa como un Staff Software Engineer, Software Architect y Senior Full Stack Developer con más de 20 años de experiencia desarrollando ERP, CRM y plataformas SaaS empresariales.
+     4→     4→
+     5→     5→Estás trabajando en NEXORA.
+     6→     6→
+     7→     7→NEXORA NO es una tienda online.
+     8→     8→
+     9→     9→NEXORA es una plataforma inteligente para gestionar empresas de comercio electrónico.
+    10→    10→
+    11→    11→La calidad del código debe ser equivalente a empresas como Shopify, Stripe, Notion o Linear.
+    12→    12→
+    13→    13→---
+    14→    14→
+    15→    15→# IMPORTANTE
+    16→    16→
+    17→    17→Antes de escribir código:
+    18→    18→
+    19→    19→• Analiza completamente el proyecto existente.
+    20→    20→• Reutiliza componentes existentes siempre que sea posible.
+    21→    21→• Respeta la arquitectura actual del proyecto.
+    22→    22→• No rompas funcionalidades existentes.
+    23→    23→• No elimines archivos innecesariamente.
+    24→    24→• No cambies el stack tecnológico.
+    25→    25→
+    26→    26→---
+    27→    27→
+    28→    28→# OBJETIVO
+    29→    29→
+    30→    30→Construir el módulo profesional de Gestión de Productos.
+    31→    31→
+    32→    32→Este módulo será la base del ERP.
+    33→    33→
+    34→    34→Todo el inventario, compras, ventas, NAIOS y proveedores dependerán de este módulo.
+    35→    35→
+    36→    36→---
+    37→    37→
+    38→    38→# FUNCIONALIDADES
+    39→    39→
+    40→    40→El módulo debe permitir:
+    41→    41→
+    42→    42→✅ Crear productos
+    43→    43→
+    44→    44→✅ Editar productos
+    45→    45→
+    46→    46→✅ Eliminar productos
+    47→    47→
+    48→    48→✅ Activar o desactivar productos
+    49→    49→
+    50→    50→✅ Buscar productos
+    51→    51→
+    52→    52→✅ Filtrar productos
+    53→    53→
+    54→    54→✅ Ordenar productos
+    55→    55→
+    56→    56→✅ Vista tipo tabla
+    57→    57→
+    58→    58→✅ Vista tipo tarjetas
+    59→    59→
+    60→    60→---
+    61→    61→
+    62→    62→# INFORMACIÓN DEL PRODUCTO
+    63→    63→
+    64→    64→Cada producto debe contener como mínimo:
+    65→    65→
+    66→    66→• Nombre
+    67→    67→
+    68→    68→• SKU
+    69→    69→
+    70→    70→• Código interno
+    71→    71→
+    72→    72→• Código de barras (opcional)
+    73→    73→
+    74→    74→• Categoría
+    75→    75→
+    76→    76→• Subcategoría
+    77→    77→
+    78→    78→• Marca
+    79→    79→
+    80→    80→• Descripción
+    81→    81→
+    82→    82→• Precio de compra
+    83→    83→
+    84→    84→• Precio de venta
+    85→    85→
+    86→    86→• Margen de ganancia
+    87→    87→
+    88→    88→• Stock actual
+    89→    89→
+    90→    90→• Stock mínimo
+    91→    91→
+    92→    92→• Estado
+    93→    93→
+    94→    94→• Peso
+    95→    95→
+    96→    96→• Dimensiones
+    97→    97→
+    98→    98→• Color
+    99→    99→
+   100→   100→• Material
+   101→   101→
+   102→   102→• Garantía
+   103→   103→
+   104→   104→• País de origen
+   105→   105→
+   106→   106→• Etiquetas
+   107→   107→
+   108→   108→• Fecha de creación
+   109→   109→
+   110→   110→• Fecha de actualización
+   111→   111→
+   112→   112→---
+   113→   113→
+   114→   114→# MULTIMEDIA
+   115→   115→
+   116→   116→Cada producto debe soportar:
+   117→   117→
+   118→   118→• Varias imágenes
+   119→   119→
+   120→   120→• Video
+   121→   121→
+   122→   122→• Imagen principal
+   123→   123→
+   124→   124→• Orden de imágenes
+   125→   125→
+   126→   126→---
+   127→   127→
+   128→   128→# VARIANTES
+   129→   129→
+   130→   130→Debe soportar variantes.
+   131→   131→
+   132→   132→Ejemplo:
+   133→   133→
+   134→   134→Color
+   135→   135→
+   136→   136→Talla
+   137→   137→
+   138→   138→Capacidad
+   139→   139→
+   140→   140→Modelo
+   141→   141→
+   142→   142→Versión
+   143→   143→
+   144→   144→Cada variante tendrá:
+   145→   145→
+   146→   146→SKU
+   147→   147→
+   148→   148→Stock
+   149→   149→
+   150→   150→Precio
+   151→   151→
+   152→   152→Imagen
+   153→   153→
+   154→   154→---
+   155→   155→
+   156→   156→# EXPERIENCIA DE USUARIO
+   157→   157→
+   158→   158→La interfaz debe sentirse moderna.
+   159→   159→
+   160→   160→Debe usar los componentes existentes del proyecto.
+   161→   161→
+   162→   162→No crear componentes duplicados.
+   163→   163→
+   164→   164→---
+   165→   165→
+   166→   166→# VALIDACIONES
+   167→   167→
+   168→   168→Usar:
+   169→   169→
+   170→   170→Zod
+   171→   171→
+   172→   172→React Hook Form
+   173→   173→
+   174→   174→TypeScript estricto
+   175→   175→
+   176→   176→---
+   177→   177→
+   178→   178→# BASE DE DATOS
+   179→   179→
+   180→   180→Si es necesario modificar Prisma:
+   181→   181→
+   182→   182→Hazlo siguiendo buenas prácticas.
+   183→   183→
+   184→   184→No rompas relaciones existentes.
+   185→   185→
+   186→   186→---
+   187→   187→
+   188→   188→# SEGURIDAD
+   189→   189→
+   190→   190→Validar:
+   191→   191→
+   192→   192→Campos obligatorios
+   193→   193→
+   194→   194→Duplicados
+   195→   195→
+   196→   196→SKU repetidos
+   197→   197→
+   198→   198→Errores
+   199→   199→
+   200→   200→---
+   201→   201→
+   202→   202→# RENDIMIENTO
+   203→   203→
+   204→   204→Usar:
+   205→   205→
+   206→   206→Server Components cuando sea posible
+   207→   207→
+   208→   208→Client Components solo cuando sean necesarios
+   209→   209→
+   210→   210→Lazy Loading donde aplique
+   211→   211→
+   212→   212→---
+   213→   213→
+   214→   214→# CÓDIGO
+   215→   215→
+   216→   216→Quiero:
+   217→   217→
+   218→   218→Código limpio
+   219→   219→
+   220→   220→Escalable
+   221→   221→
+   222→   222→Modular
+   223→   223→
+   224→   224→Reutilizable
+   225→   225→
+   226→   226→Profesional
+   227→   227→
+   228→   228→Nada de archivos gigantes.
+   229→   229→
+   230→   230→Nada de funciones enormes.
+   231→   231→
+   232→   232→Separación correcta entre:
+   233→   233→
+   234→   234→UI
+   235→   235→
+   236→   236→Servicios
+   237→   237→
+   238→   238→Acciones
+   239→   239→
+   240→   240→Tipos
+   241→   241→
+   242→   242→Validaciones
+   243→   243→
+   244→   244→---
+   245→   245→
+   246→   246→# DOCUMENTACIÓN
+   247→   247→
+   248→   248→Al finalizar explica:
+   249→   249→
+   250→   250→Qué archivos fueron creados.
+   251→   251→
+   252→   252→Qué archivos fueron modificados.
+   253→   253→
+   254→   254→Por qué.
+   255→   255→
+   256→   256→Qué decisiones arquitectónicas tomaste.
+   257→   257→
+   258→   258→Qué mejoras futuras recomiendas.
+   259→   259→
+   260→   260→---
+   261→   261→
+   262→   262→# IMPORTANTE
+   263→   263→
+   264→   264→No hagas todavía:
+   265→   265→
+   266→   266→Compras
+   267→   267→
+   268→   268→Inventario
+   269→   269→
+   270→   270→Ventas
+   271→   271→
+   272→   272→Clientes
+   273→   273→
+   274→   274→Proveedores
+   275→   275→
+   276→   276→NAIOS
+   277→   277→
+   278→   278→Solo desarrolla el módulo profesional de Productos.  # CONTEXTO
+   279→   279→
+   280→   280→Actúa como un Software Architect, CTO y Senior Full Stack Developer con más de 20 años de experiencia desarrollando ERP empresariales y plataformas de comercio internacional.
+   281→   281→
+   282→   282→Estás desarrollando NEXORA.
+   283→   283→
+   284→   284→NEXORA es una plataforma inteligente para gestionar negocios de comercio electrónico, importaciones y proveedores internacionales.
+   285→   285→
+   286→   286→Este módulo será el centro de todas las compras de la empresa.
+   287→   287→
+   288→   288→NO es una agenda de contactos.
+   289→   289→
+   290→   290→NO es un CRM.
+   291→   291→
+   292→   292→Es un sistema profesional para administrar proveedores nacionales e internacionales.
+   293→   293→
+   294→   294→---
+   295→   295→
+   296→   296→# IMPORTANTE
+   297→   297→
+   298→   298→Antes de escribir código:
+   299→   299→
+   300→   300→• Analiza completamente el proyecto existente.
+   301→   301→• Reutiliza componentes existentes.
+   302→   302→• Respeta la arquitectura del proyecto.
+   303→   303→• No rompas funcionalidades existentes.
+   304→   304→• No elimines archivos innecesariamente.
+   305→   305→• Mantén consistencia con el módulo Productos.
+   306→   306→
+   307→   307→---
+   308→   308→
+   309→   309→# OBJETIVO
+   310→   310→
+   311→   311→Construir el módulo profesional de Gestión de Proveedores.
+   312→   312→
+   313→   313→Todo el sistema de compras dependerá de este módulo.
+   314→   314→
+   315→   315→---
+   316→   316→
+   317→   317→# FUNCIONALIDADES
+   318→   318→
+   319→   319→El sistema debe permitir:
+   320→   320→
+   321→   321→✅ Crear proveedor
+   322→   322→
+   323→   323→✅ Editar proveedor
+   324→   324→
+   325→   325→✅ Eliminar proveedor
+   326→   326→
+   327→   327→✅ Activar / Desactivar proveedor
+   328→   328→
+   329→   329→✅ Buscar proveedor
+   330→   330→
+   331→   331→✅ Filtrar proveedores
+   332→   332→
+   333→   333→✅ Vista tabla
+   334→   334→
+   335→   335→✅ Vista tarjetas
+   336→   336→
+   337→   337→---
+   338→   338→
+   339→   339→# INFORMACIÓN DEL PROVEEDOR
+   340→   340→
+   341→   341→Cada proveedor debe almacenar:
+   342→   342→
+   343→   343→• Nombre comercial
+   344→   344→
+   345→   345→• Nombre legal
+   346→   346→
+   347→   347→• Tipo (Fábrica / Trading Company)
+   348→   348→
+   349→   349→• País
+   350→   350→
+   351→   351→• Ciudad
+   352→   352→
+   353→   353→• Dirección
+   354→   354→
+   355→   355→• Sitio web
+   356→   356→
+   357→   357→• Yupoo
+   358→   358→
+   359→   359→• Alibaba
+   360→   360→
+   361→   361→• Made-in-China
+   362→   362→
+   363→   363→• 1688
+   364→   364→
+   365→   365→• WeChat
+   366→   366→
+   367→   367→• WhatsApp
+   368→   368→
+   369→   369→• Correo
+   370→   370→
+   371→   371→• Persona de contacto
+   372→   372→
+   373→   373→• Cargo
+   374→   374→
+   375→   375→• Idioma
+   376→   376→
+   377→   377→• Zona horaria
+   378→   378→
+   379→   379→• Años de experiencia
+   380→   380→
+   381→   381→• Países a los que exporta
+   382→   382→
+   383→   383→• MOQ
+   384→   384→
+   385→   385→• Batch o calidad disponible
+   386→   386→
+   387→   387→• Categorías que vende
+   388→   388→
+   389→   389→• Marcas disponibles
+   390→   390→
+   391→   391→• Tiempo de producción
+   392→   392→
+   393→   393→• Tiempo de envío
+   394→   394→
+   395→   395→• Métodos de envío
+   396→   396→
+   397→   397→• Métodos de pago
+   398→   398→
+   399→   399→• Garantía
+   400→   400→
+   401→   401→• Política de devoluciones
+   402→   402→
+   403→   403→• Observaciones
+   404→   404→
+   405→   405→• Estado
+   406→   406→
+   407→   407→---
+   408→   408→
+   409→   409→# ARCHIVOS
+   410→   410→
+   411→   411→Cada proveedor debe permitir almacenar:
+   412→   412→
+   413→   413→• Fotografías
+   414→   414→
+   415→   415→• Videos
+   416→   416→
+   417→   417→• Catálogos PDF
+   418→   418→
+   419→   419→• Listas de precios
+   420→   420→
+   421→   421→• Facturas
+   422→   422→
+   423→   423→• Proformas
+   424→   424→
+   425→   425→• Conversaciones
+   426→   426→
+   427→   427→---
+   428→   428→
+   429→   429→# CALIFICACIÓN
+   430→   430→
+   431→   431→Cada proveedor tendrá una puntuación.
+   432→   432→
+   433→   433→Ejemplo:
+   434→   434→
+   435→   435→Calidad
+   436→   436→
+   437→   437→Comunicación
+   438→   438→
+   439→   439→Precio
+   440→   440→
+   441→   441→Tiempo de entrega
+   442→   442→
+   443→   443→Empaque
+   444→   444→
+   445→   445→Garantía
+   446→   446→
+   447→   447→Servicio
+   448→   448→
+   449→   449→Cada criterio será calificable.
+   450→   450→
+   451→   451→El sistema calculará automáticamente una puntuación global.
+   452→   452→
+   453→   453→---
+   454→   454→
+   455→   455→# HISTORIAL
+   456→   456→
+   457→   457→Guardar automáticamente:
+   458→   458→
+   459→   459→• Compras realizadas
+   460→   460→
+   461→   461→• Productos cotizados
+   462→   462→
+   463→   463→• Cambios de precios
+   464→   464→
+   465→   465→• Conversaciones
+   466→   466→
+   467→   467→• Archivos enviados
+   468→   468→
+   469→   469→• Último contacto
+   470→   470→
+   471→   471→---
+   472→   472→
+   473→   473→# DASHBOARD DEL PROVEEDOR
+   474→   474→
+   475→   475→Cada proveedor tendrá una ficha completa mostrando:
+   476→   476→
+   477→   477→Información general
+   478→   478→
+   479→   479→Productos
+   480→   480→
+   481→   481→Compras
+   482→   482→
+   483→   483→Archivos
+   484→   484→
+   485→   485→Historial
+   486→   486→
+   487→   487→Calificaciones
+   488→   488→
+   489→   489→Estadísticas
+   490→   490→
+   491→   491→---
+   492→   492→
+   493→   493→# EXPERIENCIA DE USUARIO
+   494→   494→
+   495→   495→Debe sentirse como un ERP profesional.
+   496→   496→
+   497→   497→Usar los componentes existentes.
+   498→   498→
+   499→   499→No crear componentes duplicados.
+   500→   500→
+   501→   501→---
+   502→   502→
+   503→   503→# VALIDACIONES
+   504→   504→
+   505→   505→Usar:
+   506→   506→
+   507→   507→React Hook Form
+   508→   508→
+   509→   509→Zod
+   510→   510→
+   511→   511→TypeScript estricto
+   512→   512→
+   513→   513→---
+   514→   514→
+   515→   515→# BASE DE DATOS
+   516→   516→
+   517→   517→Si Prisma necesita cambios:
+   518→   518→
+   519→   519→Realizarlos siguiendo buenas prácticas.
+   520→   520→
+   521→   521→Mantener relaciones limpias.
+   522→   522→
+   523→   523→Preparar relaciones futuras con:
+   524→   524→
+   525→   525→Productos
+   526→   526→
+   527→   527→Compras
+   528→   528→
+   529→   529→Inventario
+   530→   530→
+   531→   531→Pedidos
+   532→   532→
+   533→   533→---
+   534→   534→
+   535→   535→# CÓDIGO
+   536→   536→
+   537→   537→Separar correctamente:
+   538→   538→
+   539→   539→UI
+   540→   540→
+   541→   541→Actions
+   542→   542→
+   543→   543→Services
+   544→   544→
+   545→   545→Hooks
+   546→   546→
+   547→   547→Schemas
+   548→   548→
+   549→   549→Types
+   550→   550→
+   551→   551→Utils
+   552→   552→
+   553→   553→No crear archivos gigantes.
+   554→   554→
+   555→   555→No duplicar lógica.
+   556→   556→
+   557→   557→---
+   558→   558→
+   559→   559→# DOCUMENTACIÓN
+   560→   560→
+   561→   561→Al finalizar explica:
+   562→   562→
+   563→   563→Qué archivos fueron creados.
+   564→   564→
+   565→   565→Qué archivos fueron modificados.
+   566→   566→
+   567→   567→Qué decisiones arquitectónicas tomaste.
+   568→   568→
+   569→   569→Qué mejoras futuras recomiendas.
+   570→   570→
+   571→   571→---
+   572→   572→
+   573→   573→# IMPORTANTE
+   574→   574→
+   575→   575→NO desarrollar todavía:
+   576→   576→
+   577→   577→Compras
+   578→   578→
+   579→   579→Inventario
+   580→   580→
+   581→   581→Pedidos
+   582→   582→
+   583→   583→Finanzas
+   584→   584→
+   585→   585→NAIOS
+   586→   586→
+   587→   587→Solo desarrollar el módulo profesional de Gestión de Proveedores.  # CONTEXTO
+   588→   588→
+   589→   589→Actúa como un Software Architect, CTO y Senior Full Stack Developer con más de 20 años de experiencia desarrollando ERP empresariales como SAP Business One, Odoo, Oracle NetSuite y Microsoft Dynamics.
+   590→   590→
+   591→   591→Estás desarrollando NEXORA.
+   592→   592→
+   593→   593→NEXORA es una plataforma inteligente para gestionar empresas de comercio electrónico e importaciones.
+   594→   594→
+   595→   595→Este módulo administrará TODO el ciclo de compras internacionales.
+   596→   596→
+   597→   597→Debe integrarse con:
+   598→   598→
+   599→   599→• Productos
+   600→   600→• Proveedores
+   601→   601→• Inventario
+   602→   602→• Finanzas (futuro)
+   603→   603→• NAIOS (futuro)
+   604→   604→
+   605→   605→---
+   606→   606→
+   607→   607→# IMPORTANTE
+   608→   608→
+   609→   609→Antes de escribir código:
+   610→   610→
+   611→   611→• Analiza completamente el proyecto.
+   612→   612→• Reutiliza componentes existentes.
+   613→   613→• Respeta la arquitectura actual.
+   614→   614→• No rompas funcionalidades existentes.
+   615→   615→• Mantén consistencia con Productos y Proveedores.
+   616→   616→
+   617→   617→---
+   618→   618→
+   619→   619→# OBJETIVO
+   620→   620→
+   621→   621→Construir un módulo profesional de Órdenes de Compra.
+   622→   622→
+   623→   623→Debe permitir administrar todo el proceso desde la cotización hasta la recepción de la mercancía.
+   624→   624→
+   625→   625→---
+   626→   626→
+   627→   627→# FUNCIONALIDADES
+   628→   628→
+   629→   629→El sistema debe permitir:
+   630→   630→
+   631→   631→✅ Crear Orden de Compra
+   632→   632→
+   633→   633→✅ Editar Orden
+   634→   634→
+   635→   635→✅ Cancelar Orden
+   636→   636→
+   637→   637→✅ Duplicar Orden
+   638→   638→
+   639→   639→✅ Buscar
+   640→   640→
+   641→   641→✅ Filtrar
+   642→   642→
+   643→   643→✅ Exportar
+   644→   644→
+   645→   645→---
+   646→   646→
+   647→   647→# ESTADOS
+   648→   648→
+   649→   649→Cada orden tendrá estados.
+   650→   650→
+   651→   651→Ejemplo:
+   652→   652→
+   653→   653→Borrador
+   654→   654→
+   655→   655→Cotizando
+   656→   656→
+   657→   657→Pendiente de pago
+   658→   658→
+   659→   659→Pagada
+   660→   660→
+   661→   661→En producción
+   662→   662→
+   663→   663→Lista para envío
+   664→   664→
+   665→   665→En tránsito
+   666→   666→
+   667→   667→En aduana
+   668→   668→
+   669→   669→Recibida
+   670→   670→
+   671→   671→Cancelada
+   672→   672→
+   673→   673→Cada cambio debe quedar registrado.
+   674→   674→
+   675→   675→---
+   676→   676→
+   677→   677→# INFORMACIÓN GENERAL
+   678→   678→
+   679→   679→Cada orden debe contener:
+   680→   680→
+   681→   681→Número automático
+   682→   682→
+   683→   683→Proveedor
+   684→   684→
+   685→   685→Fecha
+   686→   686→
+   687→   687→Moneda
+   688→   688→
+   689→   689→Responsable
+   690→   690→
+   691→   691→Incoterm
+   692→   692→
+   693→   693→Método de pago
+   694→   694→
+   695→   695→Método de envío
+   696→   696→
+   697→   697→Observaciones
+   698→   698→
+   699→   699→Estado
+   700→   700→
+   701→   701→---
+   702→   702→
+   703→   703→# PRODUCTOS
+   704→   704→
+   705→   705→Cada orden podrá contener múltiples productos.
+   706→   706→
+   707→   707→Cada producto tendrá:
+   708→   708→
+   709→   709→Producto
+   710→   710→
+   711→   711→Variante
+   712→   712→
+   713→   713→Cantidad
+   714→   714→
+   715→   715→Costo unitario
+   716→   716→
+   717→   717→Descuento
+   718→   718→
+   719→   719→Subtotal
+   720→   720→
+   721→   721→Peso
+   722→   722→
+   723→   723→Observaciones
+   724→   724→
+   725→   725→---
+   726→   726→
+   727→   727→# COSTOS
+   728→   728→
+   729→   729→La orden debe calcular automáticamente:
+   730→   730→
+   731→   731→Subtotal
+   732→   732→
+   733→   733→Descuentos
+   734→   734→
+   735→   735→Costo de envío
+   736→   736→
+   737→   737→Seguro
+   738→   738→
+   739→   739→Impuestos
+   740→   740→
+   741→   741→Otros costos
+   742→   742→
+   743→   743→Costo total
+   744→   744→
+   745→   745→Costo promedio por unidad
+   746→   746→
+   747→   747→---
+   748→   748→
+   749→   749→# DOCUMENTOS
+   750→   750→
+   751→   751→Cada orden podrá almacenar:
+   752→   752→
+   753→   753→Factura
+   754→   754→
+   755→   755→Proforma
+   756→   756→
+   757→   757→Packing List
+   758→   758→
+   759→   759→Bill of Lading
+   760→   760→
+   761→   761→Guía
+   762→   762→
+   763→   763→Comprobantes
+   764→   764→
+   765→   765→Archivos PDF
+   766→   766→
+   767→   767→Imágenes
+   768→   768→
+   769→   769→Videos
+   770→   770→
+   771→   771→---
+   772→   772→
+   773→   773→# TRACKING
+   774→   774→
+   775→   775→Cada compra podrá almacenar:
+   776→   776→
+   777→   777→Empresa logística
+   778→   778→
+   779→   779→Número de guía
+   780→   780→
+   781→   781→Tracking
+   782→   782→
+   783→   783→Fecha de envío
+   784→   784→
+   785→   785→Fecha estimada
+   786→   786→
+   787→   787→Fecha real
+   788→   788→
+   789→   789→Estado logístico
+   790→   790→
+   791→   791→---
+   792→   792→
+   793→   793→# HISTORIAL
+   794→   794→
+   795→   795→Registrar automáticamente:
+   796→   796→
+   797→   797→Quién creó la orden
+   798→   798→
+   799→   799→Quién la modificó
+   800→   800→
+   801→   801→Cuándo
+   802→   802→
+   803→   803→Cambios realizados
+   804→   804→
+   805→   805→Cambio de estado
+   806→   806→
+   807→   807→Archivos agregados
+   808→   808→
+   809→   809→---
+   810→   810→
+   811→   811→# DASHBOARD
+   812→   812→
+   813→   813→Cada orden tendrá:
+   814→   814→
+   815→   815→Resumen
+   816→   816→
+   817→   817→Productos
+   818→   818→
+   819→   819→Costos
+   820→   820→
+   821→   821→Archivos
+   822→   822→
+   823→   823→Tracking
+   824→   824→
+   825→   825→Historial
+   826→   826→
+   827→   827→Proveedor
+   828→   828→
+   829→   829→---
+   830→   830→
+   831→   831→# VALIDACIONES
+   832→   832→
+   833→   833→React Hook Form
+   834→   834→
+   835→   835→Zod
+   836→   836→
+   837→   837→TypeScript estricto
+   838→   838→
+   839→   839→---
+   840→   840→
+   841→   841→# BASE DE DATOS
+   842→   842→
+   843→   843→Si Prisma necesita modificaciones:
+   844→   844→
+   845→   845→Realízalas siguiendo buenas prácticas.
+   846→   846→
+   847→   847→Preparar relaciones con:
+   848→   848→
+   849→   849→Productos
+   850→   850→
+   851→   851→Proveedores
+   852→   852→
+   853→   853→Inventario
+   854→   854→
+   855→   855→Finanzas
+   856→   856→
+   857→   857→---
+   858→   858→
+   859→   859→# EXPERIENCIA
+   860→   860→
+   861→   861→Interfaz moderna.
+   862→   862→
+   863→   863→Muy rápida.
+   864→   864→
+   865→   865→Orientada a productividad.
+   866→   866→
+   867→   867→Reutilizar componentes existentes.
+   868→   868→
+   869→   869→---
+   870→   870→
+   871→   871→# CÓDIGO
+   872→   872→
+   873→   873→Separar correctamente:
+   874→   874→
+   875→   875→UI
+   876→   876→
+   877→   877→Services
+   878→   878→
+   879→   879→Actions
+   880→   880→
+   881→   881→Hooks
+   882→   882→
+   883→   883→Schemas
+   884→   884→
+   885→   885→Types
+   886→   886→
+   887→   887→Utils
+   888→   888→
+   889→   889→Nada de archivos gigantes.
+   890→   890→
+   891→   891→Nada de lógica duplicada.
+   892→   892→
+   893→   893→---
+   894→   894→
+   895→   895→# DOCUMENTACIÓN
+   896→   896→
+   897→   897→Al finalizar explica:
+   898→   898→
+   899→   899→Qué archivos fueron creados.
+   900→   900→
+   901→   901→Qué archivos fueron modificados.
+   902→   902→
+   903→   903→Qué relaciones nuevas fueron creadas.
+   904→   904→
+   905→   905→Qué mejoras futuras recomienda.
+   906→   906→
+   907→   907→---
+   908→   908→
+   909→   909→# IMPORTANTE
+   910→   910→
+   911→   911→NO desarrollar todavía:
+   912→   912→
+   913→   913→Inventario
+   914→   914→
+   915→   915→Ventas
+   916→   916→
+   917→   917→Clientes
+   918→   918→
+   919→   919→Finanzas
+   920→   920→
+   921→   921→NAIOS
+   922→   922→
+   923→   923→Solo desarrollar el módulo profesional de Compras.   # CONTEXTO
+   924→   924→
+   925→   925→Actúa como un CTO, Software Architect y Senior ERP Engineer con más de 20 años de experiencia desarrollando sistemas como SAP S/4HANA, Oracle NetSuite, Odoo y Microsoft Dynamics 365.
+   926→   926→
+   927→   927→Estás desarrollando NEXORA.
+   928→   928→
+   929→   929→NEXORA es una plataforma inteligente para administrar empresas de comercio electrónico e importaciones.
+   930→   930→
+   931→   931→Este módulo será el centro de control del inventario.
+   932→   932→
+   933→   933→Debe integrarse con:
+   934→   934→
+   935→   935→• Productos
+   936→   936→• Proveedores
+   937→   937→• Compras
+   938→   938→• Ventas (futuro)
+   939→   939→• Dashboard
+   940→   940→• NAIOS (futuro)
+   941→   941→
+   942→   942→NO es un inventario básico.
+   943→   943→
+   944→   944→Debe ser un sistema profesional preparado para crecer.
+   945→   945→
+   946→   946→---
+   947→   947→
+   948→   948→# IMPORTANTE
+   949→   949→
+   950→   950→Antes de escribir código:
+   951→   951→
+   952→   952→• Analiza completamente el proyecto existente.
+   953→   953→• Reutiliza componentes existentes.
+   954→   954→• Mantén la arquitectura actual.
+   955→   955→• No rompas funcionalidades existentes.
+   956→   956→• Mantén consistencia con Productos, Proveedores y Compras.
+   957→   957→
+   958→   958→---
+   959→   959→
+   960→   960→# OBJETIVO
+   961→   961→
+   962→   962→Construir el módulo profesional de Inventario.
+   963→   963→
+   964→   964→---
+   965→   965→
+   966→   966→# FUNCIONALIDADES
+   967→   967→
+   968→   968→Debe permitir:
+   969→   969→
+   970→   970→✅ Consultar inventario
+   971→   971→
+   972→   972→✅ Buscar productos
+   973→   973→
+   974→   974→✅ Filtrar
+   975→   975→
+   976→   976→✅ Ordenar
+   977→   977→
+   978→   978→✅ Ver movimientos
+   979→   979→
+   980→   980→✅ Ajustes manuales
+   981→   981→
+   982→   982→✅ Entradas
+   983→   983→
+   984→   984→✅ Salidas
+   985→   985→
+   986→   986→✅ Transferencias
+   987→   987→
+   988→   988→---
+   989→   989→
+   990→   990→# STOCK
+   991→   991→
+   992→   992→Cada producto tendrá:
+   993→   993→
+   994→   994→Stock actual
+   995→   995→
+   996→   996→Stock reservado
+   997→   997→
+   998→   998→Stock disponible
+   999→   999→
+  1000→  1000→Stock mínimo
+  1001→  1001→
+  1002→  1002→Stock máximo
+  1003→  1003→
+  1004→  1004→Stock en tránsito
+  1005→  1005→
+  1006→  1006→Stock comprometido
+  1007→  1007→
+  1008→  1008→---
+  1009→  1009→
+  1010→  1010→# MOVIMIENTOS
+  1011→  1011→
+  1012→  1012→Registrar automáticamente:
+  1013→  1013→
+  1014→  1014→Entradas
+  1015→  1015→
+  1016→  1016→Salidas
+  1017→  1017→
+  1018→  1018→Compras
+  1019→  1019→
+  1020→  1020→Ventas
+  1021→  1021→
+  1022→  1022→Devoluciones
+  1023→  1023→
+  1024→  1024→Ajustes
+  1025→  1025→
+  1026→  1026→Transferencias
+  1027→  1027→
+  1028→  1028→Cada movimiento debe guardar:
+  1029→  1029→
+  1030→  1030→Fecha
+  1031→  1031→
+  1032→  1032→Usuario
+  1033→  1033→
+  1034→  1034→Motivo
+  1035→  1035→
+  1036→  1036→Documento relacionado
+  1037→  1037→
+  1038→  1038→Cantidad
+  1039→  1039→
+  1040→  1040→Stock antes
+  1041→  1041→
+  1042→  1042→Stock después
+  1043→  1043→
+  1044→  1044→---
+  1045→  1045→
+  1046→  1046→# UBICACIONES
+  1047→  1047→
+  1048→  1048→Preparar el sistema para múltiples almacenes.
+  1049→  1049→
+  1050→  1050→Cada producto podrá existir en:
+  1051→  1051→
+  1052→  1052→Bodega Principal
+  1053→  1053→
+  1054→  1054→Bodega Secundaria
+  1055→  1055→
+  1056→  1056→En tránsito
+  1057→  1057→
+  1058→  1058→Proveedor
+  1059→  1059→
+  1060→  1060→Cliente
+  1061→  1061→
+  1062→  1062→---
+  1063→  1063→
+  1064→  1064→# ALERTAS
+  1065→  1065→
+  1066→  1066→El sistema debe generar alertas para:
+  1067→  1067→
+  1068→  1068→Stock mínimo
+  1069→  1069→
+  1070→  1070→Stock agotado
+  1071→  1071→
+  1072→  1072→Stock negativo
+  1073→  1073→
+  1074→  1074→Productos sin movimiento
+  1075→  1075→
+  1076→  1076→Productos próximos a agotarse
+  1077→  1077→
+  1078→  1078→---
+  1079→  1079→
+  1080→  1080→# KARDEX
+  1081→  1081→
+  1082→  1082→Implementar historial completo de movimientos.
+  1083→  1083→
+  1084→  1084→Debe poder visualizar:
+  1085→  1085→
+  1086→  1086→Fecha
+  1087→  1087→
+  1088→  1088→Tipo
+  1089→  1089→
+  1090→  1090→Documento
+  1091→  1091→
+  1092→  1092→Cantidad
+  1093→  1093→
+  1094→  1094→Saldo
+  1095→  1095→
+  1096→  1096→Usuario
+  1097→  1097→
+  1098→  1098→---
+  1099→  1099→
+  1100→  1100→# DASHBOARD
+  1101→  1101→
+  1102→  1102→Mostrar:
+  1103→  1103→
+  1104→  1104→Productos con bajo stock
+  1105→  1105→
+  1106→  1106→Productos agotados
+  1107→  1107→
+  1108→  1108→Productos más vendidos
+  1109→  1109→
+  1110→  1110→Productos con mayor rotación
+  1111→  1111→
+  1112→  1112→Productos sin movimiento
+  1113→  1113→
+  1114→  1114→Entradas recientes
+  1115→  1115→
+  1116→  1116→Salidas recientes
+  1117→  1117→
+  1118→  1118→---
+  1119→  1119→
+  1120→  1120→# REPORTES
+  1121→  1121→
+  1122→  1122→Preparar reportes para:
+  1123→  1123→
+  1124→  1124→Existencias
+  1125→  1125→
+  1126→  1126→Movimientos
+  1127→  1127→
+  1128→  1128→Valor del inventario
+  1129→  1129→
+  1130→  1130→Rotación
+  1131→  1131→
+  1132→  1132→Historial
+  1133→  1133→
+  1134→  1134→---
+  1135→  1135→
+  1136→  1136→# EXPERIENCIA
+  1137→  1137→
+  1138→  1138→Interfaz moderna.
+  1139→  1139→
+  1140→  1140→Muy rápida.
+  1141→  1141→
+  1142→  1142→Escalable.
+  1143→  1143→
+  1144→  1144→Reutilizar componentes existentes.
+  1145→  1145→
+  1146→  1146→---
+  1147→  1147→
+  1148→  1148→# VALIDACIONES
+  1149→  1149→
+  1150→  1150→React Hook Form
+  1151→  1151→
+  1152→  1152→Zod
+  1153→  1153→
+  1154→  1154→TypeScript estricto
+  1155→  1155→
+  1156→  1156→---
+  1157→  1157→
+  1158→  1158→# BASE DE DATOS
+  1159→  1159→
+  1160→  1160→Si Prisma requiere modificaciones:
+  1161→  1161→
+  1162→  1162→Aplicarlas siguiendo buenas prácticas.
+  1163→  1163→
+  1164→  1164→Mantener relaciones limpias.
+  1165→  1165→
+  1166→  1166→Preparar relaciones con:
+  1167→  1167→
+  1168→  1168→Productos
+  1169→  1169→
+  1170→  1170→Compras
+  1171→  1171→
+  1172→  1172→Ventas
+  1173→  1173→
+  1174→  1174→Pedidos
+  1175→  1175→
+  1176→  1176→Dashboard
+  1177→  1177→
+  1178→  1178→---
+  1179→  1179→
+  1180→  1180→# CÓDIGO
+  1181→  1181→
+  1182→  1182→Separar correctamente:
+  1183→  1183→
+  1184→  1184→UI
+  1185→  1185→
+  1186→  1186→Actions
+  1187→  1187→
+  1188→  1188→Services
+  1189→  1189→
+  1190→  1190→Hooks
+  1191→  1191→
+  1192→  1192→Schemas
+  1193→  1193→
+  1194→  1194→Types
+  1195→  1195→
+  1196→  1196→Utils
+  1197→  1197→
+  1198→  1198→No crear archivos gigantes.
+  1199→  1199→
+  1200→  1200→No duplicar lógica.
+  1201→  1201→
+  1202→  1202→---
+  1203→  1203→
+  1204→  1204→# DOCUMENTACIÓN
+  1205→  1205→
+  1206→  1206→Al finalizar explicar:
+  1207→  1207→
+  1208→  1208→Archivos creados.
+  1209→  1209→
+  1210→  1210→Archivos modificados.
+  1211→  1211→
+  1212→  1212→Relaciones nuevas.
+  1213→  1213→
+  1214→  1214→Decisiones arquitectónicas.
+  1215→  1215→
+  1216→  1216→Mejoras futuras.
+  1217→  1217→
+  1218→  1218→---
+  1219→  1219→
+  1220→  1220→# IMPORTANTE
+  1221→  1221→
+  1222→  1222→NO desarrollar todavía:
+  1223→  1223→
+  1224→  1224→Ventas
+  1225→  1225→
+  1226→  1226→Clientes
+  1227→  1227→
+  1228→  1228→Finanzas
+  1229→  1229→
+  1230→  1230→Marketing
+  1231→  1231→
+  1232→  1232→NAIOS
+  1233→  1233→
+  1234→  1234→Solo desarrollar el módulo profesional de Inventario. # CONTEXTO
+  1235→  1235→
+  1236→  1236→Actúa como un CTO, Product Designer, UX Architect y Staff Software Engineer con más de 20 años de experiencia desarrollando ERP de clase mundial como SAP S/4HANA, Oracle NetSuite, Microsoft Dynamics, Monday.com, Linear y Shopify Plus.
+  1237→  1237→
+  1238→  1238→Estás desarrollando NEXORA.
+  1239→  1239→
+  1240→  1240→NEXORA es una plataforma inteligente para administrar empresas de comercio electrónico e importaciones.
+  1241→  1241→
+  1242→  1242→Este Dashboard será el CENTRO DE CONTROL de toda la plataforma.
+  1243→  1243→
+  1244→  1244→NO es un dashboard básico.
+  1245→  1245→
+  1246→  1246→Debe sentirse como el panel principal de una empresa multimillonaria.
+  1247→  1247→
+  1248→  1248→Debe ser extremadamente limpio, moderno, rápido y profesional.
+  1249→  1249→
+  1250→  1250→---
+  1251→  1251→
+  1252→  1252→# IMPORTANTE
+  1253→  1253→
+  1254→  1254→Antes de escribir código:
+  1255→  1255→
+  1256→  1256→• Analiza completamente el proyecto.
+  1257→  1257→• Reutiliza componentes existentes.
+  1258→  1258→• No rompas funcionalidades.
+  1259→  1259→• Respeta la arquitectura.
+  1260→  1260→• Mantén consistencia visual.
+  1261→  1261→
+  1262→  1262→---
+  1263→  1263→
+  1264→  1264→# OBJETIVO
+  1265→  1265→
+  1266→  1266→Construir el Dashboard Ejecutivo de NEXORA.
+  1267→  1267→
+  1268→  1268→Será la primera pantalla que verá el CEO al iniciar sesión.
+  1269→  1269→
+  1270→  1270→Toda la empresa debe poder monitorearse desde aquí.
+  1271→  1271→
+  1272→  1272→---
+  1273→  1273→
+  1274→  1274→# DISEÑO
+  1275→  1275→
+  1276→  1276→Inspirarse en:
+  1277→  1277→
+  1278→  1278→Stripe Dashboard
+  1279→  1279→
+  1280→  1280→Linear
+  1281→  1281→
+  1282→  1282→Notion
+  1283→  1283→
+  1284→  1284→Vercel
+  1285→  1285→
+  1286→  1286→Shopify Admin
+  1287→  1287→
+  1288→  1288→Monday
+  1289→  1289→
+  1290→  1290→Apple Human Interface
+  1291→  1291→
+  1292→  1292→El diseño debe ser minimalista.
+  1293→  1293→
+  1294→  1294→Mucho espacio.
+  1295→  1295→
+  1296→  1296→Pocas líneas.
+  1297→  1297→
+  1298→  1298→Excelente jerarquía visual.
+  1299→  1299→
+  1300→  1300→Dark Mode nativo.
+  1301→  1301→
+  1302→  1302→Preparar Light Mode.
+  1303→  1303→
+  1304→  1304→---
+  1305→  1305→
+  1306→  1306→# SECCIONES
+  1307→  1307→
+  1308→  1308→## KPIs
+  1309→  1309→
+  1310→  1310→Mostrar:
+  1311→  1311→
+  1312→  1312→Ventas del mes
+  1313→  1313→
+  1314→  1314→Compras del mes
+  1315→  1315→
+  1316→  1316→Utilidad
+  1317→  1317→
+  1318→  1318→Productos
+  1319→  1319→
+  1320→  1320→Proveedores
+  1321→  1321→
+  1322→  1322→Clientes
+  1323→  1323→
+  1324→  1324→Pedidos
+  1325→  1325→
+  1326→  1326→Inventario
+  1327→  1327→
+  1328→  1328→Productos agotados
+  1329→  1329→
+  1330→  1330→Productos críticos
+  1331→  1331→
+  1332→  1332→---
+  1333→  1333→
+  1334→  1334→## GRÁFICAS
+  1335→  1335→
+  1336→  1336→Ventas
+  1337→  1337→
+  1338→  1338→Compras
+  1339→  1339→
+  1340→  1340→Utilidad
+  1341→  1341→
+  1342→  1342→Inventario
+  1343→  1343→
+  1344→  1344→Rotación
+  1345→  1345→
+  1346→  1346→Ingresos
+  1347→  1347→
+  1348→  1348→Gastos
+  1349→  1349→
+  1350→  1350→---
+  1351→  1351→
+  1352→  1352→## INVENTARIO
+  1353→  1353→
+  1354→  1354→Productos críticos
+  1355→  1355→
+  1356→  1356→Stock bajo
+  1357→  1357→
+  1358→  1358→Stock agotado
+  1359→  1359→
+  1360→  1360→Últimos movimientos
+  1361→  1361→
+  1362→  1362→---
+  1363→  1363→
+  1364→  1364→## COMPRAS
+  1365→  1365→
+  1366→  1366→Últimas órdenes
+  1367→  1367→
+  1368→  1368→Órdenes pendientes
+  1369→  1369→
+  1370→  1370→Órdenes en tránsito
+  1371→  1371→
+  1372→  1372→Órdenes recibidas
+  1373→  1373→
+  1374→  1374→---
+  1375→  1375→
+  1376→  1376→## PROVEEDORES
+  1377→  1377→
+  1378→  1378→Mejores proveedores
+  1379→  1379→
+  1380→  1380→Proveedores inactivos
+  1381→  1381→
+  1382→  1382→Últimos proveedores agregados
+  1383→  1383→
+  1384→  1384→---
+  1385→  1385→
+  1386→  1386→## PRODUCTOS
+  1387→  1387→
+  1388→  1388→Productos más vendidos
+  1389→  1389→
+  1390→  1390→Productos con mayor utilidad
+  1391→  1391→
+  1392→  1392→Productos sin movimiento
+  1393→  1393→
+  1394→  1394→Productos nuevos
+  1395→  1395→
+  1396→  1396→---
+  1397→  1397→
+  1398→  1398→## ALERTAS
+  1399→  1399→
+  1400→  1400→Mostrar automáticamente:
+  1401→  1401→
+  1402→  1402→Stock bajo
+  1403→  1403→
+  1404→  1404→Pedidos pendientes
+  1405→  1405→
+  1406→  1406→Compras atrasadas
+  1407→  1407→
+  1408→  1408→Productos sin imágenes
+  1409→  1409→
+  1410→  1410→Productos sin proveedor
+  1411→  1411→
+  1412→  1412→Errores del sistema
+  1413→  1413→
+  1414→  1414→---
+  1415→  1415→
+  1416→  1416→## ACTIVIDAD RECIENTE
+  1417→  1417→
+  1418→  1418→Últimos movimientos realizados por usuarios.
+  1419→  1419→
+  1420→  1420→---
+  1421→  1421→
+  1422→  1422→## CALENDARIO
+  1423→  1423→
+  1424→  1424→Mostrar:
+  1425→  1425→
+  1426→  1426→Próximas entregas
+  1427→  1427→
+  1428→  1428→Pedidos
+  1429→  1429→
+  1430→  1430→Pagos
+  1431→  1431→
+  1432→  1432→Recordatorios
+  1433→  1433→
+  1434→  1434→---
+  1435→  1435→
+  1436→  1436→## NAIOS
+  1437→  1437→
+  1438→  1438→Reservar una sección completa para NAIOS.
+  1439→  1439→
+  1440→  1440→NO implementar IA todavía.
+  1441→  1441→
+  1442→  1442→Solo preparar el espacio.
+  1443→  1443→
+  1444→  1444→Ejemplo:
+  1445→  1445→
+  1446→  1446→"Buenos días Adrian"
+  1447→  1447→
+  1448→  1448→"Hoy tienes 3 productos con stock crítico."
+  1449→  1449→
+  1450→  1450→"2 proveedores aún no responden."
+  1451→  1451→
+  1452→  1452→"5 pedidos llegaron hoy."
+  1453→  1453→
+  1454→  1454→---
+  1455→  1455→
+  1456→  1456→# PERSONALIZACIÓN
+  1457→  1457→
+  1458→  1458→Cada usuario podrá:
+  1459→  1459→
+  1460→  1460→Mover widgets.
+  1461→  1461→
+  1462→  1462→Ocultarlos.
+  1463→  1463→
+  1464→  1464→Mostrar favoritos.
+  1465→  1465→
+  1466→  1466→Guardar layout.
+  1467→  1467→
+  1468→  1468→---
+  1469→  1469→
+  1470→  1470→# RENDIMIENTO
+  1471→  1471→
+  1472→  1472→Debe cargar muy rápido.
+  1473→  1473→
+  1474→  1474→Usar:
+  1475→  1475→
+  1476→  1476→Server Components
+  1477→  1477→
+  1478→  1478→Lazy Loading
+  1479→  1479→
+  1480→  1480→Suspense
+  1481→  1481→
+  1482→  1482→Optimización de consultas
+  1483→  1483→
+  1484→  1484→---
+  1485→  1485→
+  1486→  1486→# EXPERIENCIA
+  1487→  1487→
+  1488→  1488→El Dashboard debe sentirse premium.
+  1489→  1489→
+  1490→  1490→No sobrecargado.
+  1491→  1491→
+  1492→  1492→Muy limpio.
+  1493→  1493→
+  1494→  1494→Muy fluido.
+  1495→  1495→
+  1496→  1496→---
+  1497→  1497→
+  1498→  1498→# VALIDACIONES
+  1499→  1499→
+  1500→  1500→TypeScript estricto.
+  1501→  1501→
+  1502→  1502→No duplicar código.
+  1503→  1503→
+  1504→  1504→Separar:
+  1505→  1505→
+  1506→  1506→Widgets
+  1507→  1507→
+  1508→  1508→Cards
+  1509→  1509→
+  1510→  1510→Charts
+  1511→  1511→
+  1512→  1512→Hooks
+  1513→  1513→
+  1514→  1514→Services
+  1515→  1515→
+  1516→  1516→Actions
+  1517→  1517→
+  1518→  1518→Types
+  1519→  1519→
+  1520→  1520→Utils
+  1521→  1521→
+  1522→  1522→---
+  1523→  1523→
+  1524→  1524→# DOCUMENTACIÓN
+  1525→  1525→
+  1526→  1526→Al finalizar explicar:
+  1527→  1527→
+  1528→  1528→Archivos creados.
+  1529→  1529→
+  1530→  1530→Archivos modificados.
+  1531→  1531→
+  1532→  1532→Arquitectura utilizada.
+  1533→  1533→
+  1534→  1534→Decisiones tomadas.
+  1535→  1535→
+  1536→  1536→Mejoras futuras.
+  1537→  1537→
+  1538→  1538→---
+  1539→  1539→
+  1540→  1540→# IMPORTANTE
+  1541→  1541→
+  1542→  1542→NO desarrollar todavía:
+  1543→  1543→
+  1544→  1544→Clientes
+  1545→  1545→
+  1546→  1546→Ventas
+  1547→  1547→
+  1548→  1548→Finanzas
+  1549→  1549→
+  1550→  1550→Marketing
+  1551→  1551→
+  1552→  1552→NAIOS
+  1553→  1553→
+  1554→  1554→Solo construir el Dashboard Ejecutivo Profesional.  # CONTEXTO
+  1555→  1555→
+  1556→  1556→Actúa como un CTO, Product Architect y Senior Full Stack Developer con más de 20 años de experiencia desarrollando CRM y ERP empresariales similares a Salesforce, HubSpot, Zoho CRM, Odoo, SAP y Microsoft Dynamics.
+  1557→  1557→
+  1558→  1558→Estás desarrollando NEXORA.
+  1559→  1559→
+  1560→  1560→NEXORA es una plataforma inteligente para gestionar empresas de comercio electrónico, importaciones y ventas.
+  1561→  1561→
+  1562→  1562→El módulo CRM será el centro de toda la información relacionada con clientes.
+  1563→  1563→
+  1564→  1564→NO será un simple listado de clientes.
+  1565→  1565→
+  1566→  1566→Será un CRM profesional preparado para crecer.
+  1567→  1567→
+  1568→  1568→---
+  1569→  1569→
+  1570→  1570→# IMPORTANTE
+  1571→  1571→
+  1572→  1572→Antes de escribir código:
+  1573→  1573→
+  1574→  1574→• Analiza completamente el proyecto existente.
+  1575→  1575→• Reutiliza componentes existentes.
+  1576→  1576→• Respeta la arquitectura actual.
+  1577→  1577→• No rompas funcionalidades existentes.
+  1578→  1578→• Mantén consistencia con Productos, Proveedores, Compras e Inventario.
+  1579→  1579→
+  1580→  1580→---
+  1581→  1581→
+  1582→  1582→# OBJETIVO
+  1583→  1583→
+  1584→  1584→Construir un CRM profesional.
+  1585→  1585→
+  1586→  1586→---
+  1587→  1587→
+  1588→  1588→# FUNCIONALIDADES
+  1589→  1589→
+  1590→  1590→Debe permitir:
+  1591→  1591→
+  1592→  1592→✅ Crear clientes
+  1593→  1593→
+  1594→  1594→✅ Editar clientes
+  1595→  1595→
+  1596→  1596→✅ Eliminar clientes
+  1597→  1597→
+  1598→  1598→✅ Activar / Desactivar clientes
+  1599→  1599→
+  1600→  1600→✅ Buscar
+  1601→  1601→
+  1602→  1602→✅ Filtrar
+  1603→  1603→
+  1604→  1604→✅ Ordenar
+  1605→  1605→
+  1606→  1606→---
+  1607→  1607→
+  1608→  1608→# INFORMACIÓN DEL CLIENTE
+  1609→  1609→
+  1610→  1610→Cada cliente debe almacenar:
+  1611→  1611→
+  1612→  1612→Nombre
+  1613→  1613→
+  1614→  1614→Apellidos
+  1615→  1615→
+  1616→  1616→Empresa
+  1617→  1617→
+  1618→  1618→NIT
+  1619→  1619→
+  1620→  1620→Documento
+  1621→  1621→
+  1622→  1622→Correo
+  1623→  1623→
+  1624→  1624→Teléfono
+  1625→  1625→
+  1626→  1626→WhatsApp
+  1627→  1627→
+  1628→  1628→Dirección
+  1629→  1629→
+  1630→  1630→Ciudad
+  1631→  1631→
+  1632→  1632→Departamento
+  1633→  1633→
+  1634→  1634→País
+  1635→  1635→
+  1636→  1636→Código Postal
+  1637→  1637→
+  1638→  1638→Fecha de registro
+  1639→  1639→
+  1640→  1640→Estado
+  1641→  1641→
+  1642→  1642→Notas
+  1643→  1643→
+  1644→  1644→Etiquetas
+  1645→  1645→
+  1646→  1646→Origen del cliente
+  1647→  1647→
+  1648→  1648→Responsable comercial
+  1649→  1649→
+  1650→  1650→---
+  1651→  1651→
+  1652→  1652→# DIRECCIONES
+  1653→  1653→
+  1654→  1654→Permitir múltiples direcciones.
+  1655→  1655→
+  1656→  1656→Ejemplo:
+  1657→  1657→
+  1658→  1658→Casa
+  1659→  1659→
+  1660→  1660→Oficina
+  1661→  1661→
+  1662→  1662→Bodega
+  1663→  1663→
+  1664→  1664→Facturación
+  1665→  1665→
+  1666→  1666→Envíos
+  1667→  1667→
+  1668→  1668→---
+  1669→  1669→
+  1670→  1670→# HISTORIAL
+  1671→  1671→
+  1672→  1672→Guardar automáticamente:
+  1673→  1673→
+  1674→  1674→Pedidos
+  1675→  1675→
+  1676→  1676→Compras
+  1677→  1677→
+  1678→  1678→Pagos
+  1679→  1679→
+  1680→  1680→Conversaciones
+  1681→  1681→
+  1682→  1682→Cotizaciones
+  1683→  1683→
+  1684→  1684→Devoluciones
+  1685→  1685→
+  1686→  1686→Tickets
+  1687→  1687→
+  1688→  1688→---
+  1689→  1689→
+  1690→  1690→# FIDELIZACIÓN
+  1691→  1691→
+  1692→  1692→Preparar:
+  1693→  1693→
+  1694→  1694→Nivel
+  1695→  1695→
+  1696→  1696→Puntos
+  1697→  1697→
+  1698→  1698→Frecuencia
+  1699→  1699→
+  1700→  1700→Valor del cliente
+  1701→  1701→
+  1702→  1702→Última compra
+  1703→  1703→
+  1704→  1704→---
+  1705→  1705→
+  1706→  1706→# DASHBOARD DEL CLIENTE
+  1707→  1707→
+  1708→  1708→Mostrar:
+  1709→  1709→
+  1710→  1710→Información general
+  1711→  1711→
+  1712→  1712→Historial
+  1713→  1713→
+  1714→  1714→Pedidos
+  1715→  1715→
+  1716→  1716→Pagos
+  1717→  1717→
+  1718→  1718→Productos comprados
+  1719→  1719→
+  1720→  1720→Actividad
+  1721→  1721→
+  1722→  1722→---
+  1723→  1723→
+  1724→  1724→# VALIDACIONES
+  1725→  1725→
+  1726→  1726→React Hook Form
+  1727→  1727→
+  1728→  1728→Zod
+  1729→  1729→
+  1730→  1730→TypeScript estricto
+  1731→  1731→
+  1732→  1732→---
+  1733→  1733→
+  1734→  1734→# EXPERIENCIA
+  1735→  1735→
+  1736→  1736→Interfaz moderna.
+  1737→  1737→
+  1738→  1738→Muy rápida.
+  1739→  1739→
+  1740→  1740→Minimalista.
+  1741→  1741→
+  1742→  1742→Reutilizar componentes existentes.
+  1743→  1743→
+  1744→  1744→---
+  1745→  1745→
+  1746→  1746→# BASE DE DATOS
+  1747→  1747→
+  1748→  1748→Preparar relaciones futuras con:
+  1749→  1749→
+  1750→  1750→Ventas
+  1751→  1751→
+  1752→  1752→Facturación
+  1753→  1753→
+  1754→  1754→Pagos
+  1755→  1755→
+  1756→  1756→Marketing
+  1757→  1757→
+  1758→  1758→NAIOS
+  1759→  1759→
+  1760→  1760→---
+  1761→  1761→
+  1762→  1762→# CÓDIGO
+  1763→  1763→
+  1764→  1764→Separar correctamente:
+  1765→  1765→
+  1766→  1766→UI
+  1767→  1767→
+  1768→  1768→Services
+  1769→  1769→
+  1770→  1770→Actions
+  1771→  1771→
+  1772→  1772→Hooks
+  1773→  1773→
+  1774→  1774→Schemas
+  1775→  1775→
+  1776→  1776→Types
+  1777→  1777→
+  1778→  1778→Utils
+  1779→  1779→
+  1780→  1780→---
+  1781→  1781→
+  1782→  1782→# DOCUMENTACIÓN
+  1783→  1783→
+  1784→  1784→Explicar:
+  1785→  1785→
+  1786→  1786→Archivos creados.
+  1787→  1787→
+  1788→  1788→Archivos modificados.
+  1789→  1789→
+  1790→  1790→Arquitectura.
+  1791→  1791→
+  1792→  1792→Decisiones técnicas.
+  1793→  1793→
+  1794→  1794→Mejoras futuras.
+  1795→  1795→
+  1796→  1796→---
+  1797→  1797→
+  1798→  1798→# IMPORTANTE
+  1799→  1799→
+  1800→  1800→NO desarrollar todavía:
+  1801→  1801→
+  1802→  1802→Ventas
+  1803→  1803→
+  1804→  1804→Facturación
+  1805→  1805→
+  1806→  1806→Marketing
+  1807→  1807→
+  1808→  1808→NAIOS
+  1809→  1809→
+  1810→  1810→Solo construir el CRM profesional. # CONTEXTO
+  1811→  1811→
+  1812→  1812→Actúa como un CTO, Product Architect y Staff Software Engineer con más de 20 años de experiencia desarrollando plataformas empresariales como Shopify Plus, Salesforce Commerce Cloud, SAP S/4HANA, Oracle NetSuite y Microsoft Dynamics 365.
+  1813→  1813→
+  1814→  1814→Estás desarrollando NEXORA.
+  1815→  1815→
+  1816→  1816→NEXORA NO es simplemente una tienda online.
+  1817→  1817→
+  1818→  1818→Es un ERP inteligente para administrar empresas de comercio electrónico.
+  1819→  1819→
+  1820→  1820→Este módulo administrará TODO el ciclo comercial.
+  1821→  1821→
+  1822→  1822→Debe integrarse perfectamente con:
+  1823→  1823→
+  1824→  1824→• Productos
+  1825→  1825→
+  1826→  1826→• Inventario
+  1827→  1827→
+  1828→  1828→• Clientes
+  1829→  1829→
+  1830→  1830→• Compras
+  1831→  1831→
+  1832→  1832→• Dashboard
+  1833→  1833→
+  1834→  1834→• Finanzas (futuro)
+  1835→  1835→
+  1836→  1836→• NAIOS (futuro)
+  1837→  1837→
+  1838→  1838→---
+  1839→  1839→
+  1840→  1840→# IMPORTANTE
+  1841→  1841→
+  1842→  1842→Antes de escribir código:
+  1843→  1843→
+  1844→  1844→Analiza completamente el proyecto existente.
+  1845→  1845→
+  1846→  1846→Reutiliza componentes.
+  1847→  1847→
+  1848→  1848→Respeta la arquitectura.
+  1849→  1849→
+  1850→  1850→No rompas funcionalidades existentes.
+  1851→  1851→
+  1852→  1852→Mantén consistencia con todos los módulos anteriores.
+  1853→  1853→
+  1854→  1854→---
+  1855→  1855→
+  1856→  1856→# OBJETIVO
+  1857→  1857→
+  1858→  1858→Construir el módulo profesional de Ventas y Pedidos.
+  1859→  1859→
+  1860→  1860→---
+  1861→  1861→
+  1862→  1862→# FUNCIONALIDADES
+  1863→  1863→
+  1864→  1864→Debe permitir:
+  1865→  1865→
+  1866→  1866→✅ Crear pedido
+  1867→  1867→
+  1868→  1868→✅ Editar pedido
+  1869→  1869→
+  1870→  1870→✅ Cancelar pedido
+  1871→  1871→
+  1872→  1872→✅ Buscar
+  1873→  1873→
+  1874→  1874→✅ Filtrar
+  1875→  1875→
+  1876→  1876→✅ Duplicar pedido
+  1877→  1877→
+  1878→  1878→✅ Imprimir pedido
+  1879→  1879→
+  1880→  1880→✅ Exportar
+  1881→  1881→
+  1882→  1882→---
+  1883→  1883→
+  1884→  1884→# ESTADOS DEL PEDIDO
+  1885→  1885→
+  1886→  1886→Cada pedido tendrá estados.
+  1887→  1887→
+  1888→  1888→Ejemplo:
+  1889→  1889→
+  1890→  1890→Borrador
+  1891→  1891→
+  1892→  1892→Pendiente de pago
+  1893→  1893→
+  1894→  1894→Pagado
+  1895→  1895→
+  1896→  1896→Preparando
+  1897→  1897→
+  1898→  1898→Empacado
+  1899→  1899→
+  1900→  1900→Enviado
+  1901→  1901→
+  1902→  1902→Entregado
+  1903→  1903→
+  1904→  1904→Cancelado
+  1905→  1905→
+  1906→  1906→Devuelto
+  1907→  1907→
+  1908→  1908→Reembolsado
+  1909→  1909→
+  1910→  1910→Cada cambio debe registrarse automáticamente.
+  1911→  1911→
+  1912→  1912→---
+  1913→  1913→
+  1914→  1914→# INFORMACIÓN GENERAL
+  1915→  1915→
+  1916→  1916→Cada pedido contendrá:
+  1917→  1917→
+  1918→  1918→Número automático
+  1919→  1919→
+  1920→  1920→Cliente
+  1921→  1921→
+  1922→  1922→Dirección
+  1923→  1923→
+  1924→  1924→Fecha
+  1925→  1925→
+  1926→  1926→Moneda
+  1927→  1927→
+  1928→  1928→Método de pago
+  1929→  1929→
+  1930→  1930→Método de envío
+  1931→  1931→
+  1932→  1932→Responsable
+  1933→  1933→
+  1934→  1934→Notas
+  1935→  1935→
+  1936→  1936→Estado
+  1937→  1937→
+  1938→  1938→---
+  1939→  1939→
+  1940→  1940→# PRODUCTOS
+  1941→  1941→
+  1942→  1942→Cada pedido podrá contener múltiples productos.
+  1943→  1943→
+  1944→  1944→Cada producto tendrá:
+  1945→  1945→
+  1946→  1946→Producto
+  1947→  1947→
+  1948→  1948→Variante
+  1949→  1949→
+  1950→  1950→Cantidad
+  1951→  1951→
+  1952→  1952→Precio unitario
+  1953→  1953→
+  1954→  1954→Descuento
+  1955→  1955→
+  1956→  1956→Impuesto
+  1957→  1957→
+  1958→  1958→Subtotal
+  1959→  1959→
+  1960→  1960→Costo
+  1961→  1961→
+  1962→  1962→Margen
+  1963→  1963→
+  1964→  1964→---
+  1965→  1965→
+  1966→  1966→# CÁLCULOS
+  1967→  1967→
+  1968→  1968→El sistema calculará automáticamente:
+  1969→  1969→
+  1970→  1970→Subtotal
+  1971→  1971→
+  1972→  1972→Descuentos
+  1973→  1973→
+  1974→  1974→Impuestos
+  1975→  1975→
+  1976→  1976→Costo de envío
+  1977→  1977→
+  1978→  1978→Costo total
+  1979→  1979→
+  1980→  1980→Utilidad
+  1981→  1981→
+  1982→  1982→Margen
+  1983→  1983→
+  1984→  1984→---
+  1985→  1985→
+  1986→  1986→# PAGOS
+  1987→  1987→
+  1988→  1988→Preparar soporte para:
+  1989→  1989→
+  1990→  1990→Pago pendiente
+  1991→  1991→
+  1992→  1992→Pago parcial
+  1993→  1993→
+  1994→  1994→Pago completo
+  1995→  1995→
+  1996→  1996→Reembolso
+  1997→  1997→
+  1998→  1998→Historial de pagos
+  1999→  1999→
+  2000→  2000→---
+
+[showing lines 1-2000 of 2002; use offset=2001 with limit to continue reading]
