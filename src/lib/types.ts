@@ -1,6 +1,7 @@
 // NEXORA — Shared domain types (per DOC-006 entity specs)
 
 export type ModuleKey =
+  | 'store'
   | 'dashboard'
   | 'products'
   | 'inventory'

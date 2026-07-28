@@ -5,6 +5,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Sidebar } from '@/components/nexora/sidebar'
 import { Header } from '@/components/nexora/header'
 import { Footer } from '@/components/nexora/footer'
+import { CartDrawer } from '@/components/nexora/cart-drawer'
+import { CheckoutDialog } from '@/components/nexora/checkout-dialog'
+import { StoreView } from '@/components/nexora/views/store-view'
 import { DashboardView } from '@/components/nexora/views/dashboard-view'
 import { ProductsView } from '@/components/nexora/views/products-view'
 import { InventoryView } from '@/components/nexora/views/inventory-view'
@@ -18,7 +21,8 @@ import { SettingsView } from '@/components/nexora/views/settings-view'
 import { ModuleKey, NaiosRecommendation } from '@/lib/types'
 
 export default function NexoraPage() {
-  const [active, setActive] = useState<ModuleKey>('dashboard')
+  const [active, setActive] = useState<ModuleKey>('store')
+  const [checkoutOpen, setCheckoutOpen] = useState(false)
   const queryClient = useQueryClient()
 
   // NAIOS alerts for the sidebar badge + dashboard/naios panels
@@ -46,6 +50,8 @@ export default function NexoraPage() {
 
   const renderView = () => {
     switch (active) {
+      case 'store':
+        return <StoreView />
       case 'dashboard':
         return <DashboardView onNavigate={handleNavigate} alerts={alerts} onAlertsChange={refreshAlerts} />
       case 'products':
@@ -93,6 +99,21 @@ export default function NexoraPage() {
           <Footer />
         </div>
       </div>
+
+      {/* Global cart drawer + checkout — available from any view */}
+      <CartDrawer onCheckout={() => setCheckoutOpen(true)} />
+      <CheckoutDialog
+        open={checkoutOpen}
+        onOpenChange={setCheckoutOpen}
+        onSuccess={() => {
+          // Invalidate orders + dashboard queries so new order appears in admin
+          void queryClient.invalidateQueries({ queryKey: ['orders'] })
+          void queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+          void queryClient.invalidateQueries({ queryKey: ['inventory'] })
+          void queryClient.invalidateQueries({ queryKey: ['customers'] })
+          void queryClient.invalidateQueries({ queryKey: ['finance'] })
+        }}
+      />
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import {
-  LayoutDashboard, Sparkles, Package, Warehouse, Truck, ShoppingCart,
+  Store, LayoutDashboard, Sparkles, Package, Warehouse, Truck, ShoppingCart,
   Receipt, Users, Wallet, Settings, LucideIcon,
 } from 'lucide-react'
 import { ModuleKey } from '@/lib/types'
@@ -18,7 +18,13 @@ export interface NavGroup {
 
 export const NAV_GROUPS: NavGroup[] = [
   {
-    label: 'Principal',
+    label: 'Tienda',
+    items: [
+      { key: 'store', label: 'Tienda NEXORA', icon: Store, description: 'Catálogo público y ventas' },
+    ],
+  },
+  {
+    label: 'Administración',
     items: [
       { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, description: 'Visión general del negocio' },
       { key: 'naios', label: 'NAIOS', icon: Sparkles, description: 'Asistente inteligente' },

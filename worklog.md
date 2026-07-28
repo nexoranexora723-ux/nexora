@@ -64,3 +64,45 @@ Stage Summary:
 - Architecture adapts DOC-001/002 to environment: Next.js 16 (not NestJS), SQLite via Prisma (not PostgreSQL), single route with client-side navigation (not monorepo). Core vision preserved: centralized business platform + transversal AI assistant that advises but never decides.
 - Database: ~20 tables across 10 layers (core/catálogo/proveedores/compras/inventario/clientes/ventas/finanzas/IA) following DOC-004 standards (cuid PKs, audit fields, soft delete, status enums).
 - Seed data: 1 company, 6 users, 8 products, 4 Chinese suppliers with full ratings, 5 customers, 28 orders, 4 purchase orders, finance transactions, 8 NAIOS recommendations.
+
+---
+Task ID: store
+Agent: main (Z.ai Code)
+Task: Crear la Tienda NEXORA (catálogo público + carrito + checkout) que faltaba según DOC-002 §3
+
+Work Log:
+- Creado cart store con Zustand + persist middleware (src/lib/cart-store.ts): items, addItem, removeItem, updateQuantity, clear, setOpen, toggle. Selectores cartTotal y cartCount. Persistencia en localStorage para sobrevivir recargas.
+- Creada API /api/store/products (GET): catálogo público con filtros por category, brand, q. Devuelve solo campos públicos (sin purchasePrice, sin supplier). Incluye stock disponible calculado. También devuelve categories y brands para filtros.
+- Creada API /api/store/checkout (POST): flujo completo de checkout en transacción Prisma:
+  1. Find or create customer by email
+  2. Calculate subtotal/shipping(tier>200=free)/tax(19%)/total
+  3. Generate order number (ORD-{count+1001})
+  4. Create Order + OrderItems
+  5. Create Transaction (INCOME/SALES)
+  6. Decrement inventory + create InventoryMovement (OUT)
+  7. Update customer.lifetimeValue + totalOrders
+  8. Return { success, orderNumber, total, customerName }
+- Creado CartDrawer (src/components/nexora/cart-drawer.tsx): Sheet deslizable desde derecha con lista de items, selector de cantidad, eliminar, resumen (subtotal/envío/IVA/total), botón "Finalizar compra". Empty state con ilustración.
+- Creado CheckoutDialog (src/components/nexora/checkout-dialog.tsx): Dialog con form de cliente (firstName, lastName, email, phone, city, address) + RadioGroup de método de pago (Tarjeta/Nequi/PayPal/Contraentrega) + resumen de pedido. Estado de éxito con número de pedido y total. Validación de campos obligatorios.
+- Creado StoreView (src/components/nexora/views/store-view.tsx): catálogo con hero banner, búsqueda, filtros por categoría (chips) y marca, grid de product cards (imagen, nombre, brand badge, precio, stock, botón Añadir con feedback "Añadido"), Dialog de detalle de producto con specs y quantity selector.
+- Actualizado nav-config.ts: añadido grupo "Tienda" con item "Tienda NEXORA" (icon Store) como primer grupo, antes de "Administración".
+- Actualizado header.tsx: añadido botón de carrito (ShoppingBag) con CartBadge que muestra contador live desde Zustand.
+- Actualizado page.tsx: default view cambiada a 'store', añadido StoreView al router, CartDrawer y CheckoutDialog renderizados globalmente (fuera del switch). onSuccess invalida queries de orders/dashboard/inventory/customers/finance para que el nuevo pedido aparezca inmediatamente en el panel admin.
+- Actualizado types.ts: añadido 'store' a ModuleKey.
+- Lint: limpio, 0 errores.
+- Verificación con Agent Browser: flujo completo verificado end-to-end:
+  1. Tienda carga como vista por defecto con 8 productos (AirPods, Apple Watch, Jordan, Dior, Rolex, cargador, cable)
+  2. Click "Añadir" en AirPods Pro 2 → cart drawer abre con item
+  3. Click "Finalizar compra" → checkout dialog abre con form
+  4. Fill form (María Rodríguez, maria.test@store.com, Bogotá) → click "Pagar $236.91"
+  5. Confirmación: "¡Pedido confirmado!" con número ORD-1029
+  6. Navegar a Pedidos (admin) → ORD-1029 aparece al tope con estado "Pagado", cliente "María Rodríguez Bogotá"
+- Loop e-commerce completo y funcional: cliente compra en tienda → pedido aparece en panel admin → inventario decrementado → transacción registrada → LTV del cliente actualizado.
+
+Stage Summary:
+- Tienda NEXORA creada y verificada end-to-end.
+- 6 archivos nuevos: cart-store.ts, store/products/route.ts, store/checkout/route.ts, cart-drawer.tsx, checkout-dialog.tsx, store-view.tsx
+- 4 archivos modificados: nav-config.ts, header.tsx, page.tsx, types.ts
+- Resuelve ítem de auditoría: Zustand ahora se usa (cart store con persist).
+- Resuelve ítem de auditoría: DOC-002 §3 "Tienda" ahora implementada.
+- Loop e-commerce cerrado: browse → cart → checkout → order → admin panel.

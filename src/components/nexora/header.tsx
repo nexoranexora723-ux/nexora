@@ -3,12 +3,13 @@
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { useTheme } from 'next-themes'
-import { Sun, Moon, Menu, Search, Bell, Sparkles } from 'lucide-react'
+import { Sun, Moon, Menu, Search, Bell, Sparkles, ShoppingBag } from 'lucide-react'
 import { useState } from 'react'
 import { Sidebar } from './sidebar'
 import { ModuleKey } from '@/lib/types'
 import { NAV_MAP } from './nav-config'
 import { Input } from '@/components/ui/input'
+import { useCart, cartCount } from '@/lib/cart-store'
 
 interface HeaderProps {
   active: ModuleKey
@@ -54,6 +55,12 @@ export function Header({ active, onNavigate, alertCount = 0, onOpenNaios }: Head
       </div>
 
       <div className="ml-auto flex items-center gap-1.5 md:ml-3">
+        {/* Cart */}
+        <Button variant="ghost" size="icon" className="relative" onClick={() => useCart.getState().setOpen(true)}>
+          <ShoppingBag className="h-4.5 w-4.5" />
+          <CartBadge />
+        </Button>
+
         {/* NAIOS quick access */}
         <Button
           variant="default"
@@ -98,5 +105,17 @@ export function Header({ active, onNavigate, alertCount = 0, onOpenNaios }: Head
         </div>
       </div>
     </header>
+  )
+}
+
+// Cart badge with live item count from Zustand store
+function CartBadge() {
+  const items = useCart((s) => s.items)
+  const count = cartCount(items)
+  if (count === 0) return null
+  return (
+    <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
+      {count}
+    </span>
   )
 }
