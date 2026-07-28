@@ -1,7 +1,7 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { useTheme } from 'next-themes'
 import { Sun, Moon, Menu, Search, Bell, Sparkles, ShoppingBag, LogOut } from 'lucide-react'
 import { useState } from 'react'
@@ -45,6 +45,10 @@ export function Header({ active, onNavigate, alertCount = 0, onOpenNaios }: Head
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-72 p-0">
+          <SheetHeader className="sr-only">
+            <SheetTitle>Menú de navegación</SheetTitle>
+            <SheetDescription>Navegación principal de NEXORA</SheetDescription>
+          </SheetHeader>
           <Sidebar active={active} onNavigate={(k) => { onNavigate(k); setMobileOpen(false) }} alertCount={alertCount} />
         </SheetContent>
       </Sheet>
