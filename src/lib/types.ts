@@ -11,6 +11,8 @@ export type ModuleKey =
   | 'customers'
   | 'finance'
   | 'naios'
+  | 'users'
+  | 'roles'
   | 'settings'
 
 export type Role =

@@ -1,11 +1,17 @@
 // NEXORA — Database Seeder
 // Generates realistic business data per DOC-005 / DOC-006 entity specs
 import { db } from '../src/lib/db'
+import bcrypt from 'bcryptjs'
 
 async function main() {
   console.log('🌱 Seeding NEXORA database...')
 
   // Clean
+  await db.session.deleteMany()
+  await db.rolePermission.deleteMany()
+  await db.permission.deleteMany()
+  await db.role.deleteMany()
+  await db.branch.deleteMany()
   await db.naiosConversation.deleteMany()
   await db.naiosRecommendation.deleteMany()
   await db.transaction.deleteMany()
@@ -20,6 +26,8 @@ async function main() {
   await db.supplier.deleteMany()
   await db.customer.deleteMany()
   await db.productImage.deleteMany()
+  await db.productVideo.deleteMany()
+  await db.productVariant.deleteMany()
   await db.product.deleteMany()
   await db.category.deleteMany()
   await db.brand.deleteMany()
@@ -45,19 +53,135 @@ async function main() {
     },
   })
 
-  // ===== Users (per DOC-006 roles) =====
-  const users = await db.user.createMany({
+  // ===== Roles & Permissions (RBAC) =====
+  const MODULES = ['products', 'orders', 'users', 'suppliers', 'inventory', 'finance', 'customers', 'purchases', 'settings', 'naios']
+  const ACTIONS = ['view', 'create', 'edit', 'delete', 'export', 'approve', 'configure', 'admin']
+
+  // Create permissions
+  const permissions = []
+  for (const mod of MODULES) {
+    for (const action of ACTIONS) {
+      permissions.push(
+        await db.permission.create({
+          data: { module: mod, action, description: `${action} on ${mod}` },
+        }),
+      )
+    }
+  }
+
+  // Create system roles
+  const adminRole = await db.role.create({
+    data: {
+      name: 'ADMIN',
+      description: 'Administrador con acceso total',
+      isSystem: true,
+      status: 'ACTIVE',
+      companyId: company.id,
+    },
+  })
+  const ceoRole = await db.role.create({
+    data: {
+      name: 'CEO',
+      description: 'Director ejecutivo — acceso total + configuración',
+      isSystem: true,
+      status: 'ACTIVE',
+      companyId: company.id,
+    },
+  })
+  const comprasRole = await db.role.create({
+    data: {
+      name: 'COMPRAS',
+      description: 'Departamento de compras',
+      isSystem: true,
+      status: 'ACTIVE',
+      companyId: company.id,
+    },
+  })
+  const ventasRole = await db.role.create({
+    data: {
+      name: 'VENTAS',
+      description: 'Departamento de ventas',
+      isSystem: true,
+      status: 'ACTIVE',
+      companyId: company.id,
+    },
+  })
+  const inventarioRole = await db.role.create({
+    data: {
+      name: 'INVENTARIO',
+      description: 'Departamento de inventario',
+      isSystem: true,
+      status: 'ACTIVE',
+      companyId: company.id,
+    },
+  })
+  const finanzasRole = await db.role.create({
+    data: {
+      name: 'FINANZAS',
+      description: 'Departamento financiero',
+      isSystem: true,
+      status: 'ACTIVE',
+      companyId: company.id,
+    },
+  })
+
+  // Assign all permissions to ADMIN and CEO
+  const allPermIds = permissions.map((p) => p.id)
+  await db.rolePermission.createMany({
     data: [
-      { firstName: 'Adrián', lastName: 'CEO', email: 'adrian@nexora.co', password: 'x', role: 'CEO', companyId: company.id },
-      { firstName: 'Laura', lastName: 'Admin', email: 'laura@nexora.co', password: 'x', role: 'ADMIN', companyId: company.id },
-      { firstName: 'Carlos', lastName: 'Compras', email: 'carlos@nexora.co', password: 'x', role: 'COMPRAS', companyId: company.id },
-      { firstName: 'Sofía', lastName: 'Ventas', email: 'sofia@nexora.co', password: 'x', role: 'VENTAS', companyId: company.id },
-      { firstName: 'Diego', lastName: 'Inventario', email: 'diego@nexora.co', password: 'x', role: 'INVENTARIO', companyId: company.id },
-      { firstName: 'Valeria', lastName: 'Finanzas', email: 'valeria@nexora.co', password: 'x', role: 'FINANZAS', companyId: company.id },
+      ...allPermIds.map((pid) => ({ roleId: adminRole.id, permissionId: pid })),
+      ...allPermIds.map((pid) => ({ roleId: ceoRole.id, permissionId: pid })),
     ],
   })
-  const adrian = await db.user.findFirst({ where: { email: 'adrian@nexora.co' } })!
-  const carlos = await db.user.findFirst({ where: { email: 'carlos@nexora.co' } })!
+  // Assign scoped permissions to other roles
+  const scopedPerms = (modules: string[], actions: string[]) =>
+    permissions.filter((p) => modules.includes(p.module) && actions.includes(p.action)).map((p) => p.id)
+  await db.rolePermission.createMany({
+    data: [
+      ...scopedPerms(['products', 'suppliers', 'purchases', 'inventory'], ['view', 'create', 'edit', 'export']).map((pid) => ({ roleId: comprasRole.id, permissionId: pid })),
+      ...scopedPerms(['products', 'orders', 'customers', 'inventory'], ['view', 'create', 'edit', 'export']).map((pid) => ({ roleId: ventasRole.id, permissionId: pid })),
+      ...scopedPerms(['products', 'inventory'], ['view', 'edit', 'export']).map((pid) => ({ roleId: inventarioRole.id, permissionId: pid })),
+      ...scopedPerms(['finance', 'orders', 'purchases', 'customers'], ['view', 'export', 'approve']).map((pid) => ({ roleId: finanzasRole.id, permissionId: pid })),
+    ],
+  })
+
+  // ===== Branches =====
+  const bogBranch = await db.branch.create({
+    data: { name: 'Sede Principal Bogotá', code: 'BOG-01', address: 'Calle 100 #15-20', city: 'Bogotá', country: 'CO', state: 'Cundinamarca', companyId: company.id, status: 'ACTIVE' },
+  })
+  const mdeBranch = await db.branch.create({
+    data: { name: 'Sucursal Medellín', code: 'MDE-02', address: 'Carrera 70 #45-12', city: 'Medellín', country: 'CO', state: 'Antioquia', companyId: company.id, status: 'ACTIVE' },
+  })
+
+  // ===== Users (per DOC-006 roles) =====
+  const passwordHash = await bcrypt.hash('nexora123', 10)
+  const adrian = await db.user.create({
+    data: { firstName: 'Adrián', lastName: 'CEO', email: 'adrian@nexora.co', password: passwordHash, position: 'CEO', role: 'CEO', roleId: ceoRole.id, status: 'ACTIVE', companyId: company.id, branchId: bogBranch.id, timezone: 'America/Bogota', language: 'es' },
+  })
+  const laura = await db.user.create({
+    data: { firstName: 'Laura', lastName: 'Admin', email: 'laura@nexora.co', password: passwordHash, position: 'Administradora del sistema', role: 'ADMIN', roleId: adminRole.id, status: 'ACTIVE', companyId: company.id, branchId: bogBranch.id, timezone: 'America/Bogota', language: 'es' },
+  })
+  const carlos = await db.user.create({
+    data: { firstName: 'Carlos', lastName: 'Compras', email: 'carlos@nexora.co', password: passwordHash, position: 'Jefe de compras', role: 'COMPRAS', roleId: comprasRole.id, status: 'ACTIVE', companyId: company.id, branchId: bogBranch.id, timezone: 'America/Bogota', language: 'es' },
+  })
+  await db.user.create({
+    data: { firstName: 'Sofía', lastName: 'Ventas', email: 'sofia@nexora.co', password: passwordHash, position: 'Ejecutiva de ventas', role: 'VENTAS', roleId: ventasRole.id, status: 'ACTIVE', companyId: company.id, branchId: mdeBranch.id, timezone: 'America/Bogota', language: 'es' },
+  })
+  await db.user.create({
+    data: { firstName: 'Diego', lastName: 'Inventario', email: 'diego@nexora.co', password: passwordHash, position: 'Coordinador de inventario', role: 'INVENTARIO', roleId: inventarioRole.id, status: 'ACTIVE', companyId: company.id, branchId: bogBranch.id, timezone: 'America/Bogota', language: 'es' },
+  })
+  await db.user.create({
+    data: { firstName: 'Valeria', lastName: 'Finanzas', email: 'valeria@nexora.co', password: passwordHash, position: 'Analista financiera', role: 'FINANZAS', roleId: finanzasRole.id, status: 'ACTIVE', companyId: company.id, branchId: bogBranch.id, timezone: 'America/Bogota', language: 'es' },
+  })
+
+  // Set branch responsible
+  await db.branch.update({ where: { id: bogBranch.id }, data: { responsibleId: adrian.id } })
+  await db.branch.update({ where: { id: mdeBranch.id }, data: { responsibleId: laura.id } })
+
+  // Login audit entries
+  await db.auditLog.create({
+    data: { userId: adrian.id, action: 'LOGIN', entity: 'auth', entityId: adrian.id, result: 'SUCCESS', ipAddress: '127.0.0.1', userAgent: 'Mozilla/5.0' },
+  })
 
   // ===== Settings =====
   await db.setting.createMany({
@@ -325,7 +449,7 @@ async function main() {
       data: {
         number: `ORD-${orderNum++}`,
         customerId: customer.id,
-        userId: adrian!.id,
+        userId: adrian.id,
         status: o.status,
         subtotal,
         shippingCost,
@@ -365,7 +489,7 @@ async function main() {
         number: `PO-${poNum++}`,
         status: po.status,
         supplierId: po.supplier.id,
-        userId: carlos!.id,
+        userId: carlos.id,
         subtotal,
         shippingCost,
         tax,

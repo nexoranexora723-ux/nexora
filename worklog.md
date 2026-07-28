@@ -144,3 +144,52 @@ Stage Summary:
 - Funcionalidades: Crear, Editar, Eliminar (soft delete), Activar/Desactivar, Buscar, Filtrar por estado, Ordenar (5 opciones), Vista tabla + tarjetas, Variantes, Multimedia (imágenes/videos), Validación Zod + RHF, Toast feedback.
 - 8 archivos nuevos, 2 modificados (schema.prisma, products-view.tsx reescrito).
 - Resuelve 2 ítems críticos de auditoría: (1) capa de servicios creada, (2) hooks de dominio eliminan duplicación.
+
+---
+Task ID: rbac
+Agent: main (Z.ai Code)
+Task: Construir módulo profesional de Gestión de Usuarios y Control de Acceso (RBAC) según spec del usuario
+
+Work Log:
+- Ampliado schema Prisma: User ampliado (+phone, position, roleId, branchId, timezone, language, lastLoginAt). Nuevos modelos: Role, Permission, RolePermission, Branch, Session. AuditLog ampliado (+ipAddress, userAgent, result). Company con relations a roles y branches.
+- Instalado bcryptjs para hashing seguro de contraseñas.
+- Creado src/lib/schemas/auth.schema.ts: Zod schemas (login, changePassword, createUser, updateUser, userQuery, createRole, updateRole, createBranch, updateBranch).
+- Creado src/server/services/auth.service.ts: AuthService class con login (bcrypt verify + session creation + audit log), logout (revoke session + audit), validateSession (cookie-based), changePassword (re-hash + revoke sessions), revokeAllSessions.
+- Creado src/server/services/user.service.ts: UserService class con list/getById/create (bcrypt hash)/update/softDelete/setStatus/stats. Audit log automático en cada operación.
+- Creado src/server/services/role.service.ts: RoleService class con list/getById/create/update/delete/listPermissions. Protección de roles del sistema (isSystem).
+- Creadas API routes: /api/auth/login (POST), /api/auth/logout (POST), /api/auth/session (GET), /api/auth/password (POST), /api/users (GET+POST), /api/users/[id] (GET+PUT+DELETE+PATCH), /api/roles (GET+POST), /api/roles/[id] (GET+PUT+DELETE), /api/roles/permissions (GET), /api/branches (GET+POST).
+- Creado src/lib/auth-store.ts: Zustand store con persist para sesión del cliente (user, permissions, isAuthenticated, hasPermission helper con ADMIN/CEO implicit all-perms).
+- Creado src/hooks/use-auth.ts: hooks de dominio (useLogin, useLogout, useSession, useUsers, useCreateUser, useUpdateUser, useDeleteUser, useToggleUserStatus, useRoles, usePermissions, useCreateRole, useUpdateRole, useDeleteRole, useBranches).
+- Creado src/components/nexora/auth/login-dialog.tsx: dialog de login con email/password, cuentas demo (CEO/Admin/Compras), feedback de errores.
+- Creado src/components/nexora/users/user-form-dialog.tsx: formulario crear/editar con RHF + Zod, selects para rol/sucursal/estado/timezone, validación de email único.
+- Creado src/components/nexora/views/users-view.tsx: tabla completa con avatar+iniciales, email, cargo, rol (badge), sucursal, estado, último acceso, dropdown de acciones (Editar/Desactivar/Eliminar), filtros por estado y rol, AlertDialog de confirmación.
+- Creado src/components/nexora/views/roles-view.tsx: grid de cards de roles con badges (Sistema/Estado), user count, permission count, matriz de permisos por módulo. Form dialog con matriz interactiva de permisos (toggle por módulo y por acción).
+- Actualizado nav-config.ts: grupo "Sistema" con Usuarios, Roles y Permisos, Configuración.
+- Actualizado types.ts: añadido 'users' y 'roles' a ModuleKey.
+- Actualizado page.tsx: validación de sesión al montar, LoginDialog si no autenticado, router con 13 vistas, loading state con logo.
+- Actualizado header.tsx: dropdown de usuario con info (nombre, email, sucursal), links a gestión de usuarios/roles/configuración, botón de logout.
+- Seed actualizado: 6 roles del sistema (ADMIN, CEO, COMPRAS, VENTAS, INVENTARIO, FINANZAS) con permisos asignados (10 módulos × 8 acciones = 80 permisos), 2 sucursales (Bogotá/Medellín) con responsables, 6 usuarios con passwords hasheadas (nexora123), audit log de login.
+- Lint: 0 errores (con eslint-disable dirigidos para patrones legítimos de reset de form).
+- Verificación Agent Browser end-to-end:
+  1. App carga → LoginDialog aparece (no autenticado)
+  2. Login como adrian@nexora.co / nexora123 → POST /api/auth/login 200 → sesión cookie seteada → dashboard carga
+  3. Sidebar muestra "Usuarios" y "Roles y Permisos" en grupo Sistema
+  4. Navegar a Usuarios → tabla con 6 usuarios (Adrián, Laura, Carlos, Sofía, Diego, Valeria) con avatares, roles, sucursales
+  5. Click "Nuevo usuario" → form con 6 secciones → fill Pedro Martínez + pedro@nexora.co + rol COMPRAS → POST /api/users 201 Created
+  6. Pedro Martínez aparece en la tabla
+  7. Navegar a Roles y Permisos → 6 roles con stat cards, matriz de permisos visible
+  8. Click avatar → dropdown con email + sucursal + "Cerrar sesión"
+  9. Click "Cerrar sesión" → POST /api/auth/logout → LoginDialog reaparece
+
+Stage Summary:
+- MÓDULO RBAC profesional completo y verificado end-to-end.
+- Arquitectura profesional siguiendo el patrón establecido en Products:
+  - src/lib/schemas/auth.schema.ts (Zod)
+  - src/server/services/{auth,user,role}.service.ts (business logic + bcrypt + audit)
+  - src/app/api/{auth,users,roles,branches}/ (CRUD routes)
+  - src/lib/auth-store.ts (Zustand session)
+  - src/hooks/use-auth.ts (domain hooks)
+  - src/components/nexora/{auth,users}/ + views/{users,roles}-view.tsx
+- Funcionalidades: Login/Logout con bcrypt, Sesiones con cookies httpOnly, RBAC con 80 permisos (10 módulos × 8 acciones), Roles del sistema protegidos, Multi-tenant (company + branch), Auditoría automática (login/logout/create/update/delete/status_change), Gestión de usuarios completa (CRUD + activate/deactivate + soft delete), Matriz de permisos interactiva, Header con dropdown de usuario.
+- Seguridad implementada: bcrypt password hashing, httpOnly cookies, session tokens, audit logging con IP/UA, session expiry (24h), session revocation on password change / status change / logout.
+- 13 archivos nuevos (schemas, services, routes, hooks, stores, components), 5 modificados (schema.prisma, seed.ts, nav-config, types, page, header).

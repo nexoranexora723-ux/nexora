@@ -36,46 +36,148 @@ model Company {
   suppliers   Supplier[]
   customers   Customer[]
   settings    Setting[]
+  roles       Role[]
+  branches    Branch[]
 
   @@map("companies")
 }
 
 model User {
-  id        String   @id @default(cuid())
-  firstName String   @map("first_name")
-  lastName  String   @map("last_name")
-  email     String   @unique
-  password  String
-  avatarUrl String?  @map("avatar_url")
-  role      String   @default("ADMIN") // CEO | ADMIN | COMPRAS | VENTAS | INVENTARIO | MARKETING | FINANZAS | SOPORTE
-  status    String   @default("ACTIVE") // ACTIVE | INACTIVE | SUSPENDED
-  companyId String   @map("company_id")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
+  id           String    @id @default(cuid())
+  firstName    String    @map("first_name")
+  lastName     String    @map("last_name")
+  email        String    @unique
+  password     String    // bcrypt hash
+  phone        String?
+  avatarUrl    String?   @map("avatar_url")
+  position     String?   // Cargo
+  role         String    @default("USER") // Reference to Role.name OR legacy role
+  roleId       String?   @map("role_id")
+  status       String    @default("ACTIVE") // ACTIVE | INACTIVE | SUSPENDED
+  companyId    String    @map("company_id")
+  branchId     String?   @map("branch_id")
+  timezone     String?   @default("America/Bogota")
+  language     String?   @default("es")
+  lastLoginAt  DateTime? @map("last_login_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  deletedAt    DateTime? @map("deleted_at")
 
-  company     Company    @relation(fields: [companyId], references: [id])
+  company     Company         @relation(fields: [companyId], references: [id])
+  branch      Branch?         @relation(fields: [branchId], references: [id])
+  roleRel     Role?           @relation(fields: [roleId], references: [id])
+  responsibleFor Branch[]     @relation("BranchResponsible")
   auditLogs   AuditLog[]
+  sessions    Session[]
   orders      Order[]
   purchases   PurchaseOrder[]
 
   @@index([companyId])
+  @@index([roleId])
+  @@index([branchId])
   @@map("users")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isSystem    Boolean  @default(false) @map("is_system") // System roles can't be deleted
+  status      String   @default("ACTIVE") // ACTIVE | INACTIVE
+  companyId   String?  @map("company_id") // null = global role
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  company     Company?         @relation(fields: [companyId], references: [id])
+  users       User[]
+  permissions RolePermission[]
+
+  @@index([companyId])
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  module      String   // products | orders | users | suppliers | inventory | finance | ...
+  action      String   // view | create | edit | delete | export | approve | configure | admin
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  roles       RolePermission[]
+
+  @@unique([module, action])
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String @map("role_id")
+  permissionId String @map("permission_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model Branch {
+  id           String   @id @default(cuid())
+  name         String
+  code         String   @unique
+  address      String?
+  city         String?
+  country      String?  @default("CO")
+  state        String?  // provincia/departamento
+  responsibleId String? @map("responsible_id")
+  companyId    String   @map("company_id")
+  status       String   @default("ACTIVE") // ACTIVE | INACTIVE
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  company Company @relation(fields: [companyId], references: [id])
+  responsible User? @relation("BranchResponsible", fields: [responsibleId], references: [id])
+  users   User[]
+
+  @@index([companyId])
+  @@map("branches")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  token     String   @unique // JWT or session token
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  expiresAt DateTime @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
 }
 
 model AuditLog {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")
-  action    String
-  entity    String
+  action    String   // LOGIN | LOGOUT | CREATE | UPDATE | DELETE | EXPORT | CONFIG_CHANGE ...
+  entity    String   // user | role | product | order | ...
   entityId  String?  @map("entity_id")
-  metadata  String?  // JSON string
+  metadata  String?  // JSON string: { before, after, ... }
+  ipAddress String?  @map("ip_address")
+  userAgent String?  @map("user_agent")
+  result    String   @default("SUCCESS") // SUCCESS | FAILURE | ERROR
   createdAt DateTime @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([entity, entityId])
+  @@index([action])
+  @@index([createdAt])
   @@map("audit_logs")
 }
 

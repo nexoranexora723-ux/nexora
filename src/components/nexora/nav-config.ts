@@ -1,6 +1,6 @@
 import {
   Store, LayoutDashboard, Sparkles, Package, Warehouse, Truck, ShoppingCart,
-  Receipt, Users, Wallet, Settings, LucideIcon,
+  Receipt, Users, Wallet, Settings, Shield, KeyRound, LucideIcon,
 } from 'lucide-react'
 import { ModuleKey } from '@/lib/types'
 
@@ -55,6 +55,8 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     label: 'Sistema',
     items: [
+      { key: 'users', label: 'Usuarios', icon: Users, description: 'Gestión de usuarios y acceso' },
+      { key: 'roles', label: 'Roles y Permisos', icon: Shield, description: 'RBAC · Control de permisos' },
       { key: 'settings', label: 'Configuración', icon: Settings, description: 'Ajustes de la empresa' },
     ],
   },
