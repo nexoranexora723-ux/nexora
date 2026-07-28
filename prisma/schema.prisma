@@ -1,0 +1,509 @@
+// NEXORA — Master Database Schema
+// Version: 1.0
+// Standard: snake_case tables, cuid primary keys, audit fields, soft delete
+// Per DOC-004 / DOC-005
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// CAPA 1 — CORE SYSTEM
+// ============================================================================
+
+model Company {
+  id               String   @id @default(cuid())
+  legalName        String
+  commercialName   String
+  nit              String?  @unique
+  email            String?
+  phone            String?
+  country          String?  @default("CO")
+  currencyCode     String   @default("USD")
+  timezone         String?  @default("America/Bogota")
+  logoUrl          String?
+  website          String?
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  users       User[]
+  products    Product[]
+  suppliers   Supplier[]
+  customers   Customer[]
+  settings    Setting[]
+
+  @@map("companies")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  firstName String   @map("first_name")
+  lastName  String   @map("last_name")
+  email     String   @unique
+  password  String
+  avatarUrl String?  @map("avatar_url")
+  role      String   @default("ADMIN") // CEO | ADMIN | COMPRAS | VENTAS | INVENTARIO | MARKETING | FINANZAS | SOPORTE
+  status    String   @default("ACTIVE") // ACTIVE | INACTIVE | SUSPENDED
+  companyId String   @map("company_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  company     Company    @relation(fields: [companyId], references: [id])
+  auditLogs   AuditLog[]
+  orders      Order[]
+  purchases   PurchaseOrder[]
+
+  @@index([companyId])
+  @@map("users")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  action    String
+  entity    String
+  entityId  String?  @map("entity_id")
+  metadata  String?  // JSON string
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entity, entityId])
+  @@map("audit_logs")
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  category  String   @default("general")
+  companyId String?  @map("company_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  company Company? @relation(fields: [companyId], references: [id])
+
+  @@map("settings")
+}
+
+model File {
+  id         String   @id @default(cuid())
+  name       String
+  url        String
+  type       String   // image | video | document
+  mimeType   String?  @map("mime_type")
+  sizeBytes  Int?     @map("size_bytes")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  productImages ProductImage[]
+
+  @@map("files")
+}
+
+// ============================================================================
+// CAPA 2 — CATÁLOGO
+// ============================================================================
+
+model Brand {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  logoUrl     String?   @map("logo_url")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  products Product[]
+
+  @@map("brands")
+}
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  parentId    String?    @map("parent_id")
+  description String?
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id             String   @id @default(cuid())
+  sku            String   @unique
+  name           String
+  description    String?
+  brandId        String?  @map("brand_id")
+  categoryId     String?  @map("category_id")
+  supplierId     String?  @map("supplier_id")
+  weight         Float?
+  material       String?
+  warranty       String?
+  purchasePrice  Float    @map("purchase_price")
+  salePrice      Float    @map("sale_price")
+  currencyCode   String   @default("USD") @map("currency_code")
+  status         String   @default("ACTIVE") // ACTIVE | INACTIVE | DISCONTINUED
+  imageUrl       String?  @map("image_url")
+  companyId      String   @map("company_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  company       Company         @relation(fields: [companyId], references: [id])
+  brand         Brand?          @relation(fields: [brandId], references: [id])
+  category      Category?       @relation(fields: [categoryId], references: [id])
+  supplier      Supplier?       @relation(fields: [supplierId], references: [id])
+  inventory     Inventory[]
+  inventoryMovements InventoryMovement[]
+  orderItems    OrderItem[]
+  purchaseItems PurchaseOrderItem[]
+  images        ProductImage[]
+
+  @@index([companyId])
+  @@index([brandId])
+  @@index([categoryId])
+  @@index([supplierId])
+  @@map("products")
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String   @map("product_id")
+  fileId    String?  @map("file_id")
+  url       String
+  alt       String?
+  position  Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  product Product @relation(fields: [productId], references: [id])
+  file    File?   @relation(fields: [fileId], references: [id])
+
+  @@index([productId])
+  @@map("product_images")
+}
+
+// ============================================================================
+// CAPA 3 — PROVEEDORES
+// ============================================================================
+
+model Supplier {
+  id             String    @id @default(cuid())
+  companyName    String    @map("company_name")
+  contactName    String?   @map("contact_name")
+  whatsapp       String?
+  wechat         String?
+  email          String?
+  website        String?
+  yupoo          String?
+  country        String?   @default("CN")
+  city           String?
+  address        String?
+  moq            Int?      @map("moq") // Minimum Order Quantity
+  paymentMethods String?   @map("payment_methods")
+  shippingMethods String?  @map("shipping_methods")
+  warranty       String?
+  leadTime       Int?      @map("lead_time") // days
+  productionTime Int?      @map("production_time") // days
+  oem            Boolean   @default(false)
+  odm            Boolean   @default(false)
+  status         String    @default("ACTIVE") // ACTIVE | INACTIVE | BLACKLISTED
+  riskLevel      String    @default("MEDIUM") @map("risk_level") // LOW | MEDIUM | HIGH
+  companyId      String    @map("company_id")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  company    Company             @relation(fields: [companyId], references: [id])
+  products   Product[]
+  ratings    SupplierRating[]
+  quotes     SupplierQuote[]
+  purchases  PurchaseOrder[]
+
+  @@index([companyId])
+  @@index([country])
+  @@map("suppliers")
+}
+
+model SupplierRating {
+  id                String   @id @default(cuid())
+  supplierId        String   @map("supplier_id")
+  communicationScore Int     @map("communication_score") // 0-100
+  qualityScore      Int      @map("quality_score")
+  priceScore        Int      @map("price_score")
+  shippingScore     Int      @map("shipping_score")
+  warrantyScore     Int      @map("warranty_score")
+  trustScore        Int      @map("trust_score")
+  overallScore      Float    @map("overall_score")
+  review            String?
+  ratedBy           String?  @map("rated_by")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+
+  @@index([supplierId])
+  @@map("supplier_ratings")
+}
+
+model SupplierQuote {
+  id           String   @id @default(cuid())
+  supplierId   String   @map("supplier_id")
+  productName  String   @map("product_name")
+  quantity     Int
+  unitPrice    Float    @map("unit_price")
+  currencyCode String   @default("USD") @map("currency_code")
+  status       String   @default("PENDING") // PENDING | APPROVED | REJECTED | EXPIRED
+  validUntil   DateTime? @map("valid_until")
+  notes        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  supplier Supplier @relation(fields: [supplierId], references: [id])
+
+  @@index([supplierId])
+  @@map("supplier_quotes")
+}
+
+// ============================================================================
+// CAPA 4 — COMPRAS
+// ============================================================================
+
+model PurchaseOrder {
+  id            String   @id @default(cuid())
+  number        String   @unique
+  status        String   @default("PENDING") // PENDING | APPROVED | SHIPPED | RECEIVED | CANCELLED
+  supplierId    String   @map("supplier_id")
+  userId        String?  @map("user_id")
+  subtotal      Float
+  shippingCost  Float    @default(0) @map("shipping_cost")
+  tax           Float    @default(0)
+  total         Float
+  currencyCode  String   @default("USD") @map("currency_code")
+  expectedDate  DateTime? @map("expected_date")
+  receivedDate  DateTime? @map("received_date")
+  notes         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  supplier Supplier            @relation(fields: [supplierId], references: [id])
+  user     User?               @relation(fields: [userId], references: [id])
+  items    PurchaseOrderItem[]
+
+  @@index([supplierId])
+  @@index([status])
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id              String  @id @default(cuid())
+  purchaseOrderId String  @map("purchase_order_id")
+  productId       String  @map("product_id")
+  quantity        Int
+  unitCost        Float   @map("unit_cost")
+  totalCost       Float   @map("total_cost")
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+  product       Product       @relation(fields: [productId], references: [id])
+
+  @@index([purchaseOrderId])
+  @@index([productId])
+  @@map("purchase_order_items")
+}
+
+// ============================================================================
+// CAPA 5 — INVENTARIO
+// ============================================================================
+
+model Warehouse {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  address   String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  inventory          Inventory[]
+  inventoryMovements InventoryMovement[]
+
+  @@map("warehouses")
+}
+
+model Inventory {
+  id          String   @id @default(cuid())
+  productId   String   @map("product_id")
+  warehouseId String   @map("warehouse_id")
+  stock       Int      @default(0)
+  reserved    Int      @default(0)
+  minStock    Int      @default(0) @map("min_stock")
+  maxStock    Int?     @map("max_stock")
+  location    String?  // bin/aisle
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  product   Product   @relation(fields: [productId], references: [id])
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+
+  available Int @default(0) @map("available")
+
+  @@unique([productId, warehouseId])
+  @@index([productId])
+  @@index([warehouseId])
+  @@map("inventory")
+}
+
+model InventoryMovement {
+  id          String   @id @default(cuid())
+  productId   String   @map("product_id")
+  warehouseId String   @map("warehouse_id")
+  type        String   // IN | OUT | ADJUST | RESERVE | RELEASE
+  quantity    Int
+  reason      String?
+  reference   String?  // order/purchase number
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  product   Product   @relation(fields: [productId], references: [id])
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+
+  @@index([productId])
+  @@index([warehouseId])
+  @@map("inventory_movements")
+}
+
+// ============================================================================
+// CAPA 6 — CLIENTES
+// ============================================================================
+
+model Customer {
+  id          String    @id @default(cuid())
+  firstName   String    @map("first_name")
+  lastName    String    @map("last_name")
+  email       String    @unique
+  phone       String?
+  country     String?   @default("CO")
+  city        String?
+  address     String?
+  tags        String?   // comma-separated tags
+  status      String    @default("ACTIVE") // ACTIVE | INACTIVE | VIP
+  lifetimeValue Float   @default(0) @map("lifetime_value")
+  totalOrders Int       @default(0) @map("total_orders")
+  companyId   String    @map("company_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  company Company @relation(fields: [companyId], references: [id])
+  orders  Order[]
+
+  @@index([companyId])
+  @@map("customers")
+}
+
+// ============================================================================
+// CAPA 7 — VENTAS
+// ============================================================================
+
+model Order {
+  id            String    @id @default(cuid())
+  number        String    @unique
+  customerId    String    @map("customer_id")
+  userId        String?   @map("user_id")
+  status        String    @default("PENDING") // PENDING | PAID | SHIPPED | DELIVERED | CANCELLED | REFUNDED
+  subtotal      Float
+  shippingCost  Float     @default(0) @map("shipping_cost")
+  tax           Float     @default(0)
+  discount      Float     @default(0)
+  total         Float
+  currencyCode  String    @default("USD") @map("currency_code")
+  paymentMethod String?   @map("payment_method")
+  trackingNumber String?  @map("tracking_number")
+  notes         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  customer Customer    @relation(fields: [customerId], references: [id])
+  user     User?       @relation(fields: [userId], references: [id])
+  items    OrderItem[]
+
+  @@index([customerId])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  orderId   String @map("order_id")
+  productId String @map("product_id")
+  quantity  Int
+  unitPrice Float  @map("unit_price")
+  total     Float
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("order_items")
+}
+
+// ============================================================================
+// CAPA 8 — FINANZAS
+// ============================================================================
+
+model Transaction {
+  id          String   @id @default(cuid())
+  type        String   // INCOME | EXPENSE
+  category    String   // SALES | PURCHASES | SHIPPING | SALARY | MARKETING | RENT | UTILITY | OTHER
+  description String
+  amount      Float
+  currencyCode String  @default("USD") @map("currency_code")
+  reference   String?  // order/purchase number
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([type])
+  @@index([category])
+  @@index([date])
+  @@map("transactions")
+}
+
+// ============================================================================
+// CAPA 10 — IA (NAIOS)
+// ============================================================================
+
+model NaiosRecommendation {
+  id          String   @id @default(cuid())
+  type        String   // ALERT | OPPORTUNITY | RISK | INSIGHT
+  severity    String   @default("MEDIUM") // LOW | MEDIUM | HIGH | CRITICAL
+  title       String
+  description String
+  module      String   // dashboard | products | suppliers | inventory | finance ...
+  entityId    String?  @map("entity_id")
+  action      String?  // suggested action
+  status      String   @default("PENDING") // PENDING | DISMISSED | APPLIED
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([status])
+  @@index([module])
+  @@map("naios_recommendations")
+}
+
+model NaiosConversation {
+  id        String   @id @default(cuid())
+  role      String   // user | assistant
+  content   String
+  module    String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("naios_conversations")
+}
