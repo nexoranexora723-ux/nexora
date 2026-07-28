@@ -251,7 +251,7 @@ export function DashboardView({
             ) : (
               <div className="space-y-3">
                 {stats.topProducts.map((p, i) => (
-                  <div key={p.id} className="flex items-center gap-3">
+                  <div key={p.sku} className="flex items-center gap-3">
                     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted text-xs font-bold text-muted-foreground">
                       {i + 1}
                     </div>

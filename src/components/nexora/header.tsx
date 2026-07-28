@@ -75,15 +75,15 @@ export function Header({ active, onNavigate, alertCount = 0, onOpenNaios }: Head
           )}
         </Button>
 
-        {/* Theme toggle */}
+        {/* Theme toggle — render both icons, swap via CSS to avoid hydration mismatch */}
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           aria-label="Cambiar tema"
-          suppressHydrationWarning
         >
-          {theme === 'dark' ? <Sun className="h-4.5 w-4.5" /> : <Moon className="h-4.5 w-4.5" />}
+          <Sun className="hidden h-4.5 w-4.5 dark:block" />
+          <Moon className="h-4.5 w-4.5 dark:hidden" />
         </Button>
 
         {/* User avatar */}
