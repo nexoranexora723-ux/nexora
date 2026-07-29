@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { timeAgo } from '@/lib/format'
 import { Bell, Check, Trash2, BellOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
 import type { Notification } from '@/lib/types'
 
 const TYPE_ICONS: Record<string, string> = {
@@ -55,9 +56,15 @@ export function NotificationBell() {
         <button className="relative flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-muted">
           <Bell className="h-4.5 w-4.5" />
           {unreadCount > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
+            <motion.span
+              key={unreadCount}
+              initial={{ scale: 0.5 }}
+              animate={{ scale: [0.5, 1.3, 1] }}
+              transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+              className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white"
+            >
               {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
+            </motion.span>
           )}
           {unreadCount > 0 && (
             <span className="absolute right-2 top-1.5 h-2 w-2 animate-ping rounded-full bg-rose-500" />

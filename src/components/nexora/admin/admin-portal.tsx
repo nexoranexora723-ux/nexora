@@ -22,6 +22,8 @@ import {
 import { cn } from '@/lib/utils'
 import ReactMarkdown from 'react-markdown'
 import { NotificationBell } from '@/components/nexora/shared/notification-bell'
+import { AnimatedCounter, staggerContainer, staggerItem, BreathingAvatar, NaiosTyping, messageSlideIn } from '@/components/nexora/shared/animations'
+import { motion, AnimatePresence } from 'framer-motion'
 
 type View = 'dashboard' | 'requests' | 'suppliers' | 'quotes' | 'imports' | 'finance' | 'naios'
 
@@ -139,16 +141,16 @@ function AdminDashboard({ onViewRequest, onNavigate }: { onViewRequest: (id: str
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Card><CardContent className="p-5">
           <div className="flex items-center justify-between"><p className="text-xs text-muted-foreground">Solicitudes nuevas</p><Package className="h-5 w-5 text-sky-500" /></div>
-          <p className="mt-2 text-2xl font-bold text-sky-600">{stats.newRequests}</p>
+          <p className="mt-2 text-2xl font-bold text-sky-600"><AnimatedCounter value={stats.newRequests} /></p>
           <p className="text-xs text-muted-foreground">{stats.activeRequests} activas</p>
         </CardContent></Card>
         <Card><CardContent className="p-5">
           <div className="flex items-center justify-between"><p className="text-xs text-muted-foreground">Cotizaciones pendientes</p><FileText className="h-5 w-5 text-amber-500" /></div>
-          <p className="mt-2 text-2xl font-bold text-amber-600">{stats.pendingQuotes}</p>
+          <p className="mt-2 text-2xl font-bold text-amber-600"><AnimatedCounter value={stats.pendingQuotes} /></p>
         </CardContent></Card>
         <Card><CardContent className="p-5">
           <div className="flex items-center justify-between"><p className="text-xs text-muted-foreground">Importaciones activas</p><Globe className="h-5 w-5 text-violet-500" /></div>
-          <p className="mt-2 text-2xl font-bold text-violet-600">{stats.activeImports}</p>
+          <p className="mt-2 text-2xl font-bold text-violet-600"><AnimatedCounter value={stats.activeImports} /></p>
         </CardContent></Card>
         <Card><CardContent className="p-5">
           <div className="flex items-center justify-between"><p className="text-xs text-muted-foreground">Utilidad</p><TrendingUp className="h-5 w-5 text-emerald-500" /></div>
@@ -641,7 +643,7 @@ function AdminNaios() {
       <Card className="overflow-hidden"><CardContent className="p-0">
         <div className="border-b bg-gradient-to-r from-primary/5 to-transparent p-4">
           <div className="flex items-center gap-2">
-            <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground"><Bot className="h-4 w-4" /><span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card bg-emerald-500" /></div>
+            <BreathingAvatar className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground"><Bot className="h-4 w-4" /><span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card bg-emerald-500" /></BreathingAvatar>
             <div><h3 className="text-base font-semibold">Conversación con NAIOS</h3><p className="text-xs text-muted-foreground">Tu copiloto de importaciones</p></div>
           </div>
         </div>
@@ -659,16 +661,16 @@ function AdminNaios() {
           ) : (
             <div className="space-y-3">
               {messages.map((m, i) => (
-                <div key={i} className={cn('flex gap-2', m.role === 'user' && 'flex-row-reverse')}>
+                <motion.div key={i} variants={messageSlideIn} initial="hidden" animate="visible" className={cn('flex gap-2', m.role === 'user' && 'flex-row-reverse')}>
                   <div className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-lg', m.role === 'assistant' ? 'bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground' : 'bg-muted')}>
                     {m.role === 'assistant' ? <Bot className="h-3.5 w-3.5" /> : <Users className="h-3.5 w-3.5" />}
                   </div>
                   <div className={cn('max-w-[80%] rounded-2xl px-3 py-2 text-sm', m.role === 'assistant' ? 'rounded-tl-sm bg-muted/60' : 'rounded-tr-sm bg-primary text-primary-foreground')}>
                     {m.role === 'assistant' ? <div className="naios-markdown"><ReactMarkdown>{m.content}</ReactMarkdown></div> : <p className="whitespace-pre-wrap">{m.content}</p>}
                   </div>
-                </div>
+                </motion.div>
               ))}
-              {sending && <div className="flex gap-2"><div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground"><Bot className="h-3.5 w-3.5" /></div><div className="flex items-center gap-1 rounded-2xl rounded-tl-sm bg-muted/60 px-3 py-2"><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60 [animation-delay:0.15s]" /><span className="h-1.5 w-1.5 animate-bounce rounded-full bg-primary/60 [animation-delay:0.3s]" /></div></div>}
+              {sending && <div className="flex gap-2"><BreathingAvatar className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground"><Bot className="h-3.5 w-3.5" /></BreathingAvatar><NaiosTyping /></div>}
             </div>
           )}
         </div>

@@ -25,6 +25,8 @@ import { NotificationBell } from '@/components/nexora/shared/notification-bell'
 import { WizardDialog } from '@/components/nexora/client/wizard-dialog'
 import { OnboardingTour, CommandPalette } from '@/components/nexora/shared/extra-features'
 import { ProductDetailPage } from '@/components/nexora/public/product-detail-page'
+import { fireConfetti, SuccessOverlay, LoadingOverlay, staggerContainer, staggerItem, AnimatedCounter, PulsingBadge, BreathingAvatar, NaiosTyping, messageSlideIn } from '@/components/nexora/shared/animations'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useTheme } from 'next-themes'
 import { Sun, Moon, Command as CommandIcon } from 'lucide-react'
 
@@ -282,12 +284,12 @@ function ClientDashboard({ onNewRequest, onViewRequest, onNavigate }: { onNewReq
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Total solicitudes</p><p className="mt-1 text-2xl font-bold">{stats.total}</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">En proceso</p><p className="mt-1 text-2xl font-bold text-amber-600">{stats.active}</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Entregados</p><p className="mt-1 text-2xl font-bold text-emerald-600">{stats.delivered}</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Nuevos</p><p className="mt-1 text-2xl font-bold text-sky-600">{stats.new}</p></CardContent></Card>
-      </div>
+      <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <motion.div variants={staggerItem}><Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Total solicitudes</p><p className="mt-1 text-2xl font-bold"><AnimatedCounter value={stats.total} /></p></CardContent></Card></motion.div>
+        <motion.div variants={staggerItem}><Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">En proceso</p><p className="mt-1 text-2xl font-bold text-amber-600"><AnimatedCounter value={stats.active} /></p></CardContent></Card></motion.div>
+        <motion.div variants={staggerItem}><Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Entregados</p><p className="mt-1 text-2xl font-bold text-emerald-600"><AnimatedCounter value={stats.delivered} /></p></CardContent></Card></motion.div>
+        <motion.div variants={staggerItem}><Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Nuevos</p><p className="mt-1 text-2xl font-bold text-sky-600"><AnimatedCounter value={stats.new} /></p></CardContent></Card></motion.div>
+      </motion.div>
 
       <div>
         <div className="mb-3 flex items-center justify-between">
@@ -396,9 +398,13 @@ function ClientCatalog({ onProductClick }: { onProductClick: (p: Product) => voi
                     </div>
                   )}
                   {savings && savings > 0 && (
-                    <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-rose-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg">
+                    <motion.div
+                      animate={{ scale: [1, 1.08, 1] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                      className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-rose-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg"
+                    >
                       <TrendingUp className="h-3 w-3" /> {savings}% OFF
-                    </div>
+                    </motion.div>
                   )}
                   {p.isFeatured && (
                     <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg">
@@ -628,15 +634,25 @@ function ClientTracking({ requestId }: { requestId: string | null }) {
             <div key={status} className="flex flex-1 flex-col items-center">
               {/* Line */}
               {idx < statuses.length - 1 && (
-                <div className={cn('absolute h-0.5 top-4', idx < currentIdx ? 'bg-primary' : 'bg-muted')} style={{ left: `${(idx / (statuses.length - 1)) * 100}%`, width: `${100 / (statuses.length - 1)}%` }} />
+                <motion.div
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: 1 }}
+                  transition={{ duration: 0.5, delay: idx * 0.1, ease: 'easeOut' }}
+                  className={cn('absolute h-0.5 top-4 origin-left', idx < currentIdx ? 'bg-primary' : 'bg-muted')}
+                  style={{ left: `${(idx / (statuses.length - 1)) * 100}%`, width: `${100 / (statuses.length - 1)}%` }}
+                />
               )}
               {/* Dot */}
-              <div className={cn('relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 text-[10px] font-bold transition-all',
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 15, delay: idx * 0.1 }}
+                className={cn('relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 text-[10px] font-bold transition-all',
                 idx < currentIdx ? 'border-primary bg-primary text-primary-foreground' :
                 idx === currentIdx ? 'border-primary bg-primary text-primary-foreground ring-4 ring-primary/20' :
                 'border-muted bg-background text-muted-foreground')}>
                 {idx < currentIdx ? <Check className="h-3.5 w-3.5" /> : idx + 1}
-              </div>
+              </motion.div>
               {/* Label */}
               <span className={cn('mt-1.5 max-w-[80px] text-center text-[9px] leading-tight', idx <= currentIdx ? 'font-medium text-foreground' : 'text-muted-foreground')}>
                 {REQUEST_STATUS_LABELS[status]}
@@ -852,6 +868,7 @@ function PaymentSection({ requestId }: { requestId: string }) {
     },
     onSuccess: () => {
       setPaid(true)
+      fireConfetti()
       qc.invalidateQueries({ queryKey: ['request', requestId] })
       qc.invalidateQueries({ queryKey: ['client-requests'] })
     },
@@ -859,11 +876,27 @@ function PaymentSection({ requestId }: { requestId: string }) {
 
   if (paid) {
     return (
-      <div className="flex flex-col items-center gap-2 py-4 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"><CheckCircle2 className="h-6 w-6" /></div>
-        <p className="text-sm font-semibold">¡Pago confirmado!</p>
-        <p className="text-xs text-muted-foreground">Nuestro equipo iniciará la compra al proveedor.</p>
-      </div>
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        className="flex flex-col items-center gap-2 py-4 text-center"
+      >
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 15, delay: 0.2 }}
+          className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950"
+        >
+          <motion.svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <motion.path d="M9 16 L14 21 L23 10" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+              initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5, delay: 0.4, ease: 'easeInOut' }}
+            />
+          </motion.svg>
+        </motion.div>
+        <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="text-sm font-semibold">¡Pago confirmado! ✅</motion.p>
+        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="text-xs text-muted-foreground">Nuestro equipo iniciará la compra al proveedor.</motion.p>
+      </motion.div>
     )
   }
 
@@ -925,6 +958,7 @@ function CreateRequestDialog({ open, onOpenChange, prefill }: { open: boolean; o
   const [imageInput, setImageInput] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
 
   // Prefill from catalog product when dialog opens
   useEffect(() => {
@@ -953,7 +987,8 @@ function CreateRequestDialog({ open, onOpenChange, prefill }: { open: boolean; o
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['client-requests'] })
-      onOpenChange(false)
+      fireConfetti()
+      setShowSuccess(true)
       setForm({ productName: '', description: '', category: '', purpose: 'personal', quantity: 1, budget: '', referenceUrl: '', referenceImages: '', details: '', priority: 'MEDIUM' })
     },
   })
@@ -1099,6 +1134,7 @@ function CreateRequestDialog({ open, onOpenChange, prefill }: { open: boolean; o
           </DialogFooter>
         </form>
       </DialogContent>
+      <SuccessOverlay show={showSuccess} title="¡Solicitud enviada! 🎉" subtitle="Nuestro equipo empezará a buscar el mejor proveedor" onDone={() => { setShowSuccess(false); onOpenChange(false) }} />
     </Dialog>
   )
 }

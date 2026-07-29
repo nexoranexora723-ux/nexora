@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { ArrowLeft, Search, Package, ArrowRight, Star, Zap, ShieldCheck, Truck, CheckCircle2, TrendingUp, Clock, ShoppingCart, Flame, Award } from 'lucide-react'
 import type { Product } from '@/lib/types'
 import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
 
 interface CatalogViewProps {
   onNavigate: (view: string) => void
@@ -140,9 +141,13 @@ function ProductCard({ product, onClick }: { product: Product; onClick: () => vo
 
         {/* Badge de descuento */}
         {savings && savings > 0 && (
-          <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-rose-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg">
+          <motion.div
+            animate={{ scale: [1, 1.08, 1] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-rose-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg"
+          >
             <TrendingUp className="h-3 w-3" /> {savings}% OFF
-          </div>
+          </motion.div>
         )}
 
         {/* Badge de destacado */}

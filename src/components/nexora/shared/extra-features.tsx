@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { TrendingUp, Package, DollarSign, Percent, Download, Users, Award, Megaphone } from 'lucide-react'
+import { fireConfettiSmall } from '@/components/nexora/shared/animations'
 import { formatCurrency, formatNumber } from '@/lib/format'
 
 // #10 Panel de Revendedores
@@ -139,7 +140,10 @@ export function OnboardingTour({ onClose }: { onClose: () => void }) {
 
   // Close on finish via useEffect (avoids setState during render)
   useEffect(() => {
-    if (isDone) onClose()
+    if (isDone) {
+      fireConfettiSmall()
+      onClose()
+    }
   }, [isDone, onClose])
 
   if (isDone) return null

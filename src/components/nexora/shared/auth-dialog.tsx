@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/lib/auth-store'
 import { Loader2, Mail, Lock, User, Phone, AlertCircle, Sparkles } from 'lucide-react'
+import { LoadingOverlay } from '@/components/nexora/shared/animations'
 
 interface AuthDialogProps {
   open: boolean
@@ -130,6 +131,7 @@ export function AuthDialog({ open, onOpenChange, mode, onModeChange }: AuthDialo
           </div>
         )}
       </DialogContent>
+      <LoadingOverlay show={loading} message="Iniciando sesión..." />
     </Dialog>
   )
 }

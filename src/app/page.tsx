@@ -14,6 +14,7 @@ import { AuthDialog } from '@/components/nexora/shared/auth-dialog'
 import { ClientPortal } from '@/components/nexora/client/client-portal'
 import { AdminPortal } from '@/components/nexora/admin/admin-portal'
 import { Loader2 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 type View = 'landing' | 'catalog' | 'how-it-works' | 'about' | 'contact' | 'register' | 'product-detail'
 
@@ -62,18 +63,24 @@ export default function NexoraPage() {
 
   return (
     <>
-      {view === 'landing' && <LandingView onNavigate={setView} onLogin={openLogin} onRegister={() => setView('register')} />}
-      {view === 'catalog' && <CatalogView onNavigate={setView} onLogin={openLogin} onRegister={() => setView('register')} onProductClick={(id) => { setSelectedProductId(id); setView('product-detail') }} />}
-      {view === 'product-detail' && selectedProductId && (
-        <ProductDetailPage
-          productId={selectedProductId}
-          onBack={() => setView('catalog')}
-          onRequest={() => setView('register')}
-        />
-      )}
-      {view === 'how-it-works' && <HowItWorksView onNavigate={setView} onLogin={openLogin} />}
-      {view === 'about' && <AboutView onNavigate={setView} onLogin={openLogin} />}
-      {view === 'contact' && <ContactView onNavigate={setView} onLogin={openLogin} />}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={view}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+        >
+          {view === 'landing' && <LandingView onNavigate={setView} onLogin={openLogin} onRegister={() => setView('register')} />}
+          {view === 'catalog' && <CatalogView onNavigate={setView} onLogin={openLogin} onRegister={() => setView('register')} onProductClick={(id) => { setSelectedProductId(id); setView('product-detail') }} />}
+          {view === 'product-detail' && selectedProductId && (
+            <ProductDetailPage productId={selectedProductId} onBack={() => setView('catalog')} onRequest={() => setView('register')} />
+          )}
+          {view === 'how-it-works' && <HowItWorksView onNavigate={setView} onLogin={openLogin} />}
+          {view === 'about' && <AboutView onNavigate={setView} onLogin={openLogin} />}
+          {view === 'contact' && <ContactView onNavigate={setView} onLogin={openLogin} />}
+        </motion.div>
+      </AnimatePresence>
       <AuthDialog open={authOpen} onOpenChange={setAuthOpen} mode="login" onModeChange={() => {}} />
     </>
   )

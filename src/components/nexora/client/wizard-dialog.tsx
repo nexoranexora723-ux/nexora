@@ -12,6 +12,7 @@ import {
   Package, Sparkles, ChevronRight, ChevronLeft, Check, Loader2,
   ShoppingBag, Search, Link2, Image as ImageIcon, Send, Plus,
 } from 'lucide-react'
+import { fireConfetti, SuccessOverlay } from '@/components/nexora/shared/animations'
 
 interface WizardDialogProps {
   open: boolean
@@ -41,6 +42,7 @@ export function WizardDialog({ open, onOpenChange }: WizardDialogProps) {
   })
   const [imageInput, setImageInput] = useState('')
   const [error, setError] = useState('')
+  const [showSuccess, setShowSuccess] = useState(false)
 
   const create = useMutation({
     mutationFn: async (payload: Record<string, unknown>) => {
@@ -52,7 +54,8 @@ export function WizardDialog({ open, onOpenChange }: WizardDialogProps) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['client-requests'] })
-      onOpenChange(false)
+      fireConfetti()
+      setShowSuccess(true)
       setStep(1)
       setData({ productName: '', category: '', purpose: 'personal', quantity: 1, budget: '', referenceUrl: '', referenceImages: '', details: '' })
     },
@@ -328,6 +331,7 @@ export function WizardDialog({ open, onOpenChange }: WizardDialogProps) {
           )}
         </div>
       </DialogContent>
+      <SuccessOverlay show={showSuccess} title="¡Solicitud enviada! 🎉" subtitle="Nuestro equipo empezará a buscar el mejor proveedor" onDone={() => { setShowSuccess(false); onOpenChange(false) }} />
     </Dialog>
   )
 }
