@@ -18,7 +18,7 @@ import {
   LayoutDashboard, Package, Truck, User, LogOut, Plus, Sparkles,
   Search, ChevronRight, ShoppingBag, ArrowLeft, ShoppingCart,
   Check, X, CheckCircle2, CreditCard, Loader2,
-  MessageCircle, Send,
+  MessageCircle, Send, Star, TrendingUp, ShieldCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { NotificationBell } from '@/components/nexora/shared/notification-bell'
@@ -352,31 +352,59 @@ function ClientCatalog({ onProductClick }: { onProductClick: (p: Product) => voi
         </CardContent></Card>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((p) => (
-            <Card key={p.id} className="group cursor-pointer overflow-hidden transition-all hover:-translate-y-1 hover:shadow-lg" onClick={() => onProductClick(p)}>
-              <div className="relative aspect-square overflow-hidden bg-muted">
-                {p.imageUrl ? (
-                  <img src={p.imageUrl} alt={p.name} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-4xl">📦</div>
-                )}
-                {p.category?.icon && (
-                  <Badge className="absolute left-2 top-2 bg-background/90 text-foreground shadow-sm backdrop-blur">{p.category.icon} {p.category.name}</Badge>
-                )}
-                {p.isFeatured && <Badge className="absolute right-2 top-2 bg-amber-500 text-white shadow-sm">★ Destacado</Badge>}
-              </div>
-              <CardContent className="p-4">
-                <p className="line-clamp-2 text-sm font-medium">{p.name}</p>
-                {p.description && <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{p.description}</p>}
-                <div className="mt-3 flex items-center justify-between">
-                  {p.estimatedCost ? (
-                    <p className="text-sm">Desde <span className="text-lg font-bold">${p.estimatedCost}</span></p>
-                  ) : <span className="text-xs text-muted-foreground">Precio bajo consulta</span>}
-                  <Badge variant="secondary" className="gap-1 text-[10px]"><ShoppingCart className="h-3 w-3" /> Importar</Badge>
+          {filtered.map((p) => {
+            const savings = p.estimatedCost && p.suggestedPrice ? Math.round(((p.suggestedPrice - p.estimatedCost) / p.suggestedPrice) * 100) : null
+            return (
+              <div key={p.id} className="group flex cursor-pointer flex-col overflow-hidden rounded-2xl border bg-card shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl" onClick={() => onProductClick(p)}>
+                <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-muted to-muted/50">
+                  {p.imageUrl ? (
+                    <img src={p.imageUrl} alt={p.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-5xl">📦</div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                  {p.category?.icon && (
+                    <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-background/90 px-2.5 py-1 text-xs font-medium shadow-sm backdrop-blur">
+                      <span>{p.category.icon}</span><span className="text-foreground">{p.category.name}</span>
+                    </div>
+                  )}
+                  {savings && savings > 0 && (
+                    <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-rose-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg">
+                      <TrendingUp className="h-3 w-3" /> {savings}% OFF
+                    </div>
+                  )}
+                  {p.isFeatured && (
+                    <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg">
+                      <Star className="h-3 w-3 fill-white" /> Destacado
+                    </div>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+                <CardContent className="flex flex-1 flex-col p-4">
+                  {p.brand && <p className="text-xs font-medium text-muted-foreground">{p.brand.name}</p>}
+                  <h3 className="mt-0.5 line-clamp-2 text-sm font-semibold leading-snug">{p.name}</h3>
+                  {p.description && <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{p.description}</p>}
+                  <div className="mt-3 flex items-baseline gap-2">
+                    {p.estimatedCost ? (
+                      <>
+                        <span className="text-2xl font-bold">${p.estimatedCost}</span>
+                        {p.suggestedPrice && <span className="text-sm text-muted-foreground line-through">${p.suggestedPrice}</span>}
+                      </>
+                    ) : <span className="text-sm text-muted-foreground">Precio bajo consulta</span>}
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+                    <span className="flex items-center gap-1"><ShieldCheck className="h-3 w-3 text-emerald-500" /> Verificado</span>
+                    <span className="flex items-center gap-1"><Truck className="h-3 w-3 text-primary" /> Importación incluida</span>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between gap-2 border-t pt-3">
+                    <span className="text-xs font-medium text-primary">Ver detalles</span>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                      <ChevronRight className="h-4 w-4" />
+                    </div>
+                  </div>
+                </CardContent>
+              </div>
+            )
+          })}
         </div>
       )}
     </div>
