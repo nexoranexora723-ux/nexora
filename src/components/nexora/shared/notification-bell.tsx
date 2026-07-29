@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -39,6 +39,27 @@ export function NotificationBell() {
 
   const unread = notifications.filter((n) => !n.readAt)
   const unreadCount = unread.length
+  const prevCount = useRef(unreadCount)
+
+  // Play subtle sound when new notification arrives
+  useEffect(() => {
+    if (prevCount.current < unreadCount && prevCount.current !== 0) {
+      try {
+        const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
+        const osc = ctx.createOscillator()
+        const gain = ctx.createGain()
+        osc.connect(gain)
+        gain.connect(ctx.destination)
+        osc.frequency.value = 800
+        osc.type = 'sine'
+        gain.gain.setValueAtTime(0.1, ctx.currentTime)
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15)
+        osc.start(ctx.currentTime)
+        osc.stop(ctx.currentTime + 0.15)
+      } catch { /* AudioContext not available */ }
+    }
+    prevCount.current = unreadCount
+  }, [unreadCount])
 
   const markAsRead = async (id: string) => {
     await fetch(`/api/notifications/${id}`, { method: 'PATCH' })

@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent } from '@/components/ui/card'
+import { motion } from 'framer-motion'
+import { staggerContainer, staggerItem } from '@/components/nexora/shared/animations'
 import {
   ArrowLeft, Star, ShieldCheck, Truck, Zap, CheckCircle2, TrendingUp,
   ShoppingCart, Award, Clock, Package, Minus, Plus, Play, ChevronRight,
@@ -167,8 +169,8 @@ export function ProductDetailPage({ productId, onBack, onRequest }: ProductDetai
             )}
           </div>
 
-          {/* === COLUMNA DERECHA: Info === */}
-          <div className="flex flex-col">
+          {/* === COLUMNA DERECHA: Info (sticky en desktop) === */}
+          <div className="flex flex-col lg:sticky lg:top-6 lg:self-start lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto">
             {/* Marca + título */}
             {product.brand && <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{product.brand.name}</p>}
             <h1 className="mt-0.5 text-2xl font-bold leading-tight sm:text-3xl">{product.name}</h1>
@@ -310,6 +312,78 @@ export function ProductDetailPage({ productId, onBack, onRequest }: ProductDetai
             )}
         </div>
       </div>
+
+      {/* === PRODUCTOS RELACIONADOS === */}
+      <RelatedProducts currentProductId={product.id} category={product.category?.id ?? null} onRequest={onRequest} />
+    </div>
+  )
+}
+
+// === Related Products ===
+interface RelatedProduct {
+  id: string
+  name: string
+  imageUrl: string | null
+  estimatedCost: number | null
+  suggestedPrice: number | null
+  isFeatured: boolean
+  category: { id: string; name: string; icon: string | null } | null
+  brand: { id: string; name: string } | null
+}
+
+function RelatedProducts({ currentProductId, category, onRequest }: { currentProductId: string; category: string | null; onRequest: () => void }) {
+  const { data: products } = useQuery<RelatedProduct[]>({
+    queryKey: ['related-products', category],
+    queryFn: async () => (await fetch('/api/products')).json(),
+    staleTime: 60000,
+  })
+
+  const related = useMemo(() => {
+    if (!products) return []
+    return products
+      .filter((p) => p.id !== currentProductId && (!category || p.category?.id === category))
+      .slice(0, 4)
+  }, [products, currentProductId, category])
+
+  if (related.length === 0) return null
+
+  return (
+    <div className="mt-16 border-t pt-12">
+      <h2 className="text-xl font-bold tracking-tight">Productos relacionados</h2>
+      <p className="mt-1 text-sm text-muted-foreground">También te puede interesar</p>
+      <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        {related.map((p) => {
+          const savings = p.estimatedCost && p.suggestedPrice ? Math.round(((p.suggestedPrice - p.estimatedCost) / p.suggestedPrice) * 100) : null
+          return (
+            <motion.div key={p.id} variants={staggerItem}>
+              <div className="group cursor-pointer overflow-hidden rounded-xl border bg-card shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg" onClick={onRequest}>
+                <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                  {p.imageUrl ? (
+                    <img src={p.imageUrl} alt={p.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-4xl">📦</div>
+                  )}
+                  {savings && savings > 0 && (
+                    <div className="absolute right-2 top-2 rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-bold text-white shadow">{savings}% OFF</div>
+                  )}
+                </div>
+                <div className="p-3">
+                  {p.brand && <p className="text-[10px] text-muted-foreground">{p.brand.name}</p>}
+                  <p className="line-clamp-2 text-xs font-medium">{p.name}</p>
+                  <div className="mt-2 flex items-baseline gap-1">
+                    {p.estimatedCost ? (
+                      <>
+                        <span className="text-base font-bold">${p.estimatedCost}</span>
+                        {p.suggestedPrice && <span className="text-[10px] text-muted-foreground line-through">${p.suggestedPrice}</span>}
+                      </>
+                    ) : <span className="text-[10px] text-muted-foreground">Consulta</span>}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )
+        })}
+      </motion.div>
     </div>
   )
 }

@@ -174,25 +174,30 @@ export function ClientPortal() {
           </div>
         </header>
 
-        {/* Mobile nav */}
-        <div className="flex gap-1 overflow-x-auto border-b px-4 py-2 lg:hidden">
+        {/* Mobile bottom navigation */}
+        <div className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t bg-background/95 px-2 py-2 backdrop-blur-md lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0.5rem)' }}>
           {[
-            { key: 'dashboard' as View, label: 'Dashboard' },
-            { key: 'catalog' as View, label: 'Catálogo' },
-            { key: 'requests' as View, label: 'Solicitudes' },
-            { key: 'tracking' as View, label: 'Seguimiento' },
-            { key: 'profile' as View, label: 'Perfil' },
-          ].map((item) => (
-            <button key={item.key} onClick={() => setView(item.key)} className={cn(
-              'shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
-              view === item.key ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
-            )}>
-              {item.label}
-            </button>
-          ))}
+            { key: 'dashboard' as View, icon: LayoutDashboard, label: 'Inicio' },
+            { key: 'catalog' as View, icon: ShoppingBag, label: 'Catálogo' },
+            { key: 'requests' as View, icon: Package, label: 'Pedidos' },
+            { key: 'tracking' as View, icon: Truck, label: 'Tracking' },
+            { key: 'profile' as View, icon: User, label: 'Perfil' },
+          ].map((item) => {
+            const isActive = view === item.key
+            return (
+              <button key={item.key} onClick={() => setView(item.key)} className={cn(
+                'flex flex-col items-center gap-0.5 rounded-lg px-3 py-1.5 transition-colors',
+                isActive ? 'text-primary' : 'text-muted-foreground',
+              )}>
+                <item.icon className={cn('h-5 w-5', isActive && 'fill-primary/10')} />
+                <span className={cn('text-[10px] font-medium', isActive && 'font-semibold')}>{item.label}</span>
+                {isActive && <div className="absolute -mt-1 h-1 w-1 rounded-full bg-primary" />}
+              </button>
+            )
+          })}
         </div>
 
-        <main className="nexora-scroll flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main className="nexora-scroll flex-1 overflow-y-auto p-4 pb-20 sm:p-6 lg:p-8 lg:pb-8">
           <div className="mx-auto max-w-5xl">
             {view === 'dashboard' && <ClientDashboard onNewRequest={openCreateBlank} onViewRequest={(id) => { setSelectedRequest(id); setView('tracking') }} onNavigate={setView} />}
             {view === 'catalog' && <ClientCatalog onProductClick={(p) => setDetailProductId(p.id)} />}

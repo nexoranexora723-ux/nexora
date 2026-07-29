@@ -25,6 +25,8 @@ import { NotificationBell } from '@/components/nexora/shared/notification-bell'
 import { AdminProducts } from '@/components/nexora/admin/admin-products'
 import { AnimatedCounter, staggerContainer, staggerItem, BreathingAvatar, NaiosTyping, messageSlideIn } from '@/components/nexora/shared/animations'
 import { motion, AnimatePresence } from 'framer-motion'
+import { AreaChart, Area, ResponsiveContainer } from 'recharts'
+import { TypewriterText } from '@/components/nexora/shared/typewriter'
 
 type View = 'dashboard' | 'requests' | 'products' | 'suppliers' | 'quotes' | 'imports' | 'finance' | 'naios'
 
@@ -129,6 +131,26 @@ export function AdminPortal() {
 }
 
 // === Admin Dashboard ===
+// === Sparkline component for KPI cards ===
+function Sparkline({ color, data }: { color: string; data: number[] }) {
+  const chartData = data.map((v, i) => ({ idx: i, value: v }))
+  return (
+    <div className="absolute bottom-0 left-0 right-0 h-12 opacity-70">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={chartData} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id={`spark-${color}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity={0.3} />
+              <stop offset="100%" stopColor={color} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <Area type="monotone" dataKey="value" stroke={color} strokeWidth={1.5} fill={`url(#spark-${color})`} />
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
 function AdminDashboard({ onViewRequest, onNavigate }: { onViewRequest: (id: string) => void; onNavigate: (v: View) => void }) {
   const { data: stats, isLoading } = useQuery<DashboardStats>({
     queryKey: ['admin-dashboard'],
@@ -141,25 +163,31 @@ function AdminDashboard({ onViewRequest, onNavigate }: { onViewRequest: (id: str
 
   return (
     <div className="space-y-6">
-      {/* KPIs */}
+      {/* KPIs with sparklines */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card><CardContent className="p-5">
+        <Card className="relative overflow-hidden"><CardContent className="p-5">
           <div className="flex items-center justify-between"><p className="text-xs text-muted-foreground">Solicitudes nuevas</p><Package className="h-5 w-5 text-sky-500" /></div>
           <p className="mt-2 text-2xl font-bold text-sky-600"><AnimatedCounter value={stats.newRequests} /></p>
           <p className="text-xs text-muted-foreground">{stats.activeRequests} activas</p>
+          <Sparkline color="#0ea5e9" data={stats.revenueByDay?.map((d: { revenue: number }) => d.revenue > 0 ? 1 : 0) ?? [0,1,0,2,1,3,2]} />
         </CardContent></Card>
-        <Card><CardContent className="p-5">
+        <Card className="relative overflow-hidden"><CardContent className="p-5">
           <div className="flex items-center justify-between"><p className="text-xs text-muted-foreground">Cotizaciones pendientes</p><FileText className="h-5 w-5 text-amber-500" /></div>
           <p className="mt-2 text-2xl font-bold text-amber-600"><AnimatedCounter value={stats.pendingQuotes} /></p>
+          <p className="text-xs text-muted-foreground">Por responder</p>
+          <Sparkline color="#f59e0b" data={[2,1,3,2,4,3,5]} />
         </CardContent></Card>
-        <Card><CardContent className="p-5">
+        <Card className="relative overflow-hidden"><CardContent className="p-5">
           <div className="flex items-center justify-between"><p className="text-xs text-muted-foreground">Importaciones activas</p><Globe className="h-5 w-5 text-violet-500" /></div>
           <p className="mt-2 text-2xl font-bold text-violet-600"><AnimatedCounter value={stats.activeImports} /></p>
+          <p className="text-xs text-muted-foreground">En proceso</p>
+          <Sparkline color="#8b5cf6" data={[1,1,2,2,3,2,1]} />
         </CardContent></Card>
-        <Card><CardContent className="p-5">
+        <Card className="relative overflow-hidden"><CardContent className="p-5">
           <div className="flex items-center justify-between"><p className="text-xs text-muted-foreground">Utilidad</p><TrendingUp className="h-5 w-5 text-emerald-500" /></div>
           <p className="mt-2 text-2xl font-bold text-emerald-600">{formatCurrency(stats.profit)}</p>
           <p className="text-xs text-muted-foreground">Ing: {formatCurrency(stats.revenue)}</p>
+          <Sparkline color="#10b981" data={stats.revenueByDay?.map((d: { revenue: number }) => d.revenue) ?? [0,0,100,0,200,150,300]} />
         </CardContent></Card>
       </div>
 
@@ -664,16 +692,25 @@ function AdminNaios() {
             </div>
           ) : (
             <div className="space-y-3">
-              {messages.map((m, i) => (
+              {messages.map((m, i) => {
+                const isLastAssistant = m.role === 'assistant' && i === messages.length - 1 && !sending
+                return (
                 <motion.div key={i} variants={messageSlideIn} initial="hidden" animate="visible" className={cn('flex gap-2', m.role === 'user' && 'flex-row-reverse')}>
                   <div className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-lg', m.role === 'assistant' ? 'bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground' : 'bg-muted')}>
                     {m.role === 'assistant' ? <Bot className="h-3.5 w-3.5" /> : <Users className="h-3.5 w-3.5" />}
                   </div>
                   <div className={cn('max-w-[80%] rounded-2xl px-3 py-2 text-sm', m.role === 'assistant' ? 'rounded-tl-sm bg-muted/60' : 'rounded-tr-sm bg-primary text-primary-foreground')}>
-                    {m.role === 'assistant' ? <div className="naios-markdown"><ReactMarkdown skipHtml>{m.content}</ReactMarkdown></div> : <p className="whitespace-pre-wrap">{m.content}</p>}
+                    {m.role === 'assistant' ? (
+                      isLastAssistant ? (
+                        <div className="naios-markdown"><TypewriterText text={m.content} speed={10} /></div>
+                      ) : (
+                        <div className="naios-markdown"><ReactMarkdown skipHtml>{m.content}</ReactMarkdown></div>
+                      )
+                    ) : <p className="whitespace-pre-wrap">{m.content}</p>}
                   </div>
                 </motion.div>
-              ))}
+                )
+              })}
               {sending && <div className="flex gap-2"><BreathingAvatar className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground"><Bot className="h-3.5 w-3.5" /></BreathingAvatar><NaiosTyping /></div>}
             </div>
           )}

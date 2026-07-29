@@ -14,6 +14,7 @@ import {
 import { cn } from '@/lib/utils'
 import type { Product } from '@/lib/types'
 import { ImportCalculator } from '@/components/nexora/public/import-calculator'
+import { motion } from 'framer-motion'
 
 interface LandingViewProps {
   onNavigate: (view: string) => void
@@ -55,36 +56,176 @@ export function LandingView({ onNavigate, onLogin, onRegister }: LandingViewProp
       </nav>
 
       {/* ===== HERO ===== */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-emerald-500/5 to-transparent" />
-        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
-          <div className="mx-auto max-w-3xl text-center">
-            <Badge className="mb-6 gap-1.5 bg-primary/10 text-primary hover:bg-primary/15">
-              <ShieldCheck className="h-3 w-3" /> Importación segura y transparente
-            </Badge>
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              Importa desde China
-              <span className="block bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent">nunca había sido tan fácil</span>
-            </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-              Tú eliges el producto. Nosotros nos encargamos del resto: buscar proveedores, negociar, comprar, importar y entregar.
-            </p>
-            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Button size="lg" className="gap-2 text-base" onClick={() => onNavigate('catalog')}>
-                <Package className="h-5 w-5" /> Ver catálogo
-              </Button>
-              <Button size="lg" variant="outline" className="gap-2 text-base" onClick={onRegister}>
-                <Sparkles className="h-5 w-5" /> Solicitar producto personalizado
-              </Button>
+      <section className="relative overflow-hidden gradient-mesh">
+        {/* Grid pattern background */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: 'linear-gradient(oklch(0.5 0.01 240) 1px, transparent 1px), linear-gradient(90deg, oklch(0.5 0.01 240) 1px, transparent 1px)',
+          backgroundSize: '40px 40px',
+        }} />
+        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+          <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
+            {/* Left: Text */}
+            <div className="text-center lg:text-left">
+              <Badge className="mb-6 gap-1.5 bg-primary/10 text-primary hover:bg-primary/15">
+                <ShieldCheck className="h-3 w-3" /> Importación segura y transparente
+              </Badge>
+              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+                Importa desde China
+                <span className="block bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent">nunca había sido tan fácil</span>
+              </h1>
+              <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground lg:mx-0">
+                Tú eliges el producto. Nosotros nos encargamos del resto: buscar proveedores, negociar, comprar, importar y entregar.
+              </p>
+              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
+                <Button size="lg" className="gap-2 shine-effect text-base shadow-lg shadow-primary/25" onClick={() => onNavigate('catalog')}>
+                  <Package className="h-5 w-5" /> Ver catálogo
+                </Button>
+                <Button size="lg" variant="outline" className="gap-2 text-base" onClick={onRegister}>
+                  <Sparkles className="h-5 w-5" /> Solicitar producto personalizado
+                </Button>
+              </div>
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-muted-foreground lg:justify-start">
+                <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-primary" /> Proveedores verificados</span>
+                <span className="flex items-center gap-1.5"><Ship className="h-4 w-4 text-primary" /> Logística completa</span>
+                <span className="flex items-center gap-1.5"><Users className="h-4 w-4 text-primary" /> +500 clientes</span>
+              </div>
             </div>
 
-            {/* Trust badges */}
-            <div className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-primary" /> Proveedores verificados</span>
-              <span className="flex items-center gap-1.5"><Ship className="h-4 w-4 text-primary" /> Logística internacional</span>
-              <span className="flex items-center gap-1.5"><Zap className="h-4 w-4 text-primary" /> Proceso automatizado</span>
-              <span className="flex items-center gap-1.5"><Users className="h-4 w-4 text-primary" /> +500 clientes felices</span>
+            {/* Right: Product mockup */}
+            <div className="relative hidden lg:block">
+              <motion.div
+                initial={{ opacity: 0, y: 30, rotateX: 5 }}
+                animate={{ opacity: 1, y: 0, rotateX: 0 }}
+                transition={{ duration: 0.8, ease: 'easeOut' }}
+                className="relative"
+              >
+                {/* Glow behind mockup */}
+                <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-primary/20 to-emerald-500/10 blur-2xl" />
+
+                {/* Browser window */}
+                <div className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+                  {/* Browser bar */}
+                  <div className="flex items-center gap-2 border-b bg-muted/50 px-4 py-3">
+                    <div className="flex gap-1.5">
+                      <div className="h-3 w-3 rounded-full bg-rose-400" />
+                      <div className="h-3 w-3 rounded-full bg-amber-400" />
+                      <div className="h-3 w-3 rounded-full bg-emerald-400" />
+                    </div>
+                    <div className="ml-3 flex-1 rounded-md bg-background px-3 py-1 text-xs text-muted-foreground">
+                      nexora.co/catalog
+                    </div>
+                  </div>
+
+                  {/* Mockup content */}
+                  <div className="space-y-3 p-4">
+                    {/* Mock KPI bar */}
+                    <div className="flex gap-2">
+                      <div className="flex-1 rounded-lg bg-primary/5 p-2">
+                        <div className="h-2 w-16 rounded bg-primary/30" />
+                        <div className="mt-1.5 h-4 w-12 rounded bg-primary/50" />
+                      </div>
+                      <div className="flex-1 rounded-lg bg-amber-500/5 p-2">
+                        <div className="h-2 w-12 rounded bg-amber-500/30" />
+                        <div className="mt-1.5 h-4 w-8 rounded bg-amber-500/50" />
+                      </div>
+                      <div className="flex-1 rounded-lg bg-violet-500/5 p-2">
+                        <div className="h-2 w-14 rounded bg-violet-500/30" />
+                        <div className="mt-1.5 h-4 w-10 rounded bg-violet-500/50" />
+                      </div>
+                    </div>
+
+                    {/* Mock product cards */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {[1, 2, 3, 4].map((i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.3 + i * 0.1, type: 'spring', stiffness: 300 }}
+                          className="overflow-hidden rounded-xl border"
+                        >
+                          <div className={cn(
+                            'flex h-24 items-center justify-center text-3xl',
+                            i === 1 && 'bg-gradient-to-br from-rose-500/20 to-rose-600/10',
+                            i === 2 && 'bg-gradient-to-br from-sky-500/20 to-blue-600/10',
+                            i === 3 && 'bg-gradient-to-br from-amber-500/20 to-orange-600/10',
+                            i === 4 && 'bg-gradient-to-br from-violet-500/20 to-purple-600/10',
+                          )}>
+                            {i === 1 ? '🎧' : i === 2 ? '⌚' : i === 3 ? '👟' : '🕶️'}
+                          </div>
+                          <div className="space-y-1.5 p-2">
+                            <div className="flex items-center justify-between">
+                              <div className="h-2 w-20 rounded bg-foreground/20" />
+                              <div className="flex items-center gap-0.5">
+                                {[1,2,3,4].map((s) => <div key={s} className="h-2 w-2 rounded-sm bg-amber-400" />)}
+                              </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <div className="h-3 w-12 rounded bg-primary/40" />
+                              <div className="h-2 w-8 rounded bg-rose-400/60" />
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    {/* Mock progress bar */}
+                    <div className="rounded-lg border p-2.5">
+                      <div className="flex items-center justify-between">
+                        <div className="h-2 w-24 rounded bg-foreground/15" />
+                        <div className="h-4 w-16 rounded bg-emerald-500/30" />
+                      </div>
+                      <div className="mt-2 flex items-center gap-1">
+                        <div className="h-1.5 flex-1 rounded-full bg-emerald-500" />
+                        <div className="h-1.5 flex-1 rounded-full bg-emerald-500" />
+                        <div className="h-1.5 flex-1 rounded-full bg-emerald-500/50" />
+                        <div className="h-1.5 flex-1 rounded-full bg-muted" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Floating badge 1 */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20, y: 10 }}
+                  animate={{ opacity: 1, x: 0, y: 0 }}
+                  transition={{ delay: 0.8, type: 'spring', stiffness: 300 }}
+                  className="absolute -left-4 top-1/3 flex items-center gap-2 rounded-xl border bg-card p-3 shadow-xl"
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
+                    <CheckCircle2 className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold">¡Solicitud aprobada!</p>
+                    <p className="text-[10px] text-muted-foreground">Proveedor encontrado</p>
+                  </div>
+                </motion.div>
+
+                {/* Floating badge 2 */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20, y: -10 }}
+                  animate={{ opacity: 1, x: 0, y: 0 }}
+                  transition={{ delay: 1, type: 'spring', stiffness: 300 }}
+                  className="absolute -right-4 bottom-1/4 flex items-center gap-2 rounded-xl border bg-card p-3 shadow-xl"
+                >
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <Truck className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold">En tránsito</p>
+                    <p className="text-[10px] text-muted-foreground">ETA: 5 días</p>
+                  </div>
+                </motion.div>
+              </motion.div>
             </div>
+          </div>
+
+          {/* Trust badges - full width below */}
+          <div className="mt-16 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 border-t pt-8 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-primary" /> Proveedores verificados</span>
+            <span className="flex items-center gap-1.5"><Ship className="h-4 w-4 text-primary" /> Logística internacional</span>
+            <span className="flex items-center gap-1.5"><Zap className="h-4 w-4 text-primary" /> Proceso automatizado</span>
+            <span className="flex items-center gap-1.5"><Users className="h-4 w-4 text-primary" /> +500 clientes felices</span>
           </div>
         </div>
       </section>
