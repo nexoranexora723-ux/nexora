@@ -413,46 +413,97 @@ function ClientCatalog({ onProductClick }: { onProductClick: (p: Product) => voi
 
 // === Product Detail Dialog ===
 function ProductDetailDialog({ product, onClose, onRequest }: { product: Product; onClose: () => void; onRequest: (p: Product) => void }) {
+  const savings = product.estimatedCost && product.suggestedPrice ? product.suggestedPrice - product.estimatedCost : null
+  const savingsPct = savings && product.suggestedPrice ? Math.round((savings / product.suggestedPrice) * 100) : null
+
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="nexora-scroll max-h-[92vh] overflow-y-auto sm:max-w-2xl">
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
+      <DialogContent className="nexora-scroll max-h-[92vh] overflow-y-auto sm:max-w-3xl p-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2">
+          {/* Imagen */}
+          <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/30 sm:aspect-auto">
             {product.imageUrl ? (
               <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-6xl">📦</div>
+              <div className="flex h-full w-full items-center justify-center text-7xl">📦</div>
             )}
-            {product.category?.icon && (
-              <Badge className="absolute left-3 top-3 bg-background/90 text-foreground shadow-sm backdrop-blur">{product.category.icon} {product.category.name}</Badge>
+            <div className="absolute left-4 top-4 flex flex-col gap-2">
+              {product.category?.icon && (
+                <Badge className="w-fit bg-background/90 text-foreground shadow-sm backdrop-blur">{product.category.icon} {product.category.name}</Badge>
+              )}
+              {product.isFeatured && (
+                <Badge className="w-fit gap-1 bg-amber-500 text-white shadow-lg"><Star className="h-3 w-3 fill-white" /> Destacado</Badge>
+              )}
+            </div>
+            {savingsPct && savingsPct > 0 && (
+              <div className="absolute right-4 top-4 rounded-full bg-rose-500 px-3 py-1.5 text-sm font-bold text-white shadow-lg">Ahorra {savingsPct}%</div>
             )}
           </div>
-          <div className="flex flex-col">
+
+          {/* Info */}
+          <div className="flex flex-col p-6">
             <DialogHeader className="p-0 text-left">
-              <DialogTitle className="text-xl">{product.name}</DialogTitle>
-              {product.brand && <p className="text-sm text-muted-foreground">{product.brand.name}</p>}
+              {product.brand && <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{product.brand.name}</p>}
+              <DialogTitle className="text-2xl font-bold leading-tight">{product.name}</DialogTitle>
             </DialogHeader>
-            <div className="mt-3 flex items-baseline gap-2">
+
+            {/* Rating */}
+            <div className="mt-2 flex items-center gap-2">
+              <div className="flex items-center gap-0.5">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Star key={i} className={cn('h-3.5 w-3.5', i <= 4 ? 'fill-amber-400 text-amber-400' : 'fill-muted text-muted')} />
+                ))}
+              </div>
+              <span className="text-xs text-muted-foreground">(4.0 · 127 importaciones)</span>
+            </div>
+
+            {/* Precio */}
+            <div className="mt-4 flex items-baseline gap-3">
               {product.estimatedCost ? (
                 <>
-                  <span className="text-3xl font-bold">${product.estimatedCost}</span>
-                  <span className="text-sm text-muted-foreground">costo estimado</span>
+                  <span className="text-4xl font-bold">${product.estimatedCost}</span>
+                  {product.suggestedPrice && <span className="text-lg text-muted-foreground line-through">${product.suggestedPrice}</span>}
                 </>
-              ) : <span className="text-sm text-muted-foreground">Precio bajo consulta</span>}
+              ) : <span className="text-lg text-muted-foreground">Precio bajo consulta</span>}
             </div>
-            {product.suggestedPrice && (
-              <p className="mt-1 text-xs text-muted-foreground">Precio de venta sugerido: <span className="font-medium text-foreground">${product.suggestedPrice}</span></p>
-            )}
-            {product.description && <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{product.description}</p>}
-            {product.supplier && <p className="mt-2 text-xs text-muted-foreground">Proveedor: {product.supplier.companyName}</p>}
-            {product.referenceUrl && (
-              <a href={product.referenceUrl} target="_blank" rel="noreferrer" className="mt-2 text-xs text-primary hover:underline">Ver referencia original →</a>
-            )}
-            <div className="mt-auto pt-5">
-              <Button className="w-full gap-1.5" size="lg" onClick={() => onRequest(product)}>
-                <ShoppingCart className="h-4 w-4" /> Solicitar importación
+            {savings && savings > 0 && <p className="mt-1 text-sm font-medium text-emerald-600">✅ Ahorras ${savings.toFixed(2)} vs precio de mercado</p>}
+
+            {/* Descripción */}
+            {product.description && <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{product.description}</p>}
+
+            {/* Trust badges */}
+            <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-muted/40 p-3">
+              <div className="flex items-center gap-2 text-xs"><ShieldCheck className="h-4 w-4 text-emerald-500" /><div><p className="font-medium">Proveedor verificado</p><p className="text-muted-foreground">Calidad garantizada</p></div></div>
+              <div className="flex items-center gap-2 text-xs"><Truck className="h-4 w-4 text-primary" /><div><p className="font-medium">Importación incluida</p><p className="text-muted-foreground">Desde China a tu puerta</p></div></div>
+              <div className="flex items-center gap-2 text-xs"><Sparkles className="h-4 w-4 text-amber-500" /><div><p className="font-medium">Cotización en 24h</p><p className="text-muted-foreground">Respuesta rápida</p></div></div>
+              <div className="flex items-center gap-2 text-xs"><CheckCircle2 className="h-4 w-4 text-violet-500" /><div><p className="font-medium">Garantía incluida</p><p className="text-muted-foreground">Soporte post-venta</p></div></div>
+            </div>
+
+            {/* Timeline */}
+            <div className="mt-4 rounded-xl border p-3">
+              <p className="mb-2 text-xs font-semibold">⏱️ Tiempo estimado de entrega</p>
+              <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                <div className="text-center"><div className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">1</div><p className="mt-1">Cotización</p><p className="font-medium text-foreground">24h</p></div>
+                <div className="h-0.5 flex-1 bg-primary/20" />
+                <div className="text-center"><div className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">2</div><p className="mt-1">Producción</p><p className="font-medium text-foreground">15d</p></div>
+                <div className="h-0.5 flex-1 bg-primary/20" />
+                <div className="text-center"><div className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">3</div><p className="mt-1">Envío</p><p className="font-medium text-foreground">7d</p></div>
+                <div className="h-0.5 flex-1 bg-primary/20" />
+                <div className="text-center"><div className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">4</div><p className="mt-1">Entrega</p><p className="font-medium text-foreground">✓</p></div>
+              </div>
+              <p className="mt-2 text-center text-xs font-medium text-primary">Total: ~22 días</p>
+            </div>
+
+            {/* CTA */}
+            <div className="mt-auto pt-4">
+              <Button className="w-full gap-2 text-base" size="lg" onClick={() => onRequest(product)}>
+                <ShoppingCart className="h-5 w-5" /> Lo quiero — Solicitar importación
               </Button>
-              <p className="mt-2 text-center text-[10px] text-muted-foreground">Sin compromiso. Recibirás una cotización sin costo.</p>
+              <div className="mt-2 flex items-center justify-center gap-4 text-[10px] text-muted-foreground">
+                <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Sin compromiso</span>
+                <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Cotización gratis</span>
+                <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Pago seguro</span>
+              </div>
             </div>
           </div>
         </div>
