@@ -6,17 +6,17 @@ import { useAuth } from '@/lib/auth-store'
 import { LandingView } from '@/components/nexora/public/landing-view'
 import { CatalogView } from '@/components/nexora/public/catalog-view'
 import { HowItWorksView } from '@/components/nexora/public/how-it-works-view'
+import { RegisterPage } from '@/components/nexora/public/register-page'
 import { AuthDialog } from '@/components/nexora/shared/auth-dialog'
 import { ClientPortal } from '@/components/nexora/client/client-portal'
 import { AdminPortal } from '@/components/nexora/admin/admin-portal'
 import { Loader2 } from 'lucide-react'
 
-type View = 'landing' | 'catalog' | 'how-it-works' | 'about' | 'contact'
+type View = 'landing' | 'catalog' | 'how-it-works' | 'about' | 'contact' | 'register'
 
 export default function NexoraPage() {
   const [view, setView] = useState<View>('landing')
   const [authOpen, setAuthOpen] = useState(false)
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
   const { user, isAuthenticated, isLoading, setUser, setLoading } = useAuth()
 
   // Validate session on mount
@@ -34,8 +34,7 @@ export default function NexoraPage() {
     }
   }, [session, setUser, setLoading])
 
-  const openLogin = () => { setAuthMode('login'); setAuthOpen(true) }
-  const openRegister = () => { setAuthMode('register'); setAuthOpen(true) }
+  const openLogin = () => setAuthOpen(true)
 
   // Loading state
   if (isLoading) {
@@ -60,14 +59,19 @@ export default function NexoraPage() {
     return <AdminPortal />
   }
 
+  // Register page
+  if (view === 'register') {
+    return <RegisterPage onBack={() => setView('landing')} onLogin={openLogin} />
+  }
+
   // Public site
   return (
     <>
-      {view === 'landing' && <LandingView onNavigate={setView} onLogin={openLogin} onRegister={openRegister} />}
-      {view === 'catalog' && <CatalogView onNavigate={setView} onLogin={openLogin} onRegister={openRegister} />}
+      {view === 'landing' && <LandingView onNavigate={setView} onLogin={openLogin} onRegister={() => setView('register')} />}
+      {view === 'catalog' && <CatalogView onNavigate={setView} onLogin={openLogin} onRegister={() => setView('register')} />}
       {view === 'how-it-works' && <HowItWorksView onNavigate={setView} onLogin={openLogin} />}
-      {(view === 'about' || view === 'contact') && <LandingView onNavigate={setView} onLogin={openLogin} onRegister={openRegister} />}
-      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} mode={authMode} onModeChange={setAuthMode} />
+      {(view === 'about' || view === 'contact') && <LandingView onNavigate={setView} onLogin={openLogin} onRegister={() => setView('register')} />}
+      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} mode="login" onModeChange={() => {}} />
     </>
   )
 }

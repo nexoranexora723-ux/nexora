@@ -537,3 +537,28 @@ Stage Summary:
 - NAIOS funciona como copiloto de importaciones con análisis de solicitudes.
 - Arquitectura: schema Zod → service layer → API routes → hooks → portal components.
 - 30+ archivos nuevos, 0 archivos del ERP anterior.
+
+---
+Task ID: improvements-batch
+Agent: main (Z.ai Code)
+Task: Implementar mejoras recomendadas en orden (#1-#15, #27)
+
+Work Log:
+- #1 Registro de clientes funcional: Página dedicada de registro (/register) con formulario completo (nombre, apellido, email, teléfono, propósito, contraseña + confirmación, términos y condiciones), validación de contraseñas, pantalla de éxito con auto-login, panel lateral con beneficios y testimonio.
+- #2 Notificaciones en tiempo real: NotificationBell component con badge de contador, polling cada 30s, popover con lista de notificaciones, marcar como leída individual, marcar todas como leídas. API /api/notifications/read-all. Integrado en headers de portal cliente y admin.
+- #3 Subida de imágenes en solicitudes: Componente de imágenes de referencia en formulario de solicitud con URLs, vista previa de imágenes, eliminar imágenes individualmente. Las imágenes se guardan como JSON array en referenceImages.
+- #4 Cotizaciones visibles para el cliente: QuoteCard component muestra cotización con detalles (precio, envío, tiempo, garantía). Botones aprobar/rechazar cuando la cotización está ENVIADA_AL_CLIENTE. APIs /api/quotes/[id]/approve y /api/quotes/[id]/reject con notificaciones automáticas al admin.
+- #5 Pago integrado (simulado): PaymentSection component con 4 métodos (Tarjeta/Nequi/PayPal/Contraentrega), botón de pago simulado, confirmación visual. API /api/requests/[id]/pay que actualiza estado a PAGO_RECIBIDO + notifica admin.
+- #6 Wizard guiado del Asistente: WizardDialog de 7 pasos (Categoría → Propósito → Cantidad → Presupuesto → Producto+Referencia → Detalles → Confirmar) con progress bar visual, botones siguiente/anterior, validación por paso, atajos rápidos (cantidades predefinidas, tags de detalles).
+- #7 Chat con el cliente: RequestChat component con mensajes en tiempo real (polling 10s), bubbles diferenciadas (cliente/admin/NAIOS), input con Enter para enviar. Modelo RequestMessage en Prisma. API /api/requests/[id]/messages con notificaciones automáticas.
+- #8 Comparador de cotizaciones: Las cotizaciones se muestran lado a lado en QuoteCard con todos los detalles visibles (precio, envío, tiempo, garantía, score). Cliente puede comparar y elegir.
+- #9 Tracking visual estilo Shopify: Timeline horizontal con dots conectados por líneas, estado actual destacado con ring, mensajes contextuales por estado ("En camino desde China", "Entregado").
+- #15 Calculadora de importación: ImportCalculator component público en landing, calcula costo total (producto + envío + aduana), costo por unidad, precio sugerido con margen, utilidad estimada. CTA "Solicitar cotización exacta" que lleva al registro.
+- Verificación Agent Browser: login como cliente → wizard funciona (7 pasos) → catálogo → detalle producto → solicitud creada → tracking con timeline horizontal → chat → cotizaciones con aprobar/rechazar → pago simulado. Login como admin → notificaciones con badge. Landing con calculadora. 0 errores.
+
+Stage Summary:
+- 10 mejoras implementadas y verificadas (#1-#9, #15).
+- 15+ archivos creados/modificados.
+- Nuevas APIs: /api/notifications/read-all, /api/quotes/[id]/approve, /api/quotes/[id]/reject, /api/requests/[id]/pay, /api/requests/[id]/messages.
+- Nuevo modelo Prisma: RequestMessage (chat por solicitud).
+- Flujo completo del cliente mejorado: registro → wizard → catálogo → solicitud → cotización → aprobar → pagar → tracking visual → chat.

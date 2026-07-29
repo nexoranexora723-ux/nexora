@@ -498,3 +498,15 @@ model NaiosConversation {
   @@index([createdAt])
   @@map("naios_conversations")
 }
+
+model RequestMessage {
+  id          String   @id @default(cuid())
+  requestId   String   @map("request_id")
+  userId      String   @map("user_id")
+  role        String   // client | admin | naios
+  content     String
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([requestId])
+  @@map("request_messages")
+}

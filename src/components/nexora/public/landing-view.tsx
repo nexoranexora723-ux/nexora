@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Product } from '@/lib/types'
+import { ImportCalculator } from '@/components/nexora/public/import-calculator'
 
 interface LandingViewProps {
   onNavigate: (view: string) => void
@@ -162,6 +163,19 @@ export function LandingView({ onNavigate, onLogin, onRegister }: LandingViewProp
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== Calculator ===== */}
+      <section className="border-t py-20">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto mb-12 max-w-2xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Calcula tu importación</h2>
+            <p className="mt-4 text-lg text-muted-foreground">Estima el costo real de importar desde China. Sin sorpresas.</p>
+          </div>
+          <div className="mx-auto max-w-xl">
+            <ImportCalculator onRequestQuote={onRegister} />
           </div>
         </div>
       </section>

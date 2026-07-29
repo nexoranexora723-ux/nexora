@@ -21,6 +21,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import ReactMarkdown from 'react-markdown'
+import { NotificationBell } from '@/components/nexora/shared/notification-bell'
 
 type View = 'dashboard' | 'requests' | 'suppliers' | 'quotes' | 'imports' | 'finance' | 'naios'
 
@@ -97,9 +98,12 @@ export function AdminPortal() {
             {view === 'finance' && 'Finanzas'}
             {view === 'naios' && 'NAIOS — Copiloto de Importaciones'}
           </h1>
-          <Button size="sm" variant="outline" onClick={() => setView('naios')} className="gap-1.5">
-            <Sparkles className="h-4 w-4 text-primary" /> NAIOS
-          </Button>
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <Button size="sm" variant="outline" onClick={() => setView('naios')} className="gap-1.5">
+              <Sparkles className="h-4 w-4 text-primary" /> NAIOS
+            </Button>
+          </div>
         </header>
 
         <main className="nexora-scroll flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">

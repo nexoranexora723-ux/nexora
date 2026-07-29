@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -13,12 +13,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useAuth } from '@/lib/auth-store'
 import { formatCurrency, timeAgo, initials } from '@/lib/format'
 import { REQUEST_STATUS_LABELS, REQUEST_STATUS_COLORS } from '@/lib/types'
-import type { ImportRequest, Product } from '@/lib/types'
+import type { ImportRequest, Product, Quote } from '@/lib/types'
 import {
   LayoutDashboard, Package, Truck, User, LogOut, Plus, Sparkles,
   Search, ChevronRight, ShoppingBag, ArrowLeft, ShoppingCart,
+  Check, X, CheckCircle2, CreditCard, Loader2,
+  MessageCircle, Send,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { NotificationBell } from '@/components/nexora/shared/notification-bell'
+import { WizardDialog } from '@/components/nexora/client/wizard-dialog'
 
 type View = 'dashboard' | 'catalog' | 'requests' | 'tracking' | 'profile'
 
@@ -36,6 +40,7 @@ export function ClientPortal() {
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [prefillProduct, setPrefillProduct] = useState<PrefillData | null>(null)
+  const [wizardOpen, setWizardOpen] = useState(false)
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -118,9 +123,15 @@ export function ClientPortal() {
             {view === 'tracking' && 'Seguimiento'}
             {view === 'profile' && 'Mi perfil'}
           </h1>
-          <Button size="sm" className="gap-1.5" onClick={openCreateBlank}>
-            <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Nueva solicitud</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setWizardOpen(true)}>
+              <Sparkles className="h-4 w-4 text-primary" /> <span className="hidden sm:inline">Asistente</span>
+            </Button>
+            <Button size="sm" className="gap-1.5" onClick={openCreateBlank}>
+              <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Nueva solicitud</span>
+            </Button>
+          </div>
         </header>
 
         {/* Mobile nav */}
@@ -156,6 +167,9 @@ export function ClientPortal() {
       {selectedProduct && (
         <ProductDetailDialog product={selectedProduct} onClose={() => setSelectedProduct(null)} onRequest={(p) => { setSelectedProduct(null); openCreateWithProduct(p) }} />
       )}
+
+      {/* Wizard dialog */}
+      <WizardDialog open={wizardOpen} onOpenChange={setWizardOpen} />
 
       {/* Create request dialog */}
       <CreateRequestDialog open={createOpen} onOpenChange={setCreateOpen} prefill={prefillProduct} />
@@ -460,37 +474,273 @@ function ClientTracking({ requestId }: { requestId: string | null }) {
 
       <Card><CardContent className="p-6">
         <h3 className="mb-6 text-sm font-semibold">Progreso de tu importación</h3>
-        <div className="space-y-4">
+        {/* Horizontal timeline */}
+        <div className="relative flex justify-between">
           {statuses.map((status, idx) => (
-            <div key={status} className="flex items-center gap-3">
-              <div className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold',
-                idx <= currentIdx ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground')}>
-                {idx < currentIdx ? '✓' : idx + 1}
+            <div key={status} className="flex flex-1 flex-col items-center">
+              {/* Line */}
+              {idx < statuses.length - 1 && (
+                <div className={cn('absolute h-0.5 top-4', idx < currentIdx ? 'bg-primary' : 'bg-muted')} style={{ left: `${(idx / (statuses.length - 1)) * 100}%`, width: `${100 / (statuses.length - 1)}%` }} />
+              )}
+              {/* Dot */}
+              <div className={cn('relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 text-[10px] font-bold transition-all',
+                idx < currentIdx ? 'border-primary bg-primary text-primary-foreground' :
+                idx === currentIdx ? 'border-primary bg-primary text-primary-foreground ring-4 ring-primary/20' :
+                'border-muted bg-background text-muted-foreground')}>
+                {idx < currentIdx ? <Check className="h-3.5 w-3.5" /> : idx + 1}
               </div>
-              <div className="flex-1">
-                <p className={cn('text-sm font-medium', idx <= currentIdx ? 'text-foreground' : 'text-muted-foreground')}>{REQUEST_STATUS_LABELS[status]}</p>
-                {idx === currentIdx && <p className="text-xs text-primary">En progreso...</p>}
-              </div>
+              {/* Label */}
+              <span className={cn('mt-1.5 max-w-[80px] text-center text-[9px] leading-tight', idx <= currentIdx ? 'font-medium text-foreground' : 'text-muted-foreground')}>
+                {REQUEST_STATUS_LABELS[status]}
+              </span>
             </div>
           ))}
+        </div>
+        {/* Current status detail */}
+        <div className="mt-6 rounded-lg bg-primary/5 p-3 text-center">
+          <p className="text-xs text-muted-foreground">Estado actual</p>
+          <p className="mt-0.5 text-sm font-semibold text-primary">{REQUEST_STATUS_LABELS[req.status]}</p>
+          {req.status === 'ENTREGADO' ? (
+            <p className="mt-1 text-xs text-emerald-600">✓ Tu producto ha sido entregado</p>
+          ) : req.status === 'EN_TRANSITO' ? (
+            <p className="mt-1 text-xs text-muted-foreground">📦 Tu producto está en camino desde China</p>
+          ) : (
+            <p className="mt-1 text-xs text-muted-foreground">Procesando tu solicitud...</p>
+          )}
         </div>
       </CardContent></Card>
 
       {req.quotes && req.quotes.length > 0 && (
         <Card><CardContent className="p-4">
-          <h3 className="mb-3 text-sm font-semibold">Cotizaciones</h3>
-          {req.quotes.map((q) => (
-            <div key={q.id} className="rounded-lg border p-3">
-              <div className="flex items-center justify-between">
-                <code className="text-xs text-primary">{q.number}</code>
-                <Badge variant="outline" className="text-[10px]">{q.status}</Badge>
-              </div>
-              <p className="mt-1 text-sm font-semibold">{formatCurrency(q.total)}</p>
-              <p className="text-xs text-muted-foreground">{q.supplier.companyName} · {q.quantity}u × {formatCurrency(q.unitPrice)}</p>
-            </div>
-          ))}
+          <h3 className="mb-3 text-sm font-semibold">Cotizaciones ({req.quotes.length})</h3>
+          <div className="space-y-3">
+            {req.quotes.map((q) => (
+              <QuoteCard key={q.id} quote={q} requestId={req.id} requestStatus={req.status} />
+            ))}
+          </div>
         </CardContent></Card>
       )}
+
+      {/* Payment section */}
+      {req.status === 'ESPERANDO_APROBACION' && (
+        <Card className="border-primary/20 bg-primary/5"><CardContent className="p-5">
+          <h3 className="mb-2 text-sm font-semibold">Pago pendiente</h3>
+          <p className="mb-4 text-xs text-muted-foreground">Has aprobado la cotización. Para continuar con la importación, realiza el pago.</p>
+          <PaymentSection requestId={req.id} />
+        </CardContent></Card>
+      )}
+
+      {/* Reference images */}
+      {req.referenceImages && (() => {
+        try {
+          const imgs = JSON.parse(req.referenceImages)
+          if (!Array.isArray(imgs) || imgs.length === 0) return null
+          return (
+            <Card><CardContent className="p-4">
+              <h3 className="mb-3 text-sm font-semibold">Imágenes de referencia</h3>
+              <div className="flex flex-wrap gap-2">
+                {imgs.map((url: string, i: number) => (
+                  <a key={i} href={url} target="_blank" rel="noreferrer">
+                    <img src={url} alt={`Referencia ${i + 1}`} className="h-24 w-24 rounded-lg border object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                  </a>
+                ))}
+              </div>
+            </CardContent></Card>
+          )
+        } catch { return null }
+      })()}
+
+      {/* Chat */}
+      <RequestChat requestId={req.id} />
+    </div>
+  )
+}
+
+// === Request Chat ===
+function RequestChat({ requestId }: { requestId: string }) {
+  const qc = useQueryClient()
+  const [input, setInput] = useState('')
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  const { data: messages = [] } = useQuery({
+    queryKey: ['request-messages', requestId],
+    queryFn: async () => {
+      const res = await fetch(`/api/requests/${requestId}/messages`)
+      if (!res.ok) return []
+      const d = await res.json()
+      return Array.isArray(d) ? d : []
+    },
+    refetchInterval: 10000,
+  })
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
+  }, [messages])
+
+  const send = useMutation({
+    mutationFn: async (content: string) => {
+      await fetch(`/api/requests/${requestId}/messages`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+      })
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['request-messages', requestId] })
+      setInput('')
+    },
+  })
+
+  return (
+    <Card><CardContent className="p-0">
+      <div className="border-b p-3"><h3 className="flex items-center gap-2 text-sm font-semibold"><MessageCircle className="h-4 w-4 text-primary" /> Conversación</h3></div>
+      <div ref={scrollRef} className="nexora-scroll h-64 space-y-2 overflow-y-auto p-3">
+        {messages.length === 0 ? (
+          <div className="flex h-full items-center justify-center text-center text-xs text-muted-foreground">
+            <div><MessageCircle className="mx-auto mb-2 h-6 w-6 text-muted-foreground/40" /><p>¿Tienes preguntas sobre tu solicitud?</p><p>Escribe un mensaje aquí.</p></div>
+          </div>
+        ) : (
+          messages.map((m: { id: string; role: string; content: string; createdAt: string }) => (
+            <div key={m.id} className={cn('flex', m.role === 'client' ? 'justify-end' : 'justify-start')}>
+              <div className={cn('max-w-[75%] rounded-2xl px-3 py-2 text-sm',
+                m.role === 'client' ? 'rounded-tr-sm bg-primary text-primary-foreground' :
+                m.role === 'naios' ? 'rounded-tl-sm bg-violet-100 text-violet-900 dark:bg-violet-950 dark:text-violet-200' :
+                'rounded-tl-sm bg-muted')}>
+                {m.role === 'naios' && <p className="mb-0.5 text-[10px] font-semibold text-violet-500">NAIOS</p>}
+                <p>{m.content}</p>
+                <p className="mt-0.5 text-[9px] opacity-60">{timeAgo(m.createdAt)}</p>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+      <div className="flex items-center gap-2 border-t p-2">
+        <Input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && input.trim()) { send.mutate(input.trim()) } }} placeholder="Escribe un mensaje..." className="h-9" />
+        <Button size="icon" className="h-9 w-9 shrink-0" onClick={() => input.trim() && send.mutate(input.trim())} disabled={!input.trim() || send.isPending}>
+          <Send className="h-4 w-4" />
+        </Button>
+      </div>
+    </CardContent></Card>
+  )
+}
+
+// === Quote Card (with approve/reject for client) ===
+function QuoteCard({ quote, requestId, requestStatus }: { quote: Quote; requestId: string; requestStatus: string }) {
+  const qc = useQueryClient()
+
+  const approve = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/quotes/${quote.id}/approve`, { method: 'POST' })
+      if (!res.ok) throw new Error('Error')
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['request', requestId] })
+      qc.invalidateQueries({ queryKey: ['client-requests'] })
+    },
+  })
+
+  const reject = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/quotes/${quote.id}/reject`, { method: 'POST' })
+      if (!res.ok) throw new Error('Error')
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['request', requestId] }),
+  })
+
+  const statusLabels: Record<string, string> = {
+    RECIBIDA: 'Recibida', ENVIADA_AL_CLIENTE: 'Enviada', APROBADA: 'Aprobada', RECHAZADA: 'Rechazada', EXPIRADA: 'Expirada',
+  }
+  const statusColors: Record<string, string> = {
+    APROBADA: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+    RECHAZADA: 'border-rose-200 bg-rose-50 text-rose-700',
+    ENVIADA_AL_CLIENTE: 'border-amber-200 bg-amber-50 text-amber-700',
+  }
+
+  const canAct = quote.status === 'ENVIADA_AL_CLIENTE' && requestStatus === 'COTIZACION_ENVIADA'
+
+  return (
+    <div className={cn('rounded-lg border-2 p-4', quote.status === 'APROBADA' ? 'border-emerald-300 bg-emerald-50/50' : '')}>
+      <div className="flex items-start justify-between">
+        <div>
+          <code className="text-xs font-medium text-primary">{quote.number}</code>
+          <p className="mt-1 text-lg font-bold">{formatCurrency(quote.total)}</p>
+          <p className="text-xs text-muted-foreground">{quote.supplier.companyName}</p>
+        </div>
+        <Badge variant="outline" className={cn('text-[10px]', statusColors[quote.status] ?? '')}>{statusLabels[quote.status] ?? quote.status}</Badge>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2 border-t pt-3 text-xs">
+        <div><span className="text-muted-foreground">Cantidad:</span> <span className="font-medium">{quote.quantity}u</span></div>
+        <div><span className="text-muted-foreground">Precio unit:</span> <span className="font-medium">{formatCurrency(quote.unitPrice)}</span></div>
+        <div><span className="text-muted-foreground">Envío:</span> <span className="font-medium">{formatCurrency(quote.shippingCost)}</span></div>
+        {quote.leadTime && <div><span className="text-muted-foreground">Tiempo:</span> <span className="font-medium">{quote.leadTime} días</span></div>}
+        {quote.warranty && <div><span className="text-muted-foreground">Garantía:</span> <span className="font-medium">{quote.warranty}</span></div>}
+      </div>
+      {canAct && (
+        <div className="mt-3 flex gap-2">
+          <Button size="sm" className="flex-1 gap-1" onClick={() => approve.mutate()} disabled={approve.isPending}>
+            <Check className="h-3.5 w-3.5" /> Aprobar
+          </Button>
+          <Button size="sm" variant="outline" className="flex-1 gap-1 text-rose-600" onClick={() => reject.mutate()} disabled={reject.isPending}>
+            <X className="h-3.5 w-3.5" /> Rechazar
+          </Button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// === Payment Section (simulated) ===
+function PaymentSection({ requestId }: { requestId: string }) {
+  const qc = useQueryClient()
+  const [method, setMethod] = useState('Tarjeta')
+  const [paid, setPaid] = useState(false)
+
+  const pay = useMutation({
+    mutationFn: async () => {
+      const res = await fetch(`/api/requests/${requestId}/pay`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ method }),
+      })
+      if (!res.ok) throw new Error('Error')
+    },
+    onSuccess: () => {
+      setPaid(true)
+      qc.invalidateQueries({ queryKey: ['request', requestId] })
+      qc.invalidateQueries({ queryKey: ['client-requests'] })
+    },
+  })
+
+  if (paid) {
+    return (
+      <div className="flex flex-col items-center gap-2 py-4 text-center">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"><CheckCircle2 className="h-6 w-6" /></div>
+        <p className="text-sm font-semibold">¡Pago confirmado!</p>
+        <p className="text-xs text-muted-foreground">Nuestro equipo iniciará la compra al proveedor.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-2">
+        {[
+          { id: 'Tarjeta', label: 'Tarjeta', icon: '💳' },
+          { id: 'Nequi', label: 'Nequi', icon: '📱' },
+          { id: 'PayPal', label: 'PayPal', icon: '🅿️' },
+          { id: 'Contraentrega', label: 'Contraentrega', icon: '📦' },
+        ].map((m) => (
+          <button key={m.id} type="button" onClick={() => setMethod(m.id)} className={cn(
+            'flex items-center gap-2 rounded-lg border p-2.5 text-xs font-medium transition-all',
+            method === m.id ? 'border-primary bg-primary/5 text-primary' : 'text-muted-foreground hover:border-primary/40',
+          )}>
+            <span className="text-base">{m.icon}</span> {m.label}
+          </button>
+        ))}
+      </div>
+      <Button className="w-full gap-1.5" onClick={() => pay.mutate()} disabled={pay.isPending}>
+        {pay.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+        Pagar con {method}
+      </Button>
+      <p className="text-center text-[10px] text-muted-foreground">Pago simulado para demostración. En producción se integrará con Wompi/Bold.</p>
     </div>
   )
 }
@@ -522,8 +772,9 @@ function CreateRequestDialog({ open, onOpenChange, prefill }: { open: boolean; o
   const qc = useQueryClient()
   const [form, setForm] = useState({
     productName: '', description: '', category: '', purpose: 'personal',
-    quantity: 1, budget: '', referenceUrl: '', details: '', priority: 'MEDIUM',
+    quantity: 1, budget: '', referenceUrl: '', referenceImages: '', details: '', priority: 'MEDIUM',
   })
+  const [imageInput, setImageInput] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -540,7 +791,7 @@ function CreateRequestDialog({ open, onOpenChange, prefill }: { open: boolean; o
       }))
     } else if (open && !prefill) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setForm({ productName: '', description: '', category: '', purpose: 'personal', quantity: 1, budget: '', referenceUrl: '', details: '', priority: 'MEDIUM' })
+      setForm({ productName: '', description: '', category: '', purpose: 'personal', quantity: 1, budget: '', referenceUrl: '', referenceImages: '', details: '', priority: 'MEDIUM' })
     }
   }, [open, prefill])
 
@@ -555,7 +806,7 @@ function CreateRequestDialog({ open, onOpenChange, prefill }: { open: boolean; o
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['client-requests'] })
       onOpenChange(false)
-      setForm({ productName: '', description: '', category: '', purpose: 'personal', quantity: 1, budget: '', referenceUrl: '', details: '', priority: 'MEDIUM' })
+      setForm({ productName: '', description: '', category: '', purpose: 'personal', quantity: 1, budget: '', referenceUrl: '', referenceImages: '', details: '', priority: 'MEDIUM' })
     },
   })
 
@@ -624,8 +875,70 @@ function CreateRequestDialog({ open, onOpenChange, prefill }: { open: boolean; o
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs">Link de referencia (Alibaba, AliExpress, etc.)</Label>
+            <Label className="text-xs">Link de referencia (Alibaba, AliExpress, TikTok, etc.)</Label>
             <Input type="url" value={form.referenceUrl} onChange={(e) => setForm({ ...form, referenceUrl: e.target.value })} placeholder="https://..." />
+          </div>
+          {/* Image references */}
+          <div className="space-y-2">
+            <Label className="text-xs">Imágenes de referencia (pega URLs de fotos del producto)</Label>
+            <div className="flex gap-2">
+              <Input
+                value={imageInput}
+                onChange={(e) => setImageInput(e.target.value)}
+                placeholder="https://imagen.com/foto.jpg"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    if (imageInput.trim()) {
+                      const imgs = form.referenceImages ? JSON.parse(form.referenceImages) : []
+                      imgs.push(imageInput.trim())
+                      setForm({ ...form, referenceImages: JSON.stringify(imgs) })
+                      setImageInput('')
+                    }
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (imageInput.trim()) {
+                    const imgs = form.referenceImages ? JSON.parse(form.referenceImages) : []
+                    imgs.push(imageInput.trim())
+                    setForm({ ...form, referenceImages: JSON.stringify(imgs) })
+                    setImageInput('')
+                  }
+                }}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            {/* Image previews */}
+            {form.referenceImages && (() => {
+              const imgs = JSON.parse(form.referenceImages)
+              if (!Array.isArray(imgs) || imgs.length === 0) return null
+              return (
+                <div className="flex flex-wrap gap-2">
+                  {imgs.map((url: string, i: number) => (
+                    <div key={i} className="group relative h-20 w-20 overflow-hidden rounded-lg border">
+                      <img src={url} alt={`Referencia ${i + 1}`} className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const filtered = imgs.filter((_: string, idx: number) => idx !== i)
+                          setForm({ ...form, referenceImages: filtered.length > 0 ? JSON.stringify(filtered) : '' })
+                        }}
+                        className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )
+            })()}
+            <p className="text-[10px] text-muted-foreground">Pega URLs de imágenes del producto (Alibaba, Amazon, TikTok, etc.)</p>
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs">Descripción y detalles</Label>
