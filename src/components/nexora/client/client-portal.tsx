@@ -168,15 +168,21 @@ function ClientDashboard({ onNewRequest, onViewRequest, onNavigate }: { onNewReq
   const { user } = useAuth()
   const { data: requests, isLoading } = useQuery<ImportRequest[]>({
     queryKey: ['client-requests'],
-    queryFn: async () => (await fetch('/api/requests')).json(),
+    queryFn: async () => {
+      const res = await fetch('/api/requests')
+      if (!res.ok) return []
+      const data = await res.json()
+      return Array.isArray(data) ? data : []
+    },
   })
 
-  const stats = requests ? {
-    total: requests.length,
-    active: requests.filter((r) => !['ENTREGADO', 'CERRADO'].includes(r.status)).length,
-    delivered: requests.filter((r) => r.status === 'ENTREGADO').length,
-    new: requests.filter((r) => r.status === 'NUEVA').length,
-  } : null
+  const reqList = requests ?? []
+  const stats = {
+    total: reqList.length,
+    active: reqList.filter((r) => !['ENTREGADO', 'CERRADO'].includes(r.status)).length,
+    delivered: reqList.filter((r) => r.status === 'ENTREGADO').length,
+    new: reqList.filter((r) => r.status === 'NUEVA').length,
+  }
 
   return (
     <div className="space-y-6">
@@ -190,10 +196,10 @@ function ClientDashboard({ onNewRequest, onViewRequest, onNavigate }: { onNewReq
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Total solicitudes</p><p className="mt-1 text-2xl font-bold">{stats?.total ?? 0}</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">En proceso</p><p className="mt-1 text-2xl font-bold text-amber-600">{stats?.active ?? 0}</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Entregados</p><p className="mt-1 text-2xl font-bold text-emerald-600">{stats?.delivered ?? 0}</p></CardContent></Card>
-        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Nuevos</p><p className="mt-1 text-2xl font-bold text-sky-600">{stats?.new ?? 0}</p></CardContent></Card>
+        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Total solicitudes</p><p className="mt-1 text-2xl font-bold">{stats.total}</p></CardContent></Card>
+        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">En proceso</p><p className="mt-1 text-2xl font-bold text-amber-600">{stats.active}</p></CardContent></Card>
+        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Entregados</p><p className="mt-1 text-2xl font-bold text-emerald-600">{stats.delivered}</p></CardContent></Card>
+        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Nuevos</p><p className="mt-1 text-2xl font-bold text-sky-600">{stats.new}</p></CardContent></Card>
       </div>
 
       <div>
@@ -203,7 +209,7 @@ function ClientDashboard({ onNewRequest, onViewRequest, onNavigate }: { onNewReq
         </div>
         {isLoading ? (
           <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}</div>
-        ) : (requests?.length ?? 0) === 0 ? (
+        ) : reqList.length === 0 ? (
           <Card><CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <Package className="h-10 w-10 text-muted-foreground/40" />
             <p className="mt-3 text-sm font-medium">Aún no tienes solicitudes</p>
@@ -215,7 +221,7 @@ function ClientDashboard({ onNewRequest, onViewRequest, onNavigate }: { onNewReq
           </CardContent></Card>
         ) : (
           <div className="space-y-2">
-            {requests!.slice(0, 5).map((r) => (
+            {reqList.slice(0, 5).map((r) => (
               <button key={r.id} onClick={() => onViewRequest(r.id)} className="flex w-full items-center gap-3 rounded-xl border bg-card p-4 text-left transition-colors hover:bg-muted/40">
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
@@ -372,7 +378,12 @@ function ClientRequests({ onViewRequest }: { onViewRequest: (id: string) => void
   const [query, setQuery] = useState('')
   const { data: requests, isLoading } = useQuery<ImportRequest[]>({
     queryKey: ['client-requests'],
-    queryFn: async () => (await fetch('/api/requests')).json(),
+    queryFn: async () => {
+      const res = await fetch('/api/requests')
+      if (!res.ok) return []
+      const data = await res.json()
+      return Array.isArray(data) ? data : []
+    },
   })
 
   const filtered = (requests ?? []).filter((r) => !query || r.number.toLowerCase().includes(query.toLowerCase()) || r.productName.toLowerCase().includes(query.toLowerCase()))
@@ -413,13 +424,17 @@ function ClientRequests({ onViewRequest }: { onViewRequest: (id: string) => void
 function ClientTracking({ requestId }: { requestId: string | null }) {
   const { data: req, isLoading } = useQuery<ImportRequest>({
     queryKey: ['request', requestId],
-    queryFn: async () => (await fetch(`/api/requests/${requestId}`)).json(),
+    queryFn: async () => {
+      const res = await fetch(`/api/requests/${requestId}`)
+      if (!res.ok) return null
+      return res.json()
+    },
     enabled: !!requestId,
   })
 
   if (!requestId) return <Card><CardContent className="py-12 text-center text-sm text-muted-foreground">Selecciona una solicitud para ver el seguimiento</CardContent></Card>
   if (isLoading) return <Skeleton className="h-96 w-full" />
-  if (!req) return <Card><CardContent className="py-12 text-center text-sm text-muted-foreground">No encontrada</CardContent></Card>
+  if (!req || !req.id) return <Card><CardContent className="py-12 text-center text-sm text-muted-foreground">No encontrada</CardContent></Card>
 
   const statuses = ['NUEVA', 'BUSCANDO_PROVEEDOR', 'COTIZACION_ENVIADA', 'PAGO_RECIBIDO', 'COMPRA_REALIZADA', 'PRODUCCION', 'EN_TRANSITO', 'ENTREGADO']
   const currentIdx = statuses.indexOf(req.status)
