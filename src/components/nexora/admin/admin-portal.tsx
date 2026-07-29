@@ -22,10 +22,11 @@ import {
 import { cn } from '@/lib/utils'
 import ReactMarkdown from 'react-markdown'
 import { NotificationBell } from '@/components/nexora/shared/notification-bell'
+import { AdminProducts } from '@/components/nexora/admin/admin-products'
 import { AnimatedCounter, staggerContainer, staggerItem, BreathingAvatar, NaiosTyping, messageSlideIn } from '@/components/nexora/shared/animations'
 import { motion, AnimatePresence } from 'framer-motion'
 
-type View = 'dashboard' | 'requests' | 'suppliers' | 'quotes' | 'imports' | 'finance' | 'naios'
+type View = 'dashboard' | 'requests' | 'products' | 'suppliers' | 'quotes' | 'imports' | 'finance' | 'naios'
 
 export function AdminPortal() {
   const { user, logout } = useAuth()
@@ -64,6 +65,7 @@ export function AdminPortal() {
           ))}
           <p className="mb-1 mt-4 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">Operación</p>
           {[
+            { key: 'products' as View, icon: Package, label: 'Productos' },
             { key: 'suppliers' as View, icon: Truck, label: 'Proveedores' },
             { key: 'quotes' as View, icon: FileText, label: 'Cotizaciones' },
             { key: 'imports' as View, icon: Globe, label: 'Importaciones' },
@@ -94,6 +96,7 @@ export function AdminPortal() {
           <h1 className="text-lg font-semibold">
             {view === 'dashboard' && 'Dashboard'}
             {view === 'requests' && 'Solicitudes de Importación'}
+            {view === 'products' && 'Productos'}
             {view === 'suppliers' && 'Proveedores'}
             {view === 'quotes' && 'Cotizaciones'}
             {view === 'imports' && 'Importaciones'}
@@ -112,6 +115,7 @@ export function AdminPortal() {
           <div className="mx-auto max-w-7xl">
             {view === 'dashboard' && <AdminDashboard onViewRequest={(id) => { setSelectedRequest(id); setView('requests') }} onNavigate={setView} />}
             {view === 'requests' && <AdminRequests selectedId={selectedRequest} onSelect={setSelectedRequest} />}
+            {view === 'products' && <AdminProducts />}
             {view === 'suppliers' && <AdminSuppliers />}
             {view === 'quotes' && <AdminQuotes />}
             {view === 'imports' && <AdminImports />}
