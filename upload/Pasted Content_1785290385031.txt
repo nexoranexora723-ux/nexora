@@ -1,0 +1,2232 @@
+📘 NEXORA MASTER PLAN
+CAPÍTULO 1 — IDENTIDAD DE NEXORA
+1. ¿Qué es NEXORA?
+Definición
+
+NEXORA es una plataforma tecnológica especializada en la importación inteligente de productos desde China, diseñada para conectar clientes con fabricantes y proveedores confiables, simplificando todo el proceso de compra internacional mediante inteligencia artificial, automatización y una gestión centralizada.
+
+NEXORA no vende productos propios.
+
+NEXORA ayuda a sus clientes a importar cualquier producto desde China de forma sencilla, segura y transparente.
+
+La plataforma actúa como intermediario estratégico entre el cliente y una red de proveedores chinos previamente seleccionados y evaluados.
+
+2. Problema que resuelve
+
+Actualmente importar desde China presenta múltiples dificultades:
+
+Encontrar proveedores confiables.
+Negociar en otro idioma.
+Validar calidad.
+Evitar estafas.
+Calcular costos reales.
+Gestionar logística internacional.
+Hacer seguimiento del pedido.
+Coordinar múltiples procesos.
+
+La mayoría de personas y pequeñas empresas no poseen el conocimiento ni la experiencia para hacerlo correctamente.
+
+3. Solución
+
+NEXORA centraliza todo el proceso en una sola plataforma.
+
+El cliente únicamente necesita encontrar el producto que desea.
+
+NEXORA se encarga del resto.
+
+Buscar proveedor.
+Comparar opciones.
+Negociar.
+Comprar.
+Gestionar la importación.
+Hacer seguimiento.
+Entregar el producto.
+
+Todo apoyado por inteligencia artificial.
+
+4. Misión
+
+Facilitar el acceso a productos provenientes de China mediante una plataforma tecnológica inteligente que automatiza y simplifica todo el proceso de importación para personas y empresas.
+
+5. Visión
+
+Convertirse en la plataforma líder de importaciones inteligentes en Latinoamérica, integrando inteligencia artificial, automatización y herramientas empresariales que permitan a cualquier persona importar productos desde China de forma segura, rápida y eficiente.
+
+6. Valores
+Transparencia.
+Confianza.
+Innovación.
+Tecnología.
+Honestidad.
+Servicio.
+Calidad.
+Automatización.
+Inteligencia.
+Evolución constante.
+7. Público objetivo
+Personas
+
+Personas que desean importar uno o varios productos para uso personal.
+
+Emprendedores
+
+Personas que desean iniciar un negocio importando productos desde China.
+
+Empresas
+
+Empresas que necesitan importar mercancía periódicamente.
+
+Revendedores
+
+Distribuidores que compran en volumen para revender.
+
+Comerciantes
+
+Negocios físicos y digitales.
+
+E-commerce
+
+Tiendas online que necesitan proveedores confiables.
+
+8. Modelo de negocio
+
+NEXORA obtiene ingresos mediante:
+
+Margen sobre la importación.
+Servicios de gestión.
+Servicios premium.
+Suscripciones al ERP.
+Herramientas de IA.
+Automatizaciones empresariales.
+Servicios adicionales.
+9. Diferenciadores
+
+NEXORA no compite directamente con Alibaba.
+
+NEXORA tampoco compite con Amazon.
+
+NEXORA tampoco es únicamente un ERP.
+
+Su propuesta de valor consiste en integrar en una sola plataforma:
+
+Importación desde China.
+Gestión comercial.
+Inteligencia artificial.
+ERP empresarial.
+Automatización.
+Seguimiento completo.
+10. Eslogan (provisional)
+
+Tú eliges el producto. Nosotros nos encargamos del resto.
+
+11. Objetivo principal
+
+Que cualquier persona pueda importar productos desde China sin necesidad de conocer proveedores, negociar en otro idioma o comprender procesos logísticos complejos.
+
+12. Objetivos secundarios
+Automatizar procesos mediante IA.
+Reducir tiempos de importación.
+Mejorar la experiencia del cliente.
+Centralizar toda la operación empresarial.
+Escalar hacia una plataforma SaaS para empresas.
+13. Filosofía
+
+NEXORA busca eliminar la complejidad de importar desde China.
+
+El cliente no debe preocuparse por buscar proveedores, negociar precios, calcular costos o gestionar envíos.
+
+Todo ese trabajo será realizado por NEXORA con apoyo de inteligencia artificial y herramientas empresariales.
+
+14. Principio fundamental
+
+La tecnología debe encargarse de la complejidad para que el cliente solo tenga que decidir qué producto desea importar.
+
+📍 Estado del MASTER PLAN
+✅ Capítulo 1 — Identidad de NEXORA
+⏳ Capítulo 2 — Ecosistema Completo de NEXORA
+⏳ Capítulo 3 — Modelo de Negocio
+⏳ Capítulo 4 — Experiencia del Cliente
+⏳ Capítulo 5 — Portales
+⏳ Capítulo 6 — ERP
+⏳ Capítulo 7 — NAIOS
+⏳ Capítulo 8 — Arquitectura Operativa
+⏳ Capítulo 9 — Roadmap
+⏳ Capítulo 10 — Visión Futura
+
+📘 NEXORA MASTER PLAN
+CAPÍTULO 2 — ECOSISTEMA COMPLETO DE NEXORA
+2.1 Visión General
+
+NEXORA no es una aplicación.
+
+NEXORA no es un ERP.
+
+NEXORA es un ecosistema tecnológico compuesto por múltiples plataformas conectadas entre sí.
+
+Todo gira alrededor de un único objetivo:
+
+Facilitar la importación de productos desde China utilizando tecnología e inteligencia artificial.
+
+🌍 ECOSISTEMA GENERAL
+                          NEXORA
+
+────────────────────────────────────────────────────────
+
+                🌐 SITIO WEB PÚBLICO
+
+────────────────────────────────────────────────────────
+
+Inicio
+
+Catálogo
+
+Categorías
+
+Producto
+
+Solicitar Producto
+
+Centro de Importación
+
+Revendedores
+
+Cómo Funciona
+
+Nosotros
+
+Blog
+
+Contacto
+
+FAQ
+
+────────────────────────────────────────────────────────
+
+                 👤 PORTAL CLIENTE
+
+────────────────────────────────────────────────────────
+
+Dashboard
+
+Solicitudes
+
+Cotizaciones
+
+Pedidos
+
+Seguimiento
+
+Facturas
+
+Garantías
+
+Perfil
+
+Notificaciones
+
+────────────────────────────────────────────────────────
+
+             🤝 PORTAL REVENDEDORES
+
+────────────────────────────────────────────────────────
+
+Registro
+
+Dashboard
+
+Catálogo
+
+Lista de precios
+
+Solicitudes
+
+Pedidos
+
+Comisiones
+
+Material Comercial
+
+────────────────────────────────────────────────────────
+
+                🔐 PANEL ADMINISTRATIVO
+
+────────────────────────────────────────────────────────
+
+Dashboard
+
+Solicitudes
+
+Productos
+
+Inventario
+
+Compras
+
+Proveedores
+
+Clientes
+
+Revendedores
+
+Importaciones
+
+Cotizaciones
+
+Ventas
+
+Finanzas
+
+Marketing
+
+Automatizaciones
+
+Documentos
+
+Reportes
+
+Configuración
+
+Usuarios
+
+────────────────────────────────────────────────────────
+
+                     🤖 NAIOS
+
+────────────────────────────────────────────────────────
+
+Centro IA
+
+Agentes
+
+Memoria
+
+Prompts
+
+Herramientas
+
+Eventos
+
+Automatizaciones
+
+Análisis
+
+Recomendaciones
+
+────────────────────────────────────────────────────────
+
+                  API DE NEXORA
+
+────────────────────────────────────────────────────────
+
+REST API
+
+Webhooks
+
+Integraciones
+
+SDK
+
+────────────────────────────────────────────────────────
+
+                APLICACIÓN MÓVIL
+
+────────────────────────────────────────────────────────
+
+Cliente
+
+Administrador
+
+Revendedor
+
+(segunda fase)
+2.2 Sitio Web Público
+
+El sitio web representa la imagen de la empresa.
+
+No requiere iniciar sesión.
+
+Su objetivo principal es atraer clientes y convertir visitantes en solicitudes de importación.
+
+Contendrá:
+Inicio
+
+Presentación de NEXORA.
+
+Catálogo
+
+Todos los productos.
+
+Categorías
+
+Organización por categorías.
+
+Página del Producto
+
+Información detallada.
+
+Solicitar Producto
+
+Formulario para solicitar una importación.
+
+Centro de Importación
+
+Explicación del proceso de importación.
+
+Revendedores
+
+Información para distribuidores.
+
+Cómo Funciona
+
+Explicación paso a paso.
+
+Nosotros
+
+Historia de la empresa.
+
+Blog
+
+Contenido educativo.
+
+Contacto
+
+Formulario y canales de comunicación.
+
+FAQ
+
+Preguntas frecuentes.
+
+2.3 Portal Cliente
+
+Cada cliente podrá crear una cuenta.
+
+Desde allí podrá administrar todo su historial.
+
+No verá información interna del ERP.
+
+Solo su información.
+
+Funciones
+
+Dashboard
+
+Mis solicitudes
+
+Mis cotizaciones
+
+Mis pedidos
+
+Seguimiento
+
+Facturas
+
+Garantías
+
+Perfil
+
+Notificaciones
+
+Historial
+
+2.4 Portal Revendedores
+
+Pensado para clientes que compran constantemente.
+
+Funciones:
+
+Registro
+
+Dashboard
+
+Productos
+
+Solicitudes
+
+Pedidos
+
+Cotizaciones
+
+Lista Mayorista
+
+Descuentos
+
+Comisiones
+
+Material Comercial
+
+2.5 Panel Administrativo
+
+Este es el ERP.
+
+Solo personal autorizado podrá ingresar.
+
+Aquí comienza la administración completa de la empresa.
+
+Módulos
+
+Dashboard
+
+Solicitudes
+
+Productos
+
+Inventario
+
+Compras
+
+Proveedores
+
+Clientes
+
+Revendedores
+
+Importaciones
+
+Ventas
+
+Finanzas
+
+CRM
+
+Marketing
+
+Automatizaciones
+
+Documentos
+
+Usuarios
+
+Configuración
+
+NAIOS
+
+2.6 Centro NAIOS
+
+Será el corazón inteligente.
+
+No será un chatbot.
+
+Será el centro de inteligencia de toda la empresa.
+
+Desde aquí se administrarán:
+
+Agentes
+
+Herramientas
+
+Modelos IA
+
+Memoria
+
+Automatizaciones
+
+Eventos
+
+Prompts
+
+Conocimiento
+
+2.7 API
+
+Toda la plataforma será abierta para futuras integraciones.
+
+Permitirá conectar:
+
+ERP
+
+Marketplace
+
+Aplicaciones móviles
+
+Clientes
+
+Partners
+
+Integraciones futuras
+
+2.8 Aplicación Móvil
+
+No se desarrollará inicialmente.
+
+Pero toda la arquitectura quedará preparada para:
+
+Cliente
+
+Revendedor
+
+Administrador
+
+2.9 Arquitectura SaaS
+
+Toda empresa que utilice NEXORA tendrá su información completamente aislada.
+
+Cada empresa tendrá:
+
+Usuarios
+
+Productos
+
+Clientes
+
+Inventario
+
+Pedidos
+
+Configuraciones
+
+Permisos
+
+Información independiente.
+
+2.10 Principio del Ecosistema
+
+Todos los componentes compartirán una única identidad.
+
+Un solo inicio de sesión.
+
+Una sola base de datos empresarial.
+
+Una sola inteligencia artificial (NAIOS).
+
+Una sola experiencia para el usuario.  📘 NEXORA MASTER PLAN
+CAPÍTULO 4 — EXPERIENCIA DEL CLIENTE (Customer Journey)
+4.1 Filosofía
+
+Cada acción en NEXORA debe reducir la complejidad de importar desde China.
+
+El cliente nunca debe sentirse perdido ni obligado a conocer procesos de importación.
+
+NEXORA debe actuar como un asesor que lo guía paso a paso.
+
+4.2 Primer contacto
+
+Cuando un usuario entra por primera vez a la plataforma verá un mensaje como:
+
+🌍 Bienvenido a NEXORA
+
+Importar desde China nunca había sido tan fácil.
+
+¿Qué deseas hacer hoy?
+
+🛒 Opción 1
+Ya sé qué producto quiero
+
+Ideal para clientes que ya conocen el producto.
+
+➡️ Ir al Catálogo
+
+🤖 Opción 2
+Ayúdame a encontrar el producto
+
+Ideal para clientes que aún no saben exactamente qué importar.
+
+➡️ Abrir Asistente Inteligente
+
+📷 Opción 3
+Tengo una imagen o un enlace
+
+Sube una foto o pega un enlace de:
+
+Alibaba
+Made-in-China
+Amazon
+TikTok
+AliExpress
+Temu
+Shein
+Facebook
+Instagram
+4.3 Flujo del Catálogo
+Landing
+
+↓
+
+Catálogo
+
+↓
+
+Producto
+
+↓
+
+Solicitar Cotización
+
+↓
+
+Formulario
+
+↓
+
+Solicitud creada
+
+↓
+
+Seguimiento
+4.4 Flujo del Asistente Inteligente
+
+El asistente NO será un chatbot tradicional.
+
+Será un Asistente Guiado.
+
+Paso 1
+
+¿Qué deseas importar?
+
+Tecnología
+Hogar
+Moda
+Belleza
+Herramientas
+Mascotas
+Automotriz
+Otro
+Paso 2
+
+¿Es para?
+
+Uso personal
+Reventa
+Empresa
+Paso 3
+
+¿Cuántas unidades deseas?
+
+Paso 4
+
+¿Tienes un presupuesto?
+
+Paso 5
+
+¿Tienes una referencia?
+
+Puedes:
+
+subir imágenes;
+pegar enlaces;
+escribir una descripción.
+Paso 6
+
+¿Hay algún detalle importante?
+
+Ejemplo:
+
+color;
+tamaño;
+material;
+marca;
+empaque.
+Paso 7
+
+Enviar solicitud.
+
+4.5 Resultado
+
+El cliente verá:
+
+Solicitud enviada correctamente.
+
+Nuestro equipo comenzará la búsqueda del mejor proveedor en China.
+
+Número de solicitud:
+
+NX-2026-000245
+
+Estado:
+
+🟡 Buscando proveedor.
+
+4.6 ERP
+
+En el panel administrativo aparecerá automáticamente:
+
+Nueva Solicitud
+
+↓
+
+Información del cliente
+
+↓
+
+Archivos
+
+↓
+
+Referencias
+
+↓
+
+Resumen generado por NAIOS
+
+↓
+
+Estado
+
+4.7 Funciones de NAIOS
+
+NAIOS analizará automáticamente:
+
+Descripción
+
+Imágenes
+
+Cantidad
+
+Presupuesto
+
+Categoría
+
+Posibles proveedores
+
+Productos similares
+
+Historial
+
+Generará un resumen como:
+
+Resumen IA
+
+Cliente busca:
+
+Auriculares Bluetooth.
+
+Uso:
+
+Reventa.
+
+Cantidad:
+
+100 unidades.
+
+Presupuesto aproximado:
+
+$2.000
+
+Categoría sugerida:
+
+Electrónica.
+
+Nivel de prioridad:
+
+Alto.
+
+4.8 Estados
+
+Toda solicitud tendrá estados.
+
+Nueva.
+Analizando.
+Buscando proveedor.
+Cotización recibida.
+Cotización enviada.
+Esperando aprobación.
+Esperando pago.
+Compra realizada.
+Producción.
+En tránsito.
+Entregado.
+Cerrado.
+4.9 Seguimiento
+
+El cliente podrá consultar el progreso desde su cuenta.
+
+Nunca necesitará preguntar por WhatsApp:
+
+"¿Cómo va mi pedido?"
+
+Todo estará visible en el portal.
+
+4.10 Principio
+
+El cliente nunca debe sentirse solo durante el proceso de importación.
+
+NEXORA debe acompañarlo desde la búsqueda del producto hasta la entrega final.  📘 NEXORA MASTER PLAN
+CAPÍTULO 5 — DISEÑO DE TODOS LOS PORTALES
+Filosofía
+
+Cada usuario debe ver únicamente las herramientas que necesita.
+
+No todos los usuarios tendrán el mismo panel.
+
+NEXORA tendrá varios portales especializados.
+
+🌐 PORTAL 1 — Sitio Público
+
+URL
+
+www.nexora.com
+Objetivo
+
+Captar clientes.
+
+Generar confianza.
+
+Mostrar productos.
+
+Explicar cómo funciona.
+
+Convertir visitantes en solicitudes.
+
+Menú Principal
+Inicio
+Catálogo
+Categorías
+Cómo Funciona
+Centro de Importación
+Revendedores
+Blog
+Nosotros
+Contacto
+Iniciar sesión
+Acciones principales
+Buscar productos.
+Solicitar cotización.
+Buscar un producto personalizado.
+Registrarse.
+Contactar.
+👤 PORTAL 2 — Cliente
+
+URL
+
+cliente.nexora.com
+
+o
+
+nexora.com/account
+Dashboard Cliente
+
+El cliente verá únicamente su información.
+
+Nunca verá datos internos.
+
+Menú
+
+Dashboard
+
+Mis solicitudes
+
+Mis cotizaciones
+
+Mis pedidos
+
+Seguimiento
+
+Facturas
+
+Garantías
+
+Favoritos
+
+Perfil
+
+Configuración
+
+Dashboard
+
+Debe mostrar:
+
+Bienvenida
+
+Estado de solicitudes
+
+Pedidos activos
+
+Últimas cotizaciones
+
+Notificaciones
+
+Productos recomendados
+
+Historial reciente
+
+🤝 PORTAL 3 — Revendedores
+
+URL
+
+partners.nexora.com
+Dashboard
+
+Pedidos
+
+Cotizaciones
+
+Comisiones
+
+Catálogo
+
+Material Comercial
+
+Lista Mayorista
+
+Soporte
+
+Perfil
+
+Funciones
+
+Comprar en volumen.
+
+Descargar listas de precios.
+
+Solicitar productos.
+
+Consultar comisiones.
+
+Ver promociones.
+
+🏭 PORTAL 4 — Proveedores (Futuro)
+
+Aunque inicialmente trabajarás solo con tus proveedores chinos, es buena idea dejar la arquitectura preparada.
+
+URL
+
+supplier.nexora.com
+Funciones futuras
+
+Órdenes de compra.
+
+Documentos.
+
+Pagos.
+
+Estado de producción.
+
+Carga de facturas.
+
+🔐 PORTAL 5 — Administración
+
+Este será el ERP.
+
+URL
+
+nexora.com/admin
+Dashboard Administrativo
+
+Este será el corazón de la empresa.
+
+Menú Principal
+
+Dashboard
+
+Solicitudes
+
+Productos
+
+Inventario
+
+Compras
+
+Proveedores
+
+Clientes
+
+Revendedores
+
+Cotizaciones
+
+Importaciones
+
+Logística
+
+Finanzas
+
+Marketing
+
+Automatizaciones
+
+Documentos
+
+Reportes
+
+Usuarios
+
+Configuración
+
+NAIOS
+
+🤖 PORTAL 6 — Centro NAIOS
+
+No será una simple ventana de chat.
+
+Será un centro de operaciones.
+
+Secciones
+
+Resumen General
+
+Agentes
+
+Automatizaciones
+
+Memoria
+
+Eventos
+
+Conocimiento
+
+Prompts
+
+Modelos IA
+
+Recomendaciones
+
+Estadísticas
+
+📱 PORTAL 7 — Aplicación Móvil
+
+No será una copia del ERP.
+
+Cada aplicación tendrá un objetivo específico.
+
+Cliente
+
+Seguimiento.
+
+Solicitudes.
+
+Pedidos.
+
+Notificaciones.
+
+Administrador
+
+Dashboard.
+
+Solicitudes.
+
+Aprobaciones.
+
+Alertas.
+
+Revendedor
+
+Catálogo.
+
+Pedidos.
+
+Comisiones.
+
+🔑 Sistema de Acceso
+
+Todos los usuarios utilizarán el mismo sistema de autenticación.
+
+Después de iniciar sesión, NEXORA determinará automáticamente el portal correspondiente según su rol.
+
+Ejemplo:
+
+Cliente → Portal Cliente.
+
+Revendedor → Portal Revendedores.
+
+Administrador → ERP.
+
+Permisos
+
+Cada usuario tendrá permisos específicos.
+
+Ejemplo:
+
+Cliente
+
+Solo ve su información.
+
+Revendedor
+
+Ve únicamente información comercial.
+
+Empleado
+
+Solo módulos asignados.
+
+Administrador
+
+Acceso completo.
+
+Super Administrador
+
+Acceso total a toda la plataforma.
+
+Principio Fundamental
+
+Cada portal debe sentirse como una aplicación diseñada específicamente para ese tipo de usuario, aunque todos compartan la misma plataforma NEXORA. 📘 NEXORA MASTER PLAN
+CAPÍTULO 6 — DISEÑO COMPLETO DEL ERP
+Filosofía del ERP
+
+El ERP de NEXORA no es un ERP genérico.
+
+Fue diseñado específicamente para administrar un negocio de importación desde China.
+
+Su objetivo principal es ayudarte a controlar toda la operación desde una sola plataforma.
+
+El Dashboard no mostrará únicamente ventas o inventario; mostrará el estado completo de la empresa en tiempo real.
+
+6.1 Dashboard Principal
+
+Será la primera pantalla al ingresar a /admin.
+
+Indicadores principales
+📥 Solicitudes
+Nuevas
+En proceso
+Pendientes
+Finalizadas
+💰 Cotizaciones
+Enviadas
+Aprobadas
+Rechazadas
+Pendientes
+🚢 Importaciones
+Compradas
+Producción
+En tránsito
+Aduanas
+Entregadas
+💵 Finanzas
+Ventas del día
+Ventas del mes
+Ganancia estimada
+Cuentas por cobrar
+👥 Clientes
+Nuevos
+Activos
+Recurrentes
+🏭 Proveedores
+Activos
+Pendientes
+Últimas compras
+🤖 Resumen de NAIOS
+
+Ejemplos:
+
+"Hay 3 solicitudes pendientes de cotizar."
+"Un proveedor respondió una cotización."
+"Dos clientes llevan más de 48 horas esperando respuesta."
+6.2 Menú Principal
+Dashboard
+
+Resumen general.
+
+Solicitudes
+
+El módulo más importante del ERP.
+
+Aquí comienza todo.
+
+Funciones:
+
+Crear
+Editar
+Buscar
+Filtrar
+Cambiar estado
+Asignar responsable
+Adjuntar archivos
+Historial
+Productos
+
+Catálogo interno.
+
+No solo productos propios.
+
+También productos importables.
+
+Categorías
+
+Administración completa.
+
+Clientes
+
+Información del cliente.
+
+Historial.
+
+Pedidos.
+
+Cotizaciones.
+
+Seguimiento.
+
+Proveedores
+
+Todos los proveedores chinos.
+
+Con historial completo.
+
+Cotizaciones
+
+Generación.
+
+Seguimiento.
+
+Aprobación.
+
+Conversión en compra.
+
+Compras
+
+Órdenes enviadas al proveedor.
+
+Importaciones
+
+Seguimiento completo de cada importación.
+
+Inventario
+
+Solo para productos que realmente tengas almacenados.
+
+Finanzas
+
+Ingresos.
+
+Egresos.
+
+Pagos.
+
+Cobros.
+
+Rentabilidad.
+
+CRM
+
+Seguimiento comercial.
+
+Recordatorios.
+
+Tareas.
+
+Marketing
+
+Campañas.
+
+Promociones.
+
+Clientes potenciales.
+
+Documentos
+
+Facturas.
+
+Cotizaciones.
+
+Órdenes.
+
+Archivos.
+
+Reportes
+
+Ventas.
+
+Importaciones.
+
+Clientes.
+
+Proveedores.
+
+Rentabilidad.
+
+Usuarios
+
+Roles.
+
+Permisos.
+
+Accesos.
+
+Configuración
+
+Empresa.
+
+Moneda.
+
+Impuestos.
+
+Notificaciones.
+
+NAIOS
+
+Centro de inteligencia.
+
+6.3 Lo que hace diferente este ERP
+
+Un ERP tradicional gira alrededor de:
+
+Ventas.
+
+Compras.
+
+Inventario.
+
+El ERP de NEXORA gira alrededor de:
+
+Solicitudes.
+
+Porque una solicitud puede convertirse en:
+
+Cotización.
+
+↓
+
+Compra.
+
+↓
+
+Importación.
+
+↓
+
+Entrega.
+
+↓
+
+Cliente satisfecho.
+
+Ese es el corazón del negocio.
+
+6.4 Regla Fundamental
+
+Ninguna solicitud puede perderse.
+
+Todo debe quedar registrado.
+
+Todo debe tener trazabilidad.
+
+Todo debe poder retomarse.  📘 NEXORA MASTER PLAN
+CAPÍTULO 7 — NAIOS (NEXORA ARTIFICIAL INTELLIGENCE OPERATING SYSTEM)
+7.1 ¿Qué es NAIOS?
+
+NAIOS (Nexora Artificial Intelligence Operating System) es el sistema operativo de inteligencia artificial de NEXORA.
+
+No es un chatbot.
+
+No es ChatGPT integrado.
+
+No es un asistente virtual.
+
+NAIOS será un empleado digital que trabaja junto al usuario.
+
+Filosofía
+
+Mientras el usuario trabaja...
+
+NAIOS observa.
+
+Analiza.
+
+Aprende.
+
+Recomienda.
+
+Automatiza.
+
+Ayuda.
+
+Objetivo
+
+Que cada persona que utilice NEXORA sienta que tiene un equipo de expertos trabajando junto a ella.
+
+7.2 Arquitectura
+                    NAIOS
+
+          ┌─────────────────────┐
+          │   Núcleo Principal  │
+          └─────────────────────┘
+                    │
+ ┌──────────┬──────────┬──────────┬──────────┐
+ │          │          │          │
+Compras   Ventas    Finanzas   Clientes
+ │          │          │          │
+ └──────────┴──────────┴──────────┘
+                    │
+             Memoria Empresarial
+                    │
+           Automatizaciones IA
+7.3 NAIOS no hará una sola función.
+
+Tendrá especialistas.
+
+Como si fueran empleados.
+
+👨‍💼 NAIOS CEO
+
+Analiza toda la empresa.
+
+Puede decir:
+
+Las ventas bajaron.
+Este proveedor aumentó precios.
+Hay demasiadas solicitudes pendientes.
+Este cliente es muy importante.
+🏭 NAIOS Import Manager
+
+Especialista en importaciones.
+
+Ayuda a:
+
+Buscar proveedores.
+
+Comparar cotizaciones.
+
+Calcular importaciones.
+
+Recomendar opciones.
+
+💰 NAIOS Finance
+
+Analiza:
+
+Ingresos.
+
+Costos.
+
+Rentabilidad.
+
+Flujo de caja.
+
+Utilidades.
+
+📈 NAIOS Sales
+
+Ayuda a vender.
+
+Puede recomendar:
+
+Productos.
+
+Clientes.
+
+Promociones.
+
+Descuentos.
+
+👥 NAIOS CRM
+
+Analiza clientes.
+
+Puede decir:
+
+Este cliente lleva meses sin comprar.
+
+Este cliente compra cada 30 días.
+
+Es momento de hacer seguimiento.
+
+📦 NAIOS Inventory
+
+Controla inventario.
+
+Puede advertir:
+
+Quedan pocas unidades.
+
+Debes volver a importar.
+
+Hay productos que no rotan.
+
+📢 NAIOS Marketing
+
+Analiza campañas.
+
+Sugiere promociones.
+
+Detecta tendencias.
+
+📄 NAIOS Documents
+
+Organiza automáticamente:
+
+Facturas.
+
+Cotizaciones.
+
+Órdenes.
+
+Garantías.
+
+7.4 Memoria
+
+Esta será una de las funciones más importantes.
+
+NAIOS recordará.
+
+No solo conversaciones.
+
+También:
+
+Clientes.
+
+Productos.
+
+Proveedores.
+
+Preferencias.
+
+Compras.
+
+Cotizaciones.
+
+Eventos.
+
+Ejemplo.
+
+Cliente:
+
+"Siempre compro AirPods."
+
+NAIOS lo recordará.
+
+Proveedor:
+
+"Ryan entrega más rápido."
+
+NAIOS también.
+
+7.5 Automatizaciones
+
+Ejemplos.
+
+Nueva solicitud.
+
+↓
+
+NAIOS analiza.
+
+↓
+
+Clasifica.
+
+↓
+
+Genera resumen.
+
+↓
+
+Sugiere proveedor.
+
+↓
+
+Asigna prioridad.
+
+↓
+
+Notifica al administrador.
+
+Todo automáticamente.
+
+7.6 Panel Principal
+
+Cuando abras NAIOS verás algo así.
+
+Buenos días.
+
+Hoy tienes:
+
+12 solicitudes nuevas.
+3 cotizaciones pendientes.
+2 clientes esperando respuesta.
+1 proveedor respondió.
+4 productos necesitan reposición.
+
+Recomendaciones:
+
+Contactar a Cliente XYZ.
+Comprar nuevamente el Producto ABC.
+Actualizar precio del Producto DEF.
+7.7 Filosofía de Diseño
+
+NAIOS nunca debe reemplazar al usuario.
+
+Debe potenciarlo.
+
+Siempre ofrecerá recomendaciones.
+
+La decisión final será humana.
+
+7.8 Lo que NO será NAIOS
+
+❌ Un chatbot genérico.
+
+❌ Un simple cuadro de preguntas.
+
+❌ Un reemplazo del administrador.
+
+Será un copiloto empresarial.
+
+7.9 Regla de Oro
+
+NAIOS debe anticiparse a los problemas antes de que el usuario los detecte.
+
+Ese es su verdadero valor. 📘 NEXORA MASTER PLAN
+CAPÍTULO 8 — ARQUITECTURA OPERATIVA
+8.1 Objetivo
+
+La arquitectura operativa define cómo funciona NEXORA internamente.
+
+No describe pantallas.
+
+Describe cómo se mueve la información desde que un cliente solicita un producto hasta que el pedido es entregado.
+
+8.2 Flujo Principal
+Cliente
+
+↓
+
+Solicitud
+
+↓
+
+ERP
+
+↓
+
+Administrador
+
+↓
+
+Proveedor China
+
+↓
+
+Cotización
+
+↓
+
+Cliente
+
+↓
+
+Pago
+
+↓
+
+Compra
+
+↓
+
+Importación
+
+↓
+
+Seguimiento
+
+↓
+
+Entrega
+
+↓
+
+Postventa
+8.3 Ciclo de una Solicitud
+
+Toda solicitud nace exactamente igual.
+
+Estado 1
+
+Nueva Solicitud
+
+↓
+
+El cliente completa el formulario.
+
+Estado 2
+
+Revisión
+
+↓
+
+El administrador valida la información.
+
+Estado 3
+
+Búsqueda de proveedor
+
+↓
+
+Se consulta uno o varios proveedores en China.
+
+Estado 4
+
+Cotización recibida
+
+↓
+
+El proveedor responde.
+
+Estado 5
+
+Cotización enviada
+
+↓
+
+Se envía al cliente.
+
+Estado 6
+
+Esperando respuesta
+
+↓
+
+El cliente decide.
+
+Estado 7
+
+Pago recibido
+
+↓
+
+La solicitud cambia automáticamente.
+
+Estado 8
+
+Compra realizada
+
+↓
+
+Se genera la orden de compra.
+
+Estado 9
+
+Producción
+
+↓
+
+El proveedor fabrica o prepara el pedido.
+
+Estado 10
+
+Envío Internacional
+
+↓
+
+La mercancía sale de China.
+
+Estado 11
+
+Entrega
+
+↓
+
+El cliente recibe el pedido.
+
+Estado 12
+
+Postventa
+
+↓
+
+Garantías.
+
+Seguimiento.
+
+Satisfacción.
+
+8.4 Flujo de Información
+
+Toda la información debe almacenarse una sola vez.
+
+Nunca debe duplicarse.
+
+Ejemplo.
+
+Cliente
+
+↓
+
+Solicitud
+
+↓
+
+Cotización
+
+↓
+
+Pedido
+
+↓
+
+Factura
+
+↓
+
+Historial
+
+Todo conectado.
+
+8.5 Principio de Centralización
+
+Todos los módulos deben trabajar sobre la misma información.
+
+Ejemplo.
+
+Una solicitud creada por un cliente deberá estar disponible para:
+
+Solicitudes
+Clientes
+Cotizaciones
+Compras
+Importaciones
+Reportes
+
+Sin volver a crear registros.
+
+8.6 Comunicación
+
+Toda comunicación quedará registrada.
+
+Por ejemplo:
+
+WhatsApp.
+
+Correo.
+
+Notas internas.
+
+Archivos.
+
+Todo asociado a la solicitud correspondiente.
+
+8.7 Archivos
+
+Cada solicitud podrá almacenar:
+
+Imágenes.
+
+Videos.
+
+PDF.
+
+Cotizaciones.
+
+Facturas.
+
+Comprobantes.
+
+Documentos de envío.
+
+8.8 Historial
+
+Todo cambio quedará registrado.
+
+Ejemplo:
+
+10:35
+
+Solicitud creada.
+
+10:40
+
+Proveedor consultado.
+
+11:10
+
+Proveedor respondió.
+
+11:30
+
+Cotización enviada.
+
+12:20
+
+Cliente aprobó.
+
+12:45
+
+Compra realizada.
+
+Todo auditable.
+
+8.9 Roles
+
+Administrador.
+
+Empleado.
+
+Cliente.
+
+Revendedor.
+
+Cada rol tendrá permisos específicos.
+
+8.10 Escalabilidad
+
+Toda la arquitectura debe permitir crecer sin rediseñar el sistema.
+
+Debe soportar:
+
+Más clientes.
+Más proveedores.
+Más empleados.
+Más solicitudes.
+Más empresas (si en el futuro decides ofrecer el ERP como SaaS).
+8.11 Principio Fundamental
+
+Cada operación debe ser trazable desde el primer contacto con el cliente hasta la entrega final del producto.🎯 VERSIÓN 1.0 — MVP (Producto Mínimo Viable)
+Objetivo
+
+Lanzar una plataforma funcional que permita captar clientes y gestionar importaciones desde China.
+
+Incluye
+🌐 Sitio Público
+Landing
+Catálogo
+Categorías
+Página de Producto
+Cómo Funciona
+Nosotros
+Contacto
+Revendedores
+Centro de Importación
+🔍 Solicitudes
+Solicitar producto
+Buscar producto personalizado
+Adjuntar imágenes
+Adjuntar enlaces
+Formulario inteligente
+👤 Portal Cliente
+Registro
+Inicio de sesión
+Mis solicitudes
+Seguimiento
+Perfil
+🔐 ERP
+Dashboard
+Solicitudes
+Clientes
+Productos
+Proveedores
+Cotizaciones
+Compras
+Importaciones
+🤖 NAIOS
+
+Versión básica.
+
+Solo recomendaciones.
+
+Sin automatizaciones avanzadas.
+
+🎯 VERSIÓN 2.0
+Objetivo
+
+Automatizar la operación.
+
+Nuevas funciones
+CRM
+Inventario
+Finanzas
+Reportes
+Documentos
+Notificaciones automáticas
+WhatsApp integrado
+Correos automáticos
+🎯 VERSIÓN 3.0
+Objetivo
+
+Impulsar las ventas.
+
+Nuevas funciones
+Portal Revendedores
+Descuentos
+Programas de fidelización
+Material comercial
+Campañas
+Promociones
+🎯 VERSIÓN 4.0
+Objetivo
+
+Potenciar NAIOS.
+
+Nuevas funciones
+Agentes IA
+Automatizaciones
+Análisis predictivo
+Recomendaciones inteligentes
+Memoria empresarial
+Copiloto empresarial
+🎯 VERSIÓN 5.0
+Objetivo
+
+Escalar.
+
+Nuevas funciones
+API pública
+Integraciones
+ERP SaaS
+Multiempresa
+Multiidioma
+Multimoneda
+🎯 VERSIÓN 6.0
+Objetivo
+
+Aplicaciones móviles.
+
+Cliente.
+
+Administrador.
+
+Revendedor.
+
+🎯 VERSIÓN 7.0
+
+Expansión.
+
+Más países.
+
+Más idiomas.
+
+Más integraciones.
+
+Marketplace empresarial.
+
+Funciones descartadas por ahora
+
+Estas ideas se consideran interesantes, pero no forman parte de la primera versión:
+
+Portal independiente "Mi Empresa".
+Chat conversacional completo con NAIOS.
+Marketplace abierto para terceros.
+Integraciones complejas con múltiples plataformas.
+IA autónoma para negociación con proveedores.
+
+Quedan registradas para una evaluación futura, sin comprometer el desarrollo inicial.
+
+Prioridad de Desarrollo
+Prioridad Alta 🔴
+Landing
+Catálogo
+Solicitudes
+ERP
+Clientes
+Proveedores
+Cotizaciones
+Prioridad Media 🟡
+CRM
+Inventario
+Finanzas
+Marketing
+Prioridad Baja 🟢
+App móvil
+API pública
+SaaS para terceros
+Funciones experimentales de IA
+Principio del Roadmap
+
+Cada versión debe estar completamente terminada antes de iniciar la siguiente.
+
+No se agregarán funciones nuevas que retrasen el lanzamiento del MVP.
+
+Indicadores de éxito de la V1
+
+Antes de pasar a la V2, NEXORA debería ser capaz de:
+
+Recibir solicitudes de clientes.
+Gestionar cotizaciones.
+Administrar proveedores chinos.
+Dar seguimiento a pedidos.
+Mantener un historial completo de cada operación.
+Permitir que un cliente consulte el estado de su solicitud.
+
+Si eso funciona bien, la plataforma ya estará generando valor real para el negocio. 📘 NEXORA MASTER PLAN
+CAPÍTULO 10 — VISIÓN FUTURA
+10.1 El sueño de NEXORA
+
+NEXORA no nació para ser únicamente una plataforma de importaciones.
+
+NEXORA nació para convertirse en el ecosistema empresarial más inteligente de Latinoamérica para importar desde China.
+
+La tecnología será únicamente el medio.
+
+El verdadero objetivo será facilitar el comercio internacional para cualquier persona o empresa.
+
+10.2 Visión a 5 años
+
+En cinco años, NEXORA deberá ser reconocida como una de las principales plataformas de importación inteligente desde China para Latinoamérica.
+
+La empresa deberá contar con:
+
+miles de clientes activos;
+una red consolidada de proveedores chinos;
+procesos altamente automatizados;
+un ERP robusto;
+NAIOS como asistente empresarial maduro.
+10.3 Visión a 10 años
+
+A diez años, NEXORA no solo importará productos.
+
+Será una plataforma integral para gestionar negocios internacionales.
+
+Permitirá administrar:
+
+importaciones;
+compras;
+ventas;
+logística;
+clientes;
+finanzas;
+inteligencia empresarial.
+
+Todo desde un único ecosistema.
+
+10.4 NAIOS en el futuro
+
+NAIOS evolucionará desde un sistema de recomendaciones hasta convertirse en un verdadero copiloto empresarial.
+
+Será capaz de:
+
+analizar operaciones;
+detectar oportunidades;
+optimizar procesos;
+generar reportes;
+apoyar la toma de decisiones.
+
+Siempre manteniendo el control final en manos del usuario.
+
+10.5 Expansión Geográfica
+
+La prioridad inicial será Colombia.
+
+Posteriormente podrán incorporarse otros países de Latinoamérica.
+
+La expansión deberá realizarse de forma gradual, adaptando aspectos como:
+
+monedas;
+impuestos;
+métodos de pago;
+requisitos de importación.
+10.6 Evolución Tecnológica
+
+La plataforma deberá diseñarse para crecer sin necesidad de reconstruirse.
+
+Se buscará incorporar nuevas tecnologías únicamente cuando aporten valor real al negocio.
+
+La innovación será continua, pero siempre orientada a resolver problemas concretos de los clientes.
+
+10.7 Cultura de Producto
+
+Cada nueva función deberá responder a una pregunta:
+
+¿Hace que importar desde China sea más fácil para nuestros clientes?
+
+Si la respuesta es no, la función no se desarrolla.
+
+10.8 Principios Permanentes
+
+NEXORA nunca debe perder estos principios:
+
+simplicidad;
+transparencia;
+confianza;
+automatización;
+escalabilidad;
+inteligencia aplicada al negocio.
+10.9 Objetivo Final
+
+Construir una empresa que permita a cualquier persona importar productos desde China con la misma facilidad con la que hoy realiza una compra en línea.
+
+10.10 Manifiesto de NEXORA
+
+Creemos que importar no debería ser un proceso complejo reservado para grandes empresas.
+
+Creemos que la tecnología puede eliminar barreras, reducir riesgos y acercar a cualquier emprendedor a los mejores fabricantes de China.
+
+Creemos en una plataforma donde la inteligencia artificial no sustituya a las personas, sino que las ayude a tomar mejores decisiones.
+
+NEXORA existe para conectar oportunidades, simplificar procesos y hacer posible que cualquier idea pueda convertirse en un negocio. 
