@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -135,7 +135,14 @@ export function OnboardingTour({ onClose }: { onClose: () => void }) {
     { icon: '🚢', title: 'Haz seguimiento', desc: 'Visualiza el progreso de tu pedido en tiempo real' },
   ]
 
-  if (step >= steps.length) { onClose(); return null }
+  const isDone = step >= steps.length
+
+  // Close on finish via useEffect (avoids setState during render)
+  useEffect(() => {
+    if (isDone) onClose()
+  }, [isDone, onClose])
+
+  if (isDone) return null
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
