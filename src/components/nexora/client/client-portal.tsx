@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,24 +13,48 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { useAuth } from '@/lib/auth-store'
 import { formatCurrency, timeAgo, initials } from '@/lib/format'
 import { REQUEST_STATUS_LABELS, REQUEST_STATUS_COLORS } from '@/lib/types'
-import type { ImportRequest } from '@/lib/types'
+import type { ImportRequest, Product } from '@/lib/types'
 import {
   LayoutDashboard, Package, Truck, User, LogOut, Plus, Sparkles,
-  Search, Clock, TrendingUp, AlertCircle, ChevronRight,
+  Search, ChevronRight, ShoppingBag, ArrowLeft, ShoppingCart,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-type View = 'dashboard' | 'requests' | 'tracking' | 'profile'
+type View = 'dashboard' | 'catalog' | 'requests' | 'tracking' | 'profile'
+
+interface PrefillData {
+  name?: string
+  category?: string
+  description?: string
+  referenceUrl?: string
+}
 
 export function ClientPortal() {
   const { user, logout } = useAuth()
   const [view, setView] = useState<View>('dashboard')
   const [createOpen, setCreateOpen] = useState(false)
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [prefillProduct, setPrefillProduct] = useState<PrefillData | null>(null)
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
     logout()
+  }
+
+  const openCreateWithProduct = (p: Product) => {
+    setPrefillProduct({
+      name: p.name,
+      category: p.category?.name ?? '',
+      description: p.description ?? '',
+      referenceUrl: p.referenceUrl ?? '',
+    })
+    setCreateOpen(true)
+  }
+
+  const openCreateBlank = () => {
+    setPrefillProduct(null)
+    setCreateOpen(true)
   }
 
   return (
@@ -49,6 +73,7 @@ export function ClientPortal() {
         <nav className="flex-1 space-y-1 p-3">
           {[
             { key: 'dashboard' as View, icon: LayoutDashboard, label: 'Dashboard' },
+            { key: 'catalog' as View, icon: ShoppingBag, label: 'Catálogo', badge: 'Explora' },
             { key: 'requests' as View, icon: Package, label: 'Mis solicitudes' },
             { key: 'tracking' as View, icon: Truck, label: 'Seguimiento' },
             { key: 'profile' as View, icon: User, label: 'Mi perfil' },
@@ -58,7 +83,8 @@ export function ClientPortal() {
               view === item.key ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-sm' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/60',
             )}>
               <item.icon className={cn('h-4 w-4', view === item.key ? 'text-primary' : 'text-sidebar-foreground/50')} />
-              {item.label}
+              <span className="flex-1 text-left">{item.label}</span>
+              {item.badge && <Badge className="bg-primary/20 text-primary text-[9px]">{item.badge}</Badge>}
             </button>
           ))}
         </nav>
@@ -76,25 +102,49 @@ export function ClientPortal() {
         </div>
       </aside>
 
-      {/* Main */}
+      {/* Mobile header */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <header className="flex h-16 items-center justify-between border-b px-4 sm:px-6">
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg font-semibold">
-              {view === 'dashboard' && 'Dashboard'}
-              {view === 'requests' && 'Mis solicitudes'}
-              {view === 'tracking' && 'Seguimiento'}
-              {view === 'profile' && 'Mi perfil'}
-            </h1>
+          <div className="flex items-center gap-2 lg:hidden">
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground">
+              <span className="text-xs font-black">N</span>
+            </div>
+            <span className="font-bold">NEXORA</span>
           </div>
-          <Button size="sm" className="gap-1.5" onClick={() => setCreateOpen(true)}>
-            <Plus className="h-4 w-4" /> Nueva solicitud
+          <h1 className="hidden text-lg font-semibold lg:block">
+            {view === 'dashboard' && 'Dashboard'}
+            {view === 'catalog' && 'Catálogo de productos'}
+            {view === 'requests' && 'Mis solicitudes'}
+            {view === 'tracking' && 'Seguimiento'}
+            {view === 'profile' && 'Mi perfil'}
+          </h1>
+          <Button size="sm" className="gap-1.5" onClick={openCreateBlank}>
+            <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Nueva solicitud</span>
           </Button>
         </header>
 
+        {/* Mobile nav */}
+        <div className="flex gap-1 overflow-x-auto border-b px-4 py-2 lg:hidden">
+          {[
+            { key: 'dashboard' as View, label: 'Dashboard' },
+            { key: 'catalog' as View, label: 'Catálogo' },
+            { key: 'requests' as View, label: 'Solicitudes' },
+            { key: 'tracking' as View, label: 'Seguimiento' },
+            { key: 'profile' as View, label: 'Perfil' },
+          ].map((item) => (
+            <button key={item.key} onClick={() => setView(item.key)} className={cn(
+              'shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors',
+              view === item.key ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground',
+            )}>
+              {item.label}
+            </button>
+          ))}
+        </div>
+
         <main className="nexora-scroll flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <div className="mx-auto max-w-5xl">
-            {view === 'dashboard' && <ClientDashboard onNewRequest={() => setCreateOpen(true)} onViewRequest={(id) => { setSelectedRequest(id); setView('tracking') }} />}
+            {view === 'dashboard' && <ClientDashboard onNewRequest={openCreateBlank} onViewRequest={(id) => { setSelectedRequest(id); setView('tracking') }} onNavigate={setView} />}
+            {view === 'catalog' && <ClientCatalog onProductClick={(p) => setSelectedProduct(p)} />}
             {view === 'requests' && <ClientRequests onViewRequest={(id) => { setSelectedRequest(id); setView('tracking') }} />}
             {view === 'tracking' && <ClientTracking requestId={selectedRequest} />}
             {view === 'profile' && <ClientProfile />}
@@ -102,13 +152,19 @@ export function ClientPortal() {
         </main>
       </div>
 
-      <CreateRequestDialog open={createOpen} onOpenChange={setCreateOpen} />
+      {/* Product detail dialog */}
+      {selectedProduct && (
+        <ProductDetailDialog product={selectedProduct} onClose={() => setSelectedProduct(null)} onRequest={(p) => { setSelectedProduct(null); openCreateWithProduct(p) }} />
+      )}
+
+      {/* Create request dialog */}
+      <CreateRequestDialog open={createOpen} onOpenChange={setCreateOpen} prefill={prefillProduct} />
     </div>
   )
 }
 
 // === Client Dashboard ===
-function ClientDashboard({ onNewRequest, onViewRequest }: { onNewRequest: () => void; onViewRequest: (id: string) => void }) {
+function ClientDashboard({ onNewRequest, onViewRequest, onNavigate }: { onNewRequest: () => void; onViewRequest: (id: string) => void; onNavigate: (v: View) => void }) {
   const { user } = useAuth()
   const { data: requests, isLoading } = useQuery<ImportRequest[]>({
     queryKey: ['client-requests'],
@@ -126,7 +182,11 @@ function ClientDashboard({ onNewRequest, onViewRequest }: { onNewRequest: () => 
     <div className="space-y-6">
       <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-emerald-500/5 to-transparent p-6">
         <h2 className="text-2xl font-bold">¡Hola, {user?.firstName}! 👋</h2>
-        <p className="mt-1 text-muted-foreground">Estos son tus pedidos de importación.</p>
+        <p className="mt-1 text-muted-foreground">Importa cualquier producto desde China. Explora nuestro catálogo o solicita algo personalizado.</p>
+        <div className="mt-4 flex gap-2">
+          <Button onClick={() => onNavigate('catalog')} className="gap-1.5"><ShoppingBag className="h-4 w-4" /> Explorar catálogo</Button>
+          <Button variant="outline" onClick={onNewRequest} className="gap-1.5"><Plus className="h-4 w-4" /> Solicitar producto personalizado</Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -147,8 +207,11 @@ function ClientDashboard({ onNewRequest, onViewRequest }: { onNewRequest: () => 
           <Card><CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <Package className="h-10 w-10 text-muted-foreground/40" />
             <p className="mt-3 text-sm font-medium">Aún no tienes solicitudes</p>
-            <p className="text-xs text-muted-foreground">Crea tu primera solicitud de importación</p>
-            <Button className="mt-4 gap-1.5" onClick={onNewRequest}><Plus className="h-4 w-4" /> Nueva solicitud</Button>
+            <p className="text-xs text-muted-foreground">Explora el catálogo o solicita un producto personalizado</p>
+            <div className="mt-4 flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => onNavigate('catalog')} className="gap-1.5"><ShoppingBag className="h-4 w-4" /> Ver catálogo</Button>
+              <Button size="sm" onClick={onNewRequest} className="gap-1.5"><Plus className="h-4 w-4" /> Nueva solicitud</Button>
+            </div>
           </CardContent></Card>
         ) : (
           <div className="space-y-2">
@@ -169,6 +232,138 @@ function ClientDashboard({ onNewRequest, onViewRequest }: { onNewRequest: () => 
         )}
       </div>
     </div>
+  )
+}
+
+// === Client Catalog ===
+function ClientCatalog({ onProductClick }: { onProductClick: (p: Product) => void }) {
+  const [query, setQuery] = useState('')
+  const [category, setCategory] = useState('all')
+  const { data: products, isLoading } = useQuery<Product[]>({
+    queryKey: ['products-catalog'],
+    queryFn: async () => (await fetch('/api/products')).json(),
+  })
+
+  const categories = products ? [...new Set(products.map((p) => p.category?.name).filter(Boolean))] : []
+  const filtered = (products ?? []).filter((p) => {
+    const matchesQuery = !query || p.name.toLowerCase().includes(query.toLowerCase()) || p.description?.toLowerCase().includes(query.toLowerCase())
+    const matchesCat = category === 'all' || p.category?.name === category
+    return matchesQuery && matchesCat
+  })
+
+  return (
+    <div className="space-y-6">
+      {/* Hero banner */}
+      <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-emerald-500/5 to-transparent p-6">
+        <h2 className="text-xl font-bold">Catálogo de productos importables 🛍️</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Explora los productos que podemos importar para ti desde China. Click en cualquier producto para solicitar una importación.</p>
+      </div>
+
+      {/* Search + filters */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="relative max-w-sm flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input placeholder="Buscar productos..." value={query} onChange={(e) => setQuery(e.target.value)} className="pl-9" />
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          <Button variant={category === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setCategory('all')}>Todos</Button>
+          {categories.map((c) => (
+            <Button key={c} variant={category === c ? 'default' : 'outline'} size="sm" onClick={() => setCategory(c)}>{c}</Button>
+          ))}
+        </div>
+      </div>
+
+      {/* Products grid */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-72 rounded-xl" />)}
+        </div>
+      ) : filtered.length === 0 ? (
+        <Card><CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <Package className="h-12 w-12 text-muted-foreground/40" />
+          <p className="mt-3 text-sm font-medium">No se encontraron productos</p>
+          <p className="text-xs text-muted-foreground">Prueba con otra búsqueda o solicita un producto personalizado</p>
+        </CardContent></Card>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((p) => (
+            <Card key={p.id} className="group cursor-pointer overflow-hidden transition-all hover:-translate-y-1 hover:shadow-lg" onClick={() => onProductClick(p)}>
+              <div className="relative aspect-square overflow-hidden bg-muted">
+                {p.imageUrl ? (
+                  <img src={p.imageUrl} alt={p.name} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-4xl">📦</div>
+                )}
+                {p.category?.icon && (
+                  <Badge className="absolute left-2 top-2 bg-background/90 text-foreground shadow-sm backdrop-blur">{p.category.icon} {p.category.name}</Badge>
+                )}
+                {p.isFeatured && <Badge className="absolute right-2 top-2 bg-amber-500 text-white shadow-sm">★ Destacado</Badge>}
+              </div>
+              <CardContent className="p-4">
+                <p className="line-clamp-2 text-sm font-medium">{p.name}</p>
+                {p.description && <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{p.description}</p>}
+                <div className="mt-3 flex items-center justify-between">
+                  {p.estimatedCost ? (
+                    <p className="text-sm">Desde <span className="text-lg font-bold">${p.estimatedCost}</span></p>
+                  ) : <span className="text-xs text-muted-foreground">Precio bajo consulta</span>}
+                  <Badge variant="secondary" className="gap-1 text-[10px]"><ShoppingCart className="h-3 w-3" /> Importar</Badge>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// === Product Detail Dialog ===
+function ProductDetailDialog({ product, onClose, onRequest }: { product: Product; onClose: () => void; onRequest: (p: Product) => void }) {
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="nexora-scroll max-h-[92vh] overflow-y-auto sm:max-w-2xl">
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
+            {product.imageUrl ? (
+              <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-6xl">📦</div>
+            )}
+            {product.category?.icon && (
+              <Badge className="absolute left-3 top-3 bg-background/90 text-foreground shadow-sm backdrop-blur">{product.category.icon} {product.category.name}</Badge>
+            )}
+          </div>
+          <div className="flex flex-col">
+            <DialogHeader className="p-0 text-left">
+              <DialogTitle className="text-xl">{product.name}</DialogTitle>
+              {product.brand && <p className="text-sm text-muted-foreground">{product.brand.name}</p>}
+            </DialogHeader>
+            <div className="mt-3 flex items-baseline gap-2">
+              {product.estimatedCost ? (
+                <>
+                  <span className="text-3xl font-bold">${product.estimatedCost}</span>
+                  <span className="text-sm text-muted-foreground">costo estimado</span>
+                </>
+              ) : <span className="text-sm text-muted-foreground">Precio bajo consulta</span>}
+            </div>
+            {product.suggestedPrice && (
+              <p className="mt-1 text-xs text-muted-foreground">Precio de venta sugerido: <span className="font-medium text-foreground">${product.suggestedPrice}</span></p>
+            )}
+            {product.description && <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{product.description}</p>}
+            {product.supplier && <p className="mt-2 text-xs text-muted-foreground">Proveedor: {product.supplier.companyName}</p>}
+            {product.referenceUrl && (
+              <a href={product.referenceUrl} target="_blank" rel="noreferrer" className="mt-2 text-xs text-primary hover:underline">Ver referencia original →</a>
+            )}
+            <div className="mt-auto pt-5">
+              <Button className="w-full gap-1.5" size="lg" onClick={() => onRequest(product)}>
+                <ShoppingCart className="h-4 w-4" /> Solicitar importación
+              </Button>
+              <p className="mt-2 text-center text-[10px] text-muted-foreground">Sin compromiso. Recibirás una cotización sin costo.</p>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -214,7 +409,7 @@ function ClientRequests({ onViewRequest }: { onViewRequest: (id: string) => void
   )
 }
 
-// === Client Tracking (detail view) ===
+// === Client Tracking ===
 function ClientTracking({ requestId }: { requestId: string | null }) {
   const { data: req, isLoading } = useQuery<ImportRequest>({
     queryKey: ['request', requestId],
@@ -248,7 +443,6 @@ function ClientTracking({ requestId }: { requestId: string | null }) {
         </CardContent></Card>
       )}
 
-      {/* Progress tracker */}
       <Card><CardContent className="p-6">
         <h3 className="mb-6 text-sm font-semibold">Progreso de tu importación</h3>
         <div className="space-y-4">
@@ -262,7 +456,6 @@ function ClientTracking({ requestId }: { requestId: string | null }) {
                 <p className={cn('text-sm font-medium', idx <= currentIdx ? 'text-foreground' : 'text-muted-foreground')}>{REQUEST_STATUS_LABELS[status]}</p>
                 {idx === currentIdx && <p className="text-xs text-primary">En progreso...</p>}
               </div>
-              {idx < statuses.length - 1 && <div className={cn('absolute h-4 w-px', idx < currentIdx ? 'bg-primary' : 'bg-muted')} />}
             </div>
           ))}
         </div>
@@ -309,8 +502,8 @@ function ClientProfile() {
   )
 }
 
-// === Create Request Dialog (intelligent form) ===
-function CreateRequestDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+// === Create Request Dialog (with optional prefill from catalog) ===
+function CreateRequestDialog({ open, onOpenChange, prefill }: { open: boolean; onOpenChange: (o: boolean) => void; prefill: PrefillData | null }) {
   const qc = useQueryClient()
   const [form, setForm] = useState({
     productName: '', description: '', category: '', purpose: 'personal',
@@ -318,6 +511,23 @@ function CreateRequestDialog({ open, onOpenChange }: { open: boolean; onOpenChan
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Prefill from catalog product when dialog opens
+  useEffect(() => {
+    if (open && prefill) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setForm((f) => ({
+        ...f,
+        productName: prefill.name ?? f.productName,
+        description: prefill.description ?? f.description,
+        category: prefill.category ?? f.category,
+        referenceUrl: prefill.referenceUrl ?? f.referenceUrl,
+      }))
+    } else if (open && !prefill) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setForm({ productName: '', description: '', category: '', purpose: 'personal', quantity: 1, budget: '', referenceUrl: '', details: '', priority: 'MEDIUM' })
+    }
+  }, [open, prefill])
 
   const create = useMutation({
     mutationFn: async (data: Record<string, unknown>) => {
@@ -356,8 +566,8 @@ function CreateRequestDialog({ open, onOpenChange }: { open: boolean; onOpenChan
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="nexora-scroll max-h-[92vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><Package className="h-5 w-5 text-primary" /> Nueva solicitud de importación</DialogTitle>
-          <DialogDescription>Describe el producto que quieres importar desde China</DialogDescription>
+          <DialogTitle className="flex items-center gap-2"><Package className="h-5 w-5 text-primary" /> {prefill ? 'Solicitar importación' : 'Nueva solicitud de importación'}</DialogTitle>
+          <DialogDescription>{prefill ? `Solicitando: ${prefill.name}` : 'Describe el producto que quieres importar desde China'}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
