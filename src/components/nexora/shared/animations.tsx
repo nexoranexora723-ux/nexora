@@ -244,8 +244,8 @@ export function PopBadge({ count, children }: { count: number; children: React.R
     <motion.div
       key={count}
       initial={{ scale: 0.5 }}
-      animate={{ scale: [0.5, 1.3, 1] }}
-      transition={{ duration: 0.4, type: 'spring' }}
+      animate={{ scale: [0.5, 1] }}
+      transition={{ type: 'spring', stiffness: 500, damping: 12, velocity: 2 }}
     >
       {children}
     </motion.div>

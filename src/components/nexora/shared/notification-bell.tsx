@@ -59,8 +59,8 @@ export function NotificationBell() {
             <motion.span
               key={unreadCount}
               initial={{ scale: 0.5 }}
-              animate={{ scale: [0.5, 1.3, 1] }}
-              transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+              animate={{ scale: [0.5, 1] }}
+              transition={{ type: 'spring', stiffness: 500, damping: 12, velocity: 2 }}
               className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white"
             >
               {unreadCount > 9 ? '9+' : unreadCount}
