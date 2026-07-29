@@ -60,7 +60,7 @@ export function LandingView({ onNavigate, onLogin, onRegister }: LandingViewProp
         <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
           <div className="mx-auto max-w-3xl text-center">
             <Badge className="mb-6 gap-1.5 bg-primary/10 text-primary hover:bg-primary/15">
-              <Sparkles className="h-3 w-3" /> Importación inteligente con IA
+              <ShieldCheck className="h-3 w-3" /> Importación segura y transparente
             </Badge>
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
               Importa desde China
@@ -99,7 +99,7 @@ export function LandingView({ onNavigate, onLogin, onRegister }: LandingViewProp
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
             {[
               { icon: Search, title: '1. Elige tu producto', desc: 'Busca en nuestro catálogo o solicita cualquier producto que encuentres en Alibaba, AliExpress, TikTok o cualquier otra plataforma.', color: 'from-sky-500 to-blue-600' },
-              { icon: FileSearch, title: '2. NAIOS busca proveedor', desc: 'Nuestra IA analiza tu solicitud y encuentra los mejores proveedores en China, comparando precios, calidad y tiempos.', color: 'from-violet-500 to-purple-600' },
+              { icon: FileSearch, title: '2. Nuestro equipo busca proveedor', desc: 'Nuestro equipo de expertos en comercio internacional busca los mejores fabricantes en China, comparando precios, calidad y tiempos. La tecnología nos ayuda a ser más rápidos y precisos.', color: 'from-violet-500 to-purple-600' },
               { icon: CreditCard, title: '3. Aprueba y paga', desc: 'Recibe una cotización transparente. Aprueba, paga y nosotros nos encargamos de comprar y gestionar la importación.', color: 'from-amber-500 to-orange-600' },
               { icon: Truck, title: '4. Recibe tu producto', desc: 'Hacemos seguimiento completo: producción, envío internacional, aduana y entrega final. Tú solo esperas.', color: 'from-emerald-500 to-green-600' },
             ].map((step) => (
@@ -147,7 +147,7 @@ export function LandingView({ onNavigate, onLogin, onRegister }: LandingViewProp
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[
               { icon: ShieldCheck, title: 'Proveedores verificados', desc: 'Trabajamos solo con fabricantes chinos previamente evaluados. Calificamos calidad, comunicación, precio, envío y confianza.' },
-              { icon: Sparkles, title: 'IA que trabaja por ti', desc: 'NAIOS analiza cada solicitud, busca el mejor proveedor, compara cotizaciones y recomienda la mejor opción automáticamente.' },
+              { icon: ShieldCheck, title: 'Equipo + tecnología', desc: 'Nuestro equipo de expertos gestiona cada importación personalmente. Usamos tecnología para ser más eficientes, pero las decisiones importantes siempre las toman personas reales.' },
               { icon: TrendingUp, title: 'Mejores precios', desc: 'Acceso a precios de fabricante. Sin intermediarios. Comparamos múltiples proveedores para darte el mejor costo.' },
               { icon: Ship, title: 'Logística completa', desc: 'Gestionamos producción, envío internacional, aduana y entrega final. Tú solo esperas recibir tu producto.' },
               { icon: ShieldCheck, title: 'Compra segura', desc: 'Tu dinero está protegido. Pagas solo cuando apruebas la cotización. Garantía en cada importación.' },

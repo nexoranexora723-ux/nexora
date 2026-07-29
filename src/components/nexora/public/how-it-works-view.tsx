@@ -32,7 +32,7 @@ export function HowItWorksView({ onNavigate, onLogin }: { onNavigate: (v: string
         <div className="mt-16 space-y-8">
           {[
             { num: 1, icon: Search, title: 'Encuentra tu producto', desc: 'Busca en nuestro catálogo o envíanos un enlace de Alibaba, AliExpress, TikTok, Shein, Temu o cualquier plataforma. También puedes subir una foto.', color: 'from-sky-500 to-blue-600' },
-            { num: 2, icon: FileSearch, title: 'NAIOS busca proveedores', desc: 'Nuestra inteligencia artificial analiza tu solicitud y busca los mejores fabricantes en China. Compara precios, calidad, tiempos de producción y reputación.', color: 'from-violet-500 to-purple-600' },
+            { num: 2, icon: FileSearch, title: 'Nuestro equipo busca proveedores', desc: 'Nuestro equipo de expertos en comercio internacional busca los mejores fabricantes en China. Evaluamos precios, calidad, tiempos de producción y reputación de cada proveedor.', color: 'from-violet-500 to-purple-600' },
             { num: 3, icon: CreditCard, title: 'Recibe cotización y aprueba', desc: 'Te enviamos una cotización transparente con todos los costos: producto, envío internacional, aduana. Si te gusta, apruebas y pagas. Sin sorpresas.', color: 'from-amber-500 to-orange-600' },
             { num: 4, icon: Truck, title: 'Nosotros importamos', desc: 'Compramos al proveedor, gestionamos producción, coordinamos envío internacional, aduana y entrega final. Tú solo esperas.', color: 'from-emerald-500 to-green-600' },
           ].map((step) => (
