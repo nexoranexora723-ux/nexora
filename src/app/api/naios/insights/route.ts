@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/auth-middleware'
 import { db } from '@/lib/db'
 import ZAI from 'z-ai-web-dev-sdk'
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const auth = await requireAdmin(req)
+    if (auth instanceof NextResponse) return auth
     const [requests, suppliers, quotes, imports, transactions, recs] = await Promise.all([
       db.importRequest.findMany({ include: { client: true } }),
       db.supplier.findMany({ include: { ratings: { take: 1, orderBy: { createdAt: 'desc' } } } }),

@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { requireAuth } from '@/lib/auth-middleware'
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const auth = await requireAuth(req)
+    if (auth instanceof NextResponse) return auth
     const [requests, quotes, imports, transactions, clients, suppliers] = await Promise.all([
       db.importRequest.findMany({ include: { client: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } } }, orderBy: { createdAt: 'desc' } }),
       db.quote.findMany(),

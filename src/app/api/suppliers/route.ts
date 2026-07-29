@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/auth-middleware'
 import { db } from '@/lib/db'
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const auth = await requireAdmin(req)
+    if (auth instanceof NextResponse) return auth
     const suppliers = await db.supplier.findMany({
       where: { status: { not: 'BLACKLISTED' } },
       include: {

@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
+import { requireAuth } from '@/lib/auth-middleware'
 import { db } from '@/lib/db'
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAuth(req)
+    if (auth instanceof NextResponse) return auth
     const { id } = await params
     const quote = await db.quote.update({ where: { id }, data: { status: 'RECHAZADA' } })
     await db.notification.createMany({

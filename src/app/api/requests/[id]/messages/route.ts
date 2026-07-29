@@ -9,6 +9,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     if (!user) return NextResponse.json([])
 
     const { id } = await params
+    // IDOR check: if client, verify request belongs to them
+    if (user.role === 'CLIENT' || user.role === 'RESELLER') {
+      const request = await db.importRequest.findUnique({ where: { id }, select: { clientId: true } })
+      if (!request || request.clientId !== user.id) return NextResponse.json([])
+    }
+
     const messages = await db.requestMessage.findMany({
       where: { requestId: id },
       orderBy: { createdAt: 'asc' },
@@ -29,6 +35,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const { id } = await params
     const { content } = await req.json()
     if (!content?.trim()) return NextResponse.json({ error: 'Mensaje vacío' }, { status: 400 })
+
+    // IDOR check: if client, verify request belongs to them
+    const request = await db.importRequest.findUnique({ where: { id }, select: { clientId: true } })
+    if (!request) return NextResponse.json({ error: 'No encontrada' }, { status: 404 })
+    if ((user.role === 'CLIENT' || user.role === 'RESELLER') && request.clientId !== user.id) {
+      return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
+    }
 
     const role = user.role === 'CLIENT' || user.role === 'RESELLER' ? 'client' : 'admin'
     const msg = await db.requestMessage.create({

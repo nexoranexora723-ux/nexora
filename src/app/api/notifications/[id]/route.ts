@@ -9,6 +9,12 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     const user = t ? await AuthService.validate(t) : null
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
 
+    // IDOR check: verify notification belongs to user
+    const notif = await db.notification.findUnique({ where: { id } })
+    if (!notif || notif.userId !== user.id) {
+      return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
+    }
+
     await db.notification.update({ where: { id }, data: { readAt: new Date() } })
     return NextResponse.json({ success: true })
   } catch {

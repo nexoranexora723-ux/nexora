@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
+import { requireAuth } from '@/lib/auth-middleware'
 import { db } from '@/lib/db'
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const auth = await requireAuth(req)
+    if (auth instanceof NextResponse) return auth
     const recs = await db.naiosRecommendation.findMany({
       where: { status: 'PENDING' },
       orderBy: [{ severity: 'desc' }, { createdAt: 'desc' }],

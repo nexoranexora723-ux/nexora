@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { requireAuth } from '@/lib/auth-middleware'
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const auth = await requireAuth(req)
+    if (auth instanceof NextResponse) return auth
     const transactions = await db.transaction.findMany({ orderBy: { date: 'desc' } })
     const income = transactions.filter((t) => t.type === 'INCOME').reduce((s, t) => s + t.amount, 0)
     const expenses = transactions.filter((t) => t.type === 'EXPENSE').reduce((s, t) => s + t.amount, 0)

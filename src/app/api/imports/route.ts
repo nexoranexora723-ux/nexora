@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
+import { requireAuth, requireAdmin } from "@/lib/auth-middleware"
 import { db } from '@/lib/db'
 
 export async function GET(req: Request) {
   try {
+    const auth = await requireAuth(req)
+    if (auth instanceof NextResponse) return auth
     const { searchParams } = new URL(req.url)
     const requestId = searchParams.get('requestId')
     const where: Record<string, unknown> = {}
@@ -36,6 +39,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    const auth = await requireAdmin(req)
+    if (auth instanceof NextResponse) return auth
     const body = await req.json()
     const { requestId, quoteId, supplierId, productCost, shippingCost = 0, customsCost = 0, otherCosts = 0, salePrice, currencyCode = 'USD', carrier, trackingNumber, incoterm = 'FOB', notes } = body
     const totalCost = productCost + shippingCost + customsCost + otherCosts
@@ -74,6 +79,8 @@ export async function POST(req: Request) {
 
 export async function PATCH(req: Request) {
   try {
+    const auth = await requireAdmin(req)
+    if (auth instanceof NextResponse) return auth
     const { id, status, carrier, trackingNumber } = await req.json()
     const updates: Record<string, unknown> = { status }
     if (carrier) updates.carrier = carrier

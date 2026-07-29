@@ -1,32 +1,42 @@
 import { NextResponse } from 'next/server'
-import { RoleService } from '@/server/services/role.service'
-import { createRoleSchema } from '@/lib/schemas/auth.schema'
+import { requireAdmin } from '@/lib/auth-middleware'
 import { db } from '@/lib/db'
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const roles = await RoleService.list()
-    return NextResponse.json(roles)
-  } catch (error) {
-    console.error('GET /api/roles error:', error)
-    return NextResponse.json({ error: 'Error al obtener roles' }, { status: 500 })
-  }
+    const auth = await requireAdmin(req)
+    if (auth instanceof NextResponse) return auth
+
+    const roles = await db.role.findMany({
+      include: { permissions: { include: { permission: true } }, users: { select: { id: true } } },
+      orderBy: [{ isSystem: 'desc' }, { name: 'asc' }],
+    })
+    return NextResponse.json(roles.map((r) => ({
+      id: r.id, name: r.name, description: r.description, isSystem: r.isSystem,
+      status: r.status, companyId: r.companyId,
+      userCount: r.users.length,
+      permissions: r.permissions.map((rp) => ({ id: rp.permission.id, module: rp.permission.module, action: rp.permission.action })),
+      createdAt: r.createdAt.toISOString(), updatedAt: r.updatedAt.toISOString(),
+    })))
+  } catch { return NextResponse.json([]) }
 }
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
-    const parsed = createRoleSchema.safeParse(body)
-    if (!parsed.success) {
-      return NextResponse.json({ error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors }, { status: 400 })
-    }
-    const company = await db.company.findFirst()
-    if (!company) return NextResponse.json({ error: 'No existe empresa configurada' }, { status: 500 })
+    const auth = await requireAdmin(req)
+    if (auth instanceof NextResponse) return auth
 
-    const role = await RoleService.create(parsed.data, company.id)
-    return NextResponse.json(role, { status: 201 })
-  } catch (error) {
-    console.error('POST /api/roles error:', error)
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Error al crear rol' }, { status: 500 })
-  }
+    const { name, description, permissionIds = [] } = await req.json()
+    if (!name) return NextResponse.json({ error: 'Nombre obligatorio' }, { status: 400 })
+
+    const company = await db.company.findFirst()
+    const existing = await db.role.findUnique({ where: { name } })
+    if (existing) return NextResponse.json({ error: 'Ya existe' }, { status: 400 })
+
+    const role = await db.role.create({ data: { name, description: description || null, isSystem: false, status: 'ACTIVE', companyId: company?.id } })
+    if (permissionIds.length > 0) {
+      await db.rolePermission.createMany({ data: permissionIds.map((pid: string) => ({ roleId: role.id, permissionId: pid })) })
+    }
+    return NextResponse.json({ id: role.id, success: true }, { status: 201 })
+  } catch { return NextResponse.json({ error: 'Error' }, { status: 500 }) }
 }

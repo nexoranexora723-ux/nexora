@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server'
+import { requireAuth } from '@/lib/auth-middleware'
 import { db } from '@/lib/db'
 import ZAI from 'z-ai-web-dev-sdk'
 
 export async function POST(req: Request) {
   try {
+    const auth = await requireAuth(req)
+    if (auth instanceof NextResponse) return auth
     const { messages, businessContext } = await req.json()
 
     const systemPrompt = `Eres NAIOS, el asistente inteligente de NEXORA, una plataforma de importación desde China.

@@ -1,57 +1,60 @@
 import { NextResponse } from 'next/server'
-import { UserService } from '@/server/services/user.service'
-import { updateUserSchema } from '@/lib/schemas/auth.schema'
+import { requireAdmin } from '@/lib/auth-middleware'
+import { db } from '@/lib/db'
+import bcrypt from 'bcryptjs'
 
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAdmin(req)
+    if (auth instanceof NextResponse) return auth
     const { id } = await params
-    const user = await UserService.getById(id)
-    if (!user) return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 })
+    const user = await db.user.findUnique({ where: { id, deletedAt: null }, select: { id: true, firstName: true, lastName: true, email: true, phone: true, role: true, position: true, status: true } })
+    if (!user) return NextResponse.json({ error: 'No encontrado' }, { status: 404 })
     return NextResponse.json(user)
-  } catch (error) {
-    console.error('GET /api/users/[id] error:', error)
-    return NextResponse.json({ error: 'Error al obtener usuario' }, { status: 500 })
-  }
+  } catch { return NextResponse.json({ error: 'Error' }, { status: 500 }) }
 }
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAdmin(req)
+    if (auth instanceof NextResponse) return auth
     const { id } = await params
     const body = await req.json()
-    const parsed = updateUserSchema.safeParse(body)
-    if (!parsed.success) {
-      return NextResponse.json({ error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors }, { status: 400 })
-    }
-    const user = await UserService.update(id, parsed.data)
-    return NextResponse.json(user)
-  } catch (error) {
-    console.error('PUT /api/users/[id] error:', error)
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'Error al actualizar usuario' }, { status: 500 })
-  }
+    const data: Record<string, unknown> = {}
+    if (body.firstName) data.firstName = body.firstName
+    if (body.lastName) data.lastName = body.lastName
+    if (body.email) data.email = body.email
+    if (body.phone !== undefined) data.phone = body.phone || null
+    if (body.position !== undefined) data.position = body.position || null
+    if (body.role) data.role = body.role
+    if (body.status) data.status = body.status
+    if (body.password) data.password = await bcrypt.hash(body.password, 10)
+    await db.user.update({ where: { id }, data })
+    return NextResponse.json({ success: true })
+  } catch { return NextResponse.json({ error: 'Error' }, { status: 500 }) }
 }
 
-export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAdmin(req)
+    if (auth instanceof NextResponse) return auth
     const { id } = await params
-    await UserService.softDelete(id)
+    await db.user.update({ where: { id }, data: { deletedAt: new Date(), status: 'INACTIVE' } })
+    await db.session.updateMany({ where: { userId: id, revokedAt: null }, data: { revokedAt: new Date() } })
     return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('DELETE /api/users/[id] error:', error)
-    return NextResponse.json({ error: 'Error al eliminar usuario' }, { status: 500 })
-  }
+  } catch { return NextResponse.json({ error: 'Error' }, { status: 500 }) }
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const auth = await requireAdmin(req)
+    if (auth instanceof NextResponse) return auth
     const { id } = await params
     const { status } = await req.json()
-    if (!['ACTIVE', 'INACTIVE', 'SUSPENDED'].includes(status)) {
-      return NextResponse.json({ error: 'Estado inválido' }, { status: 400 })
+    await db.user.update({ where: { id }, data: { status } })
+    if (status !== 'ACTIVE') {
+      await db.session.updateMany({ where: { userId: id, revokedAt: null }, data: { revokedAt: new Date() } })
     }
-    const user = await UserService.setStatus(id, status)
-    return NextResponse.json(user)
-  } catch (error) {
-    console.error('PATCH /api/users/[id] error:', error)
-    return NextResponse.json({ error: 'Error al cambiar estado' }, { status: 500 })
-  }
+    return NextResponse.json({ success: true })
+  } catch { return NextResponse.json({ error: 'Error' }, { status: 500 }) }
 }

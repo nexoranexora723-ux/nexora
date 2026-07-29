@@ -620,7 +620,7 @@ function AdminNaios() {
       {/* Briefing */}
       <Card className="border-primary/20 bg-primary/5"><CardContent className="p-5">
         <div className="flex items-center gap-2 mb-3"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground"><Sparkles className="h-4 w-4" /></div><div><h3 className="text-base font-semibold">Briefing ejecutivo</h3><p className="text-xs text-muted-foreground">Resumen generado por IA</p></div></div>
-        <div className="naios-markdown rounded-lg bg-muted/40 p-4 text-sm"><ReactMarkdown>{briefing?.briefing ?? 'Cargando...'}</ReactMarkdown></div>
+        <div className="naios-markdown rounded-lg bg-muted/40 p-4 text-sm"><ReactMarkdown skipHtml>{briefing?.briefing ?? 'Cargando...'}</ReactMarkdown></div>
       </CardContent></Card>
 
       {/* Recommendations */}
@@ -670,7 +670,7 @@ function AdminNaios() {
                     {m.role === 'assistant' ? <Bot className="h-3.5 w-3.5" /> : <Users className="h-3.5 w-3.5" />}
                   </div>
                   <div className={cn('max-w-[80%] rounded-2xl px-3 py-2 text-sm', m.role === 'assistant' ? 'rounded-tl-sm bg-muted/60' : 'rounded-tr-sm bg-primary text-primary-foreground')}>
-                    {m.role === 'assistant' ? <div className="naios-markdown"><ReactMarkdown>{m.content}</ReactMarkdown></div> : <p className="whitespace-pre-wrap">{m.content}</p>}
+                    {m.role === 'assistant' ? <div className="naios-markdown"><ReactMarkdown skipHtml>{m.content}</ReactMarkdown></div> : <p className="whitespace-pre-wrap">{m.content}</p>}
                   </div>
                 </motion.div>
               ))}
