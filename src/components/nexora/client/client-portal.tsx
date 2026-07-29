@@ -23,6 +23,9 @@ import {
 import { cn } from '@/lib/utils'
 import { NotificationBell } from '@/components/nexora/shared/notification-bell'
 import { WizardDialog } from '@/components/nexora/client/wizard-dialog'
+import { OnboardingTour, CommandPalette } from '@/components/nexora/shared/extra-features'
+import { useTheme } from 'next-themes'
+import { Sun, Moon, Command as CommandIcon } from 'lucide-react'
 
 type View = 'dashboard' | 'catalog' | 'requests' | 'tracking' | 'profile'
 
@@ -35,12 +38,37 @@ interface PrefillData {
 
 export function ClientPortal() {
   const { user, logout } = useAuth()
+  const { theme, setTheme } = useTheme()
   const [view, setView] = useState<View>('dashboard')
   const [createOpen, setCreateOpen] = useState(false)
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [prefillProduct, setPrefillProduct] = useState<PrefillData | null>(null)
   const [wizardOpen, setWizardOpen] = useState(false)
+  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [cmdOpen, setCmdOpen] = useState(false)
+
+  // Onboarding on first visit
+  useEffect(() => {
+    const seen = localStorage.getItem('nexora-onboarding-seen')
+    if (!seen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShowOnboarding(true)
+      localStorage.setItem('nexora-onboarding-seen', '1')
+    }
+  }, [])
+
+  // Command palette shortcut (Cmd+K / Ctrl+K)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setCmdOpen((o) => !o)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
 
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -123,8 +151,16 @@ export function ClientPortal() {
             {view === 'tracking' && 'Seguimiento'}
             {view === 'profile' && 'Mi perfil'}
           </h1>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            <button onClick={() => setCmdOpen(true)} className="hidden items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted sm:flex">
+              <CommandIcon className="h-3 w-3" /> Buscar...
+              <kbd className="rounded bg-muted px-1 text-[9px]">⌘K</kbd>
+            </button>
             <NotificationBell />
+            <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-muted" aria-label="Cambiar tema">
+              <Sun className="hidden h-4 w-4 dark:block" />
+              <Moon className="h-4 w-4 dark:hidden" />
+            </button>
             <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setWizardOpen(true)}>
               <Sparkles className="h-4 w-4 text-primary" /> <span className="hidden sm:inline">Asistente</span>
             </Button>
@@ -170,6 +206,16 @@ export function ClientPortal() {
 
       {/* Wizard dialog */}
       <WizardDialog open={wizardOpen} onOpenChange={setWizardOpen} />
+
+      {/* Onboarding tour (#27) */}
+      {showOnboarding && <OnboardingTour onClose={() => setShowOnboarding(false)} />}
+
+      {/* Command palette (#29) */}
+      <CommandPalette open={cmdOpen} onOpenChange={setCmdOpen} onNavigate={(action) => {
+        if (action === 'new') { openCreateBlank() }
+        else if (action === 'wizard') { setWizardOpen(true) }
+        else if (action === 'catalog' || action === 'dashboard' || action === 'requests' || action === 'tracking' || action === 'profile') { setView(action as View) }
+      }} />
 
       {/* Create request dialog */}
       <CreateRequestDialog open={createOpen} onOpenChange={setCreateOpen} prefill={prefillProduct} />
