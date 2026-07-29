@@ -1,4 +1,3 @@
-// NEXORA — Auth store (client-side session management with Zustand + persist)
 'use client'
 
 import { create } from 'zustand'
@@ -9,45 +8,42 @@ export interface AuthUser {
   firstName: string
   lastName: string
   email: string
-  position: string | null
-  avatarUrl: string | null
   role: string
-  roleName: string | null
-  branchId: string | null
-  branchName: string | null
-  companyId: string
-  timezone: string | null
-  language: string | null
+  position: string | null
+  phone: string | null
+  avatarUrl: string | null
 }
+
+type Portal = 'public' | 'client' | 'admin'
 
 interface AuthState {
   user: AuthUser | null
-  permissions: string[]
+  portal: Portal
   isAuthenticated: boolean
   isLoading: boolean
-  setUser: (user: AuthUser | null, permissions?: string[]) => void
-  setLoading: (loading: boolean) => void
+  setUser: (user: AuthUser | null) => void
+  setPortal: (p: Portal) => void
+  setLoading: (b: boolean) => void
   logout: () => void
-  hasPermission: (module: string, action: string) => boolean
 }
 
 export const useAuth = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
-      permissions: [],
+      portal: 'public',
       isAuthenticated: false,
       isLoading: true,
-      setUser: (user, permissions = []) => set({ user, permissions, isAuthenticated: !!user, isLoading: false }),
+      setUser: (user) =>
+        set({
+          user,
+          isAuthenticated: !!user,
+          isLoading: false,
+          portal: user ? (user.role === 'CLIENT' || user.role === 'RESELLER' ? 'client' : 'admin') : 'public',
+        }),
+      setPortal: (portal) => set({ portal }),
       setLoading: (isLoading) => set({ isLoading }),
-      logout: () => set({ user: null, permissions: [], isAuthenticated: false }),
-      hasPermission: (module, action) => {
-        const perms = get().permissions
-        // ADMIN and CEO roles have implicit all-permissions
-        const role = get().user?.role
-        if (role === 'ADMIN' || role === 'CEO') return true
-        return perms.includes(`${module}:${action}`)
-      },
+      logout: () => set({ user: null, isAuthenticated: false, portal: 'public' }),
     }),
     { name: 'nexora-auth' },
   ),

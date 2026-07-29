@@ -1,113 +1,43 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Sidebar } from '@/components/nexora/sidebar'
-import { Header } from '@/components/nexora/header'
-import { Footer } from '@/components/nexora/footer'
-import { CartDrawer } from '@/components/nexora/cart-drawer'
-import { CheckoutDialog } from '@/components/nexora/checkout-dialog'
-import { LoginDialog } from '@/components/nexora/auth/login-dialog'
-import { StoreView } from '@/components/nexora/views/store-view'
-import { DashboardView } from '@/components/nexora/views/dashboard-view'
-import { ReportsView } from '@/components/nexora/views/reports-view'
-import { ProductsView } from '@/components/nexora/views/products-view'
-import { InventoryView } from '@/components/nexora/views/inventory-view'
-import { SuppliersView } from '@/components/nexora/views/suppliers-view'
-import { PurchasesView } from '@/components/nexora/views/purchases-view'
-import { OrdersView } from '@/components/nexora/views/orders-view'
-import { CustomersView } from '@/components/nexora/views/customers-view'
-import { FinanceView } from '@/components/nexora/views/finance-view'
-import { NaiosView } from '@/components/nexora/views/naios-view'
-import { UsersView } from '@/components/nexora/views/users-view'
-import { RolesView } from '@/components/nexora/views/roles-view'
-import { DocumentsView } from '@/components/nexora/views/documents-view'
-import { NotificationsView } from '@/components/nexora/views/notifications-view'
-import { AutomationView } from '@/components/nexora/views/automation-view'
-import { IntegrationsView } from '@/components/nexora/views/integrations-view'
-import { AuditView } from '@/components/nexora/views/audit-view'
-import { SettingsView } from '@/components/nexora/views/settings-view'
+import { useQuery } from '@tanstack/react-query'
 import { useAuth } from '@/lib/auth-store'
-import { ModuleKey, NaiosRecommendation } from '@/lib/types'
+import { LandingView } from '@/components/nexora/public/landing-view'
+import { CatalogView } from '@/components/nexora/public/catalog-view'
+import { HowItWorksView } from '@/components/nexora/public/how-it-works-view'
+import { AuthDialog } from '@/components/nexora/shared/auth-dialog'
+import { ClientPortal } from '@/components/nexora/client/client-portal'
+import { AdminPortal } from '@/components/nexora/admin/admin-portal'
 import { Loader2 } from 'lucide-react'
 
+type View = 'landing' | 'catalog' | 'how-it-works' | 'about' | 'contact'
+
 export default function NexoraPage() {
-  const [active, setActive] = useState<ModuleKey>('dashboard')
-  const [checkoutOpen, setCheckoutOpen] = useState(false)
-  const [loginOpen, setLoginOpen] = useState(false)
-  const queryClient = useQueryClient()
-  const { isAuthenticated, isLoading } = useAuth()
+  const [view, setView] = useState<View>('landing')
+  const [authOpen, setAuthOpen] = useState(false)
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
+  const { user, isAuthenticated, isLoading, setUser, setLoading } = useAuth()
 
   // Validate session on mount
   const { data: session } = useQuery({
     queryKey: ['auth-session'],
-    queryFn: async () => {
-      const res = await fetch('/api/auth/session')
-      return res.json()
-    },
+    queryFn: async () => (await fetch('/api/auth/session')).json(),
     staleTime: 5 * 60 * 1000,
   })
 
   useEffect(() => {
     if (session) {
-      useAuth.getState().setUser(session.user, session.user ? undefined : [])
+      setUser(session.user)
+    } else if (session !== undefined) {
+      setLoading(false)
     }
-  }, [session])
+  }, [session, setUser, setLoading])
 
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated && active !== 'store') {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLoginOpen(true)
-    }
-  }, [isLoading, isAuthenticated, active])
+  const openLogin = () => { setAuthMode('login'); setAuthOpen(true) }
+  const openRegister = () => { setAuthMode('register'); setAuthOpen(true) }
 
-  // NAIOS alerts
-  const { data: alerts = [] } = useQuery<NaiosRecommendation[]>({
-    queryKey: ['naios-alerts'],
-    queryFn: async () => {
-      const res = await fetch('/api/naios/recommendations')
-      if (!res.ok) return []
-      return res.json()
-    },
-    enabled: isAuthenticated,
-  })
-
-  const refreshAlerts = () => queryClient.invalidateQueries({ queryKey: ['naios-alerts'] })
-
-  const handleNavigate = (key: ModuleKey) => {
-    setActive(key)
-    if (typeof window !== 'undefined') {
-      document.getElementById('nexora-main')?.scrollTo({ top: 0, behavior: 'smooth' })
-    }
-  }
-
-  const alertCount = alerts.filter((a) => a.type === 'ALERT' || a.type === 'RISK').length
-
-  const renderView = () => {
-    switch (active) {
-      case 'store': return <StoreView />
-      case 'dashboard': return <DashboardView onNavigate={handleNavigate} alerts={alerts} onAlertsChange={refreshAlerts} />
-      case 'reports': return <ReportsView />
-      case 'products': return <ProductsView />
-      case 'inventory': return <InventoryView />
-      case 'suppliers': return <SuppliersView />
-      case 'purchases': return <PurchasesView />
-      case 'orders': return <OrdersView />
-      case 'customers': return <CustomersView />
-      case 'finance': return <FinanceView />
-      case 'naios': return <NaiosView alerts={alerts} onAlertsChange={refreshAlerts} />
-      case 'users': return <UsersView />
-      case 'roles': return <RolesView />
-      case 'documents': return <DocumentsView />
-      case 'notifications': return <NotificationsView />
-      case 'automation': return <AutomationView />
-      case 'integrations': return <IntegrationsView />
-      case 'audit': return <AuditView />
-      case 'settings': return <SettingsView />
-      default: return null
-    }
-  }
-
+  // Loading state
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -122,40 +52,22 @@ export default function NexoraPage() {
     )
   }
 
+  // If authenticated, show portal based on role
+  if (isAuthenticated && user) {
+    if (user.role === 'CLIENT' || user.role === 'RESELLER') {
+      return <ClientPortal />
+    }
+    return <AdminPortal />
+  }
+
+  // Public site
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="hidden w-64 shrink-0 border-r lg:block">
-          <Sidebar active={active} onNavigate={handleNavigate} alertCount={alertCount} />
-        </aside>
-
-        <div className="flex min-w-0 flex-1 flex-col">
-          <Header
-            active={active}
-            onNavigate={handleNavigate}
-            alertCount={alertCount}
-            onOpenNaios={() => setActive('naios')}
-          />
-          <main id="nexora-main" className="nexora-scroll flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-7xl">{renderView()}</div>
-          </main>
-          <Footer />
-        </div>
-      </div>
-
-      <CartDrawer onCheckout={() => setCheckoutOpen(true)} />
-      <CheckoutDialog
-        open={checkoutOpen}
-        onOpenChange={setCheckoutOpen}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['orders'] })
-          queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-          queryClient.invalidateQueries({ queryKey: ['inventory'] })
-          queryClient.invalidateQueries({ queryKey: ['customers'] })
-          queryClient.invalidateQueries({ queryKey: ['finance'] })
-        }}
-      />
-      <LoginDialog open={loginOpen} onOpenChange={setLoginOpen} />
-    </div>
+    <>
+      {view === 'landing' && <LandingView onNavigate={setView} onLogin={openLogin} onRegister={openRegister} />}
+      {view === 'catalog' && <CatalogView onNavigate={setView} onLogin={openLogin} onRegister={openRegister} />}
+      {view === 'how-it-works' && <HowItWorksView onNavigate={setView} onLogin={openLogin} />}
+      {(view === 'about' || view === 'contact') && <LandingView onNavigate={setView} onLogin={openLogin} onRegister={openRegister} />}
+      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} mode={authMode} onModeChange={setAuthMode} />
+    </>
   )
 }

@@ -1,47 +1,55 @@
 import { NextResponse } from 'next/server'
-import { SupplierService } from '@/server/services/supplier.service'
-import { createSupplierSchema, supplierQuerySchema } from '@/lib/schemas/supplier.schema'
 import { db } from '@/lib/db'
 
-// NEXORA — Suppliers API
-// GET: list with filters (q, status, riskLevel)  |  POST: create with Zod validation
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(req.url)
-    const query = supplierQuerySchema.parse({
-      q: searchParams.get('q') ?? undefined,
-      status: searchParams.get('status') ?? undefined,
-      riskLevel: searchParams.get('riskLevel') ?? undefined,
+    const suppliers = await db.supplier.findMany({
+      where: { status: { not: 'BLACKLISTED' } },
+      include: {
+        ratings: { orderBy: { createdAt: 'desc' }, take: 1 },
+        quotes: { select: { id: true, status: true } },
+      },
+      orderBy: { createdAt: 'desc' },
     })
-    const suppliers = await SupplierService.list(query)
-    return NextResponse.json(suppliers)
+
+    const enriched = suppliers.map((s) => {
+      const rating = s.ratings[0] ?? null
+      return {
+        id: s.id,
+        companyName: s.companyName,
+        contactName: s.contactName,
+        whatsapp: s.whatsapp,
+        wechat: s.wechat,
+        email: s.email,
+        website: s.website,
+        country: s.country,
+        city: s.city,
+        moq: s.moq,
+        leadTime: s.leadTime,
+        productionTime: s.productionTime,
+        oem: s.oem,
+        odm: s.odm,
+        status: s.status,
+        riskLevel: s.riskLevel,
+        rating: rating
+          ? {
+              overallScore: rating.overallScore,
+              communicationScore: rating.communicationScore,
+              qualityScore: rating.qualityScore,
+              priceScore: rating.priceScore,
+              shippingScore: rating.shippingScore,
+              warrantyScore: rating.warrantyScore,
+              trustScore: rating.trustScore,
+              review: rating.review,
+            }
+          : null,
+        quoteCount: s.quotes.length,
+      }
+    })
+
+    return NextResponse.json(enriched)
   } catch (error) {
     console.error('GET /api/suppliers error:', error)
-    return NextResponse.json({ error: 'Error al obtener proveedores' }, { status: 500 })
-  }
-}
-
-export async function POST(req: Request) {
-  try {
-    const body = await req.json()
-    const parsed = createSupplierSchema.safeParse(body)
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Datos inválidos', details: parsed.error.flatten().fieldErrors },
-        { status: 400 },
-      )
-    }
-
-    const company = await db.company.findFirst()
-    if (!company) {
-      return NextResponse.json({ error: 'No existe empresa configurada' }, { status: 500 })
-    }
-
-    const supplier = await SupplierService.create(parsed.data, company.id)
-    return NextResponse.json(supplier, { status: 201 })
-  } catch (error) {
-    console.error('POST /api/suppliers error:', error)
-    const message = error instanceof Error ? error.message : 'Error al crear proveedor'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json([])
   }
 }

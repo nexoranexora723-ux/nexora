@@ -1,7 +1,5 @@
-// NEXORA — Master Database Schema
-// Version: 1.0
-// Standard: snake_case tables, cuid primary keys, audit fields, soft delete
-// Per DOC-004 / DOC-005
+// NEXORA — Import Platform Schema
+// El corazón es ImportRequest (Solicitud) con 12 estados de lifecycle
 
 generator client {
   provider = "prisma-client-js"
@@ -13,31 +11,27 @@ datasource db {
 }
 
 // ============================================================================
-// CAPA 1 — CORE SYSTEM
+// CORE — Empresa, Usuarios, Sesiones, Auditoría
 // ============================================================================
 
 model Company {
-  id               String   @id @default(cuid())
-  legalName        String
-  commercialName   String
-  nit              String?  @unique
-  email            String?
-  phone            String?
-  country          String?  @default("CO")
-  currencyCode     String   @default("USD")
-  timezone         String?  @default("America/Bogota")
-  logoUrl          String?
-  website          String?
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  id             String   @id @default(cuid())
+  legalName      String   @map("legal_name")
+  commercialName String   @map("commercial_name")
+  nit            String?  @unique
+  email          String?
+  phone          String?
+  country        String?  @default("CO")
+  currencyCode   String   @default("USD") @map("currency_code")
+  timezone       String?  @default("America/Bogota")
+  logoUrl        String?  @map("logo_url")
+  website        String?
+  address        String?
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
-  users       User[]
-  products    Product[]
-  suppliers   Supplier[]
-  customers   Customer[]
-  settings    Setting[]
-  roles       Role[]
-  branches    Branch[]
+  users    User[]
+  settings Setting[]
 
   @@map("companies")
 }
@@ -50,103 +44,32 @@ model User {
   password     String    // bcrypt hash
   phone        String?
   avatarUrl    String?   @map("avatar_url")
-  position     String?   // Cargo
-  role         String    @default("USER") // Reference to Role.name OR legacy role
-  roleId       String?   @map("role_id")
+  role         String    @default("CLIENT") // CLIENT | RESELLER | EMPLOYEE | ADMIN | SUPER_ADMIN
+  position     String?   // cargo (for employees)
   status       String    @default("ACTIVE") // ACTIVE | INACTIVE | SUSPENDED
   companyId    String    @map("company_id")
-  branchId     String?   @map("branch_id")
-  timezone     String?   @default("America/Bogota")
-  language     String?   @default("es")
   lastLoginAt  DateTime? @map("last_login_at")
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
   deletedAt    DateTime? @map("deleted_at")
 
-  company     Company         @relation(fields: [companyId], references: [id])
-  branch      Branch?         @relation(fields: [branchId], references: [id])
-  roleRel     Role?           @relation(fields: [roleId], references: [id])
-  responsibleFor Branch[]     @relation("BranchResponsible")
-  auditLogs   AuditLog[]
-  sessions    Session[]
-  orders      Order[]
-  purchases   PurchaseOrder[]
+  company      Company       @relation(fields: [companyId], references: [id])
+  sessions     Session[]
+  auditLogs    AuditLog[]
+  requests     ImportRequest[] @relation("RequestClient")
+  assignedReqs ImportRequest[] @relation("RequestAssignee")
+  quotes       Quote[]       @relation("QuoteAssignee")
+  notifications Notification[]
 
   @@index([companyId])
-  @@index([roleId])
-  @@index([branchId])
+  @@index([role])
   @@map("users")
-}
-
-model Role {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  description String?
-  isSystem    Boolean  @default(false) @map("is_system") // System roles can't be deleted
-  status      String   @default("ACTIVE") // ACTIVE | INACTIVE
-  companyId   String?  @map("company_id") // null = global role
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  company     Company?         @relation(fields: [companyId], references: [id])
-  users       User[]
-  permissions RolePermission[]
-
-  @@index([companyId])
-  @@map("roles")
-}
-
-model Permission {
-  id          String   @id @default(cuid())
-  module      String   // products | orders | users | suppliers | inventory | finance | ...
-  action      String   // view | create | edit | delete | export | approve | configure | admin
-  description String?
-  createdAt   DateTime @default(now()) @map("created_at")
-
-  roles       RolePermission[]
-
-  @@unique([module, action])
-  @@map("permissions")
-}
-
-model RolePermission {
-  roleId       String @map("role_id")
-  permissionId String @map("permission_id")
-  createdAt    DateTime @default(now()) @map("created_at")
-
-  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-
-  @@id([roleId, permissionId])
-  @@map("role_permissions")
-}
-
-model Branch {
-  id           String   @id @default(cuid())
-  name         String
-  code         String   @unique
-  address      String?
-  city         String?
-  country      String?  @default("CO")
-  state        String?  // provincia/departamento
-  responsibleId String? @map("responsible_id")
-  companyId    String   @map("company_id")
-  status       String   @default("ACTIVE") // ACTIVE | INACTIVE
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-
-  company Company @relation(fields: [companyId], references: [id])
-  responsible User? @relation("BranchResponsible", fields: [responsibleId], references: [id])
-  users   User[]
-
-  @@index([companyId])
-  @@map("branches")
 }
 
 model Session {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")
-  token     String   @unique // JWT or session token
+  token     String   @unique
   ipAddress String?  @map("ip_address")
   userAgent String?  @map("user_agent")
   expiresAt DateTime @map("expires_at")
@@ -156,27 +79,24 @@ model Session {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([expiresAt])
   @@map("sessions")
 }
 
 model AuditLog {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")
-  action    String   // LOGIN | LOGOUT | CREATE | UPDATE | DELETE | EXPORT | CONFIG_CHANGE ...
-  entity    String   // user | role | product | order | ...
+  action    String
+  entity    String
   entityId  String?  @map("entity_id")
-  metadata  String?  // JSON string: { before, after, ... }
+  metadata  String?
   ipAddress String?  @map("ip_address")
-  userAgent String?  @map("user_agent")
-  result    String   @default("SUCCESS") // SUCCESS | FAILURE | ERROR
+  result    String   @default("SUCCESS")
   createdAt DateTime @default(now()) @map("created_at")
 
   user User @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([entity, entityId])
-  @@index([action])
   @@index([createdAt])
   @@map("audit_logs")
 }
@@ -195,208 +115,107 @@ model Setting {
   @@map("settings")
 }
 
-model File {
-  id         String   @id @default(cuid())
-  name       String
-  url        String
-  type       String   // image | video | document
-  mimeType   String?  @map("mime_type")
-  sizeBytes  Int?     @map("size_bytes")
-  createdAt  DateTime @default(now()) @map("created_at")
+// ============================================================================
+// CATÁLOGO — Productos importables
+// ============================================================================
 
-  productImages ProductImage[]
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  icon        String?
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
 
-  @@map("files")
+  products Product[]
+
+  @@map("categories")
 }
-
-// ============================================================================
-// CAPA 2 — CATÁLOGO
-// ============================================================================
 
 model Brand {
   id          String    @id @default(cuid())
   name        String    @unique
   description String?
-  logoUrl     String?   @map("logo_url")
   createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
 
   products Product[]
 
   @@map("brands")
 }
 
-model Category {
-  id          String     @id @default(cuid())
-  name        String
-  slug        String     @unique
-  parentId    String?    @map("parent_id")
-  description String?
-  createdAt   DateTime   @default(now()) @map("created_at")
-  updatedAt   DateTime   @updatedAt @map("updated_at")
-
-  parent        Category?  @relation("CategoryTree", fields: [parentId], references: [id])
-  children      Category[] @relation("CategoryTree")
-  products      Product[]
-  subproducts   Product[] @relation("ProductSubcategory")
-
-  @@map("categories")
-}
-
 model Product {
-  id              String   @id @default(cuid())
-  sku             String   @unique
-  internalCode    String?  @map("internal_code")
-  barcode         String?  @map("barcode")
-  name            String
-  description     String?
-  brandId         String?  @map("brand_id")
-  categoryId      String?  @map("category_id")
-  subcategoryId   String?  @map("subcategory_id")
-  supplierId      String?  @map("supplier_id")
-  weight          Float?
-  length          Float?
-  width           Float?
-  height          Float?
-  color           String?
-  material        String?
-  warranty        String?
-  countryOfOrigin String?  @map("country_of_origin")
-  tags            String?  // comma-separated
-  purchasePrice   Float    @map("purchase_price")
-  salePrice       Float    @map("sale_price")
-  currencyCode    String   @default("USD") @map("currency_code")
-  status          String   @default("ACTIVE") // ACTIVE | INACTIVE | DISCONTINUED
-  imageUrl        String?  @map("image_url")
-  companyId       String   @map("company_id")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
-  deletedAt       DateTime? @map("deleted_at")
+  id            String   @id @default(cuid())
+  sku           String   @unique
+  name          String
+  description   String?
+  brandId       String?  @map("brand_id")
+  categoryId    String?  @map("category_id")
+  supplierId    String?  @map("supplier_id")
+  imageUrl      String?  @map("image_url")
+  images        String?  // JSON array of URLs
+  referenceUrl  String?  @map("reference_url") // link to Alibaba/AliExpress/etc
+  estimatedCost Float?   @map("estimated_cost") // costo estimado desde China
+  suggestedPrice Float?  @map("suggested_price") // precio sugerido de venta
+  currencyCode  String   @default("USD") @map("currency_code")
+  status        String   @default("ACTIVE") // ACTIVE | INACTIVE
+  isFeatured    Boolean  @default(false) @map("is_featured")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
-  company       Company         @relation(fields: [companyId], references: [id])
-  brand         Brand?          @relation(fields: [brandId], references: [id])
-  category      Category?       @relation(fields: [categoryId], references: [id])
-  subcategory   Category?       @relation("ProductSubcategory", fields: [subcategoryId], references: [id])
-  supplier      Supplier?       @relation(fields: [supplierId], references: [id])
-  inventory     Inventory[]
-  inventoryMovements InventoryMovement[]
-  orderItems    OrderItem[]
-  purchaseItems PurchaseOrderItem[]
-  images        ProductImage[]
-  videos        ProductVideo[]
-  variants      ProductVariant[]
+  brand       Brand?     @relation(fields: [brandId], references: [id])
+  category    Category?  @relation(fields: [categoryId], references: [id])
+  supplier    Supplier?  @relation(fields: [supplierId], references: [id])
 
-  @@index([companyId])
-  @@index([brandId])
   @@index([categoryId])
+  @@index([brandId])
   @@index([supplierId])
-  @@index([status])
   @@map("products")
 }
 
-model ProductImage {
-  id        String   @id @default(cuid())
-  productId String   @map("product_id")
-  fileId    String?  @map("file_id")
-  url       String
-  alt       String?
-  position  Int      @default(0)
-  isPrimary Boolean  @default(false) @map("is_primary")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  product Product @relation(fields: [productId], references: [id])
-  file    File?   @relation(fields: [fileId], references: [id])
-
-  @@index([productId])
-  @@map("product_images")
-}
-
-model ProductVideo {
-  id        String   @id @default(cuid())
-  productId String   @map("product_id")
-  url       String
-  title     String?
-  position  Int      @default(0)
-  createdAt DateTime @default(now()) @map("created_at")
-
-  product Product @relation(fields: [productId], references: [id])
-
-  @@index([productId])
-  @@map("product_videos")
-}
-
-model ProductVariant {
-  id          String   @id @default(cuid())
-  productId   String   @map("product_id")
-  sku         String   @unique
-  name        String
-  option1     String?  @map("option_1") // e.g. Color
-  value1      String?  @map("value_1")  // e.g. Negro
-  option2     String?  @map("option_2") // e.g. Talla
-  value2      String?  @map("value_2")  // e.g. M
-  option3     String?  @map("option_3") // e.g. Capacidad
-  value3      String?  @map("value_3")  // e.g. 128GB
-  price       Float
-  stock       Int      @default(0)
-  imageUrl    String?  @map("image_url")
-  weight      Float?
-  barcode     String?
-  status      String   @default("ACTIVE") // ACTIVE | INACTIVE
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  product Product @relation(fields: [productId], references: [id])
-
-  @@index([productId])
-  @@map("product_variants")
-}
-
 // ============================================================================
-// CAPA 3 — PROVEEDORES
+// PROVEEDORES — Fabricantes chinos con calificación multifactor
 // ============================================================================
 
 model Supplier {
-  id             String    @id @default(cuid())
-  companyName    String    @map("company_name")
-  contactName    String?   @map("contact_name")
-  whatsapp       String?
-  wechat         String?
-  email          String?
-  website        String?
-  yupoo          String?
-  country        String?   @default("CN")
-  city           String?
-  address        String?
-  moq            Int?      @map("moq") // Minimum Order Quantity
-  paymentMethods String?   @map("payment_methods")
+  id              String   @id @default(cuid())
+  companyName     String   @map("company_name")
+  contactName     String?  @map("contact_name")
+  whatsapp        String?
+  wechat          String?
+  email           String?
+  website         String?
+  yupoo           String?
+  alibaba         String?
+  country         String?  @default("CN")
+  city            String?
+  address         String?
+  moq             Int?     // minimum order quantity
+  paymentMethods  String?  @map("payment_methods")
   shippingMethods String?  @map("shipping_methods")
-  warranty       String?
-  leadTime       Int?      @map("lead_time") // days
-  productionTime Int?      @map("production_time") // days
-  oem            Boolean   @default(false)
-  odm            Boolean   @default(false)
-  status         String    @default("ACTIVE") // ACTIVE | INACTIVE | BLACKLISTED
-  riskLevel      String    @default("MEDIUM") @map("risk_level") // LOW | MEDIUM | HIGH
-  companyId      String    @map("company_id")
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
-  deletedAt      DateTime? @map("deleted_at")
+  warranty        String?
+  leadTime        Int?     @map("lead_time") // días
+  productionTime  Int?     @map("production_time") // días
+  oem             Boolean  @default(false)
+  odm             Boolean  @default(false)
+  status          String   @default("ACTIVE") // ACTIVE | INACTIVE | BLACKLISTED
+  riskLevel       String   @default("MEDIUM") @map("risk_level") // LOW | MEDIUM | HIGH
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
-  company    Company             @relation(fields: [companyId], references: [id])
-  products   Product[]
-  ratings    SupplierRating[]
-  quotes     SupplierQuote[]
-  purchases  PurchaseOrder[]
+  ratings   SupplierRating[]
+  quotes    Quote[]
+  products  Product[]
+  imports   Import[]
 
-  @@index([companyId])
-  @@index([country])
+  @@index([status])
+  @@index([riskLevel])
   @@map("suppliers")
 }
 
 model SupplierRating {
   id                String   @id @default(cuid())
   supplierId        String   @map("supplier_id")
-  communicationScore Int     @map("communication_score") // 0-100
+  communicationScore Int     @map("communication_score")
   qualityScore      Int      @map("quality_score")
   priceScore        Int      @map("price_score")
   shippingScore     Int      @map("shipping_score")
@@ -404,9 +223,7 @@ model SupplierRating {
   trustScore        Int      @map("trust_score")
   overallScore      Float    @map("overall_score")
   review            String?
-  ratedBy           String?  @map("rated_by")
   createdAt         DateTime @default(now()) @map("created_at")
-  updatedAt         DateTime @updatedAt @map("updated_at")
 
   supplier Supplier @relation(fields: [supplierId], references: [id])
 
@@ -414,216 +231,209 @@ model SupplierRating {
   @@map("supplier_ratings")
 }
 
-model SupplierQuote {
-  id           String   @id @default(cuid())
-  supplierId   String   @map("supplier_id")
-  productName  String   @map("product_name")
-  quantity     Int
-  unitPrice    Float    @map("unit_price")
-  currencyCode String   @default("USD") @map("currency_code")
-  status       String   @default("PENDING") // PENDING | APPROVED | REJECTED | EXPIRED
-  validUntil   DateTime? @map("valid_until")
-  notes        String?
-  createdAt    DateTime @default(now()) @map("created_at")
-
-  supplier Supplier @relation(fields: [supplierId], references: [id])
-
-  @@index([supplierId])
-  @@map("supplier_quotes")
-}
-
 // ============================================================================
-// CAPA 4 — COMPRAS
+// SOLICITUDES — EL CORAZÓN DE NEXORA
+// Una solicitud es el punto de partida de toda importación.
+// Lifecycle de 12 estados: NUEVA → ANALIZANDO → BUSCANDO_PROVEEDOR →
+// COTIZACION_RECIBIDA → COTIZACION_ENVIADA → ESPERANDO_APROBACION →
+// PAGO_RECIBIDO → COMPRA_REALIZADA → PRODUCCION → EN_TRANSITO →
+// ENTREGADO → CERRADO
 // ============================================================================
 
-model PurchaseOrder {
-  id            String   @id @default(cuid())
-  number        String   @unique
-  status        String   @default("PENDING") // PENDING | APPROVED | SHIPPED | RECEIVED | CANCELLED
-  supplierId    String   @map("supplier_id")
-  userId        String?  @map("user_id")
-  subtotal      Float
-  shippingCost  Float    @default(0) @map("shipping_cost")
-  tax           Float    @default(0)
-  total         Float
-  currencyCode  String   @default("USD") @map("currency_code")
-  expectedDate  DateTime? @map("expected_date")
-  receivedDate  DateTime? @map("received_date")
-  notes         String?
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+model ImportRequest {
+  id              String    @id @default(cuid())
+  number          String    @unique // NX-2025-000001
+  clientId        String    @map("client_id")
+  assignedToId    String?   @map("assigned_to_id")
 
-  supplier Supplier            @relation(fields: [supplierId], references: [id])
-  user     User?               @relation(fields: [userId], references: [id])
-  items    PurchaseOrderItem[]
+  // Qué quiere importar el cliente
+  productName     String    @map("product_name")
+  description     String?
+  category        String?   // Tecnología | Hogar | Moda | Belleza | Herramientas | Mascotas | Automotriz | Otro
+  purpose         String?   // personal | resale | business
+  quantity        Int       @default(1)
+  budget          Float?    // presupuesto del cliente
+  currencyCode    String    @default("USD") @map("currency_code")
 
-  @@index([supplierId])
+  // Referencias del cliente
+  referenceUrl    String?   @map("reference_url") // link a Alibaba/AliExpress/etc
+  referenceImages String?   @map("reference_images") // JSON array of image URLs
+
+  // Detalles
+  details         String?   // color, talla, material, marca, empaque
+  priority        String    @default("MEDIUM") // LOW | MEDIUM | HIGH | URGENT
+
+  // Análisis de NAIOS
+  naiosSummary    String?   @map("naios_summary")
+  naiosCategory   String?   @map("naios_category")
+  naiosPriority   String?   @map("naios_priority")
+
+  // Estado actual
+  status          String    @default("NUEVA")
+  // NUEVA | ANALIZANDO | BUSCANDO_PROVEEDOR | COTIZACION_RECIBIDA |
+  // COTIZACION_ENVIADA | ESPERANDO_APROBACION | PAGO_RECIBIDO |
+  // COMPRA_REALIZADA | PRODUCCION | EN_TRANSITO | ENTREGADO | CERRADO
+
+  notes           String?   // notas internas del admin
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  closedAt        DateTime? @map("closed_at")
+
+  client       User               @relation("RequestClient", fields: [clientId], references: [id])
+  assignee     User?              @relation("RequestAssignee", fields: [assignedToId], references: [id])
+  quotes       Quote[]
+  imports      Import[]
+  statusHistory RequestStatusHistory[]
+  attachments  RequestAttachment[]
+  notifications Notification[]
+
+  @@index([clientId])
+  @@index([assignedToId])
   @@index([status])
-  @@map("purchase_orders")
+  @@index([createdAt])
+  @@map("import_requests")
 }
 
-model PurchaseOrderItem {
-  id              String  @id @default(cuid())
-  purchaseOrderId String  @map("purchase_order_id")
-  productId       String  @map("product_id")
-  quantity        Int
-  unitCost        Float   @map("unit_cost")
-  totalCost       Float   @map("total_cost")
-
-  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
-  product       Product       @relation(fields: [productId], references: [id])
-
-  @@index([purchaseOrderId])
-  @@index([productId])
-  @@map("purchase_order_items")
-}
-
-// ============================================================================
-// CAPA 5 — INVENTARIO
-// ============================================================================
-
-model Warehouse {
-  id        String   @id @default(cuid())
-  name      String
-  code      String   @unique
-  address   String?
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  inventory          Inventory[]
-  inventoryMovements InventoryMovement[]
-
-  @@map("warehouses")
-}
-
-model Inventory {
+model RequestStatusHistory {
   id          String   @id @default(cuid())
-  productId   String   @map("product_id")
-  warehouseId String   @map("warehouse_id")
-  stock       Int      @default(0)
-  reserved    Int      @default(0)
-  minStock    Int      @default(0) @map("min_stock")
-  maxStock    Int?     @map("max_stock")
-  location    String?  // bin/aisle
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  product   Product   @relation(fields: [productId], references: [id])
-  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
-
-  available Int @default(0) @map("available")
-
-  @@unique([productId, warehouseId])
-  @@index([productId])
-  @@index([warehouseId])
-  @@map("inventory")
-}
-
-model InventoryMovement {
-  id          String   @id @default(cuid())
-  productId   String   @map("product_id")
-  warehouseId String   @map("warehouse_id")
-  type        String   // IN | OUT | ADJUST | RESERVE | RELEASE
-  quantity    Int
-  reason      String?
-  reference   String?  // order/purchase number
+  requestId   String   @map("request_id")
+  fromStatus  String?  @map("from_status")
+  toStatus    String   @map("to_status")
+  changedById String?  @map("changed_by_id")
+  notes       String?
   createdAt   DateTime @default(now()) @map("created_at")
 
-  product   Product   @relation(fields: [productId], references: [id])
-  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+  request ImportRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
-  @@index([productId])
-  @@index([warehouseId])
-  @@map("inventory_movements")
+  @@index([requestId])
+  @@map("request_status_history")
+}
+
+model RequestAttachment {
+  id          String   @id @default(cuid())
+  requestId   String   @map("request_id")
+  type        String   // image | link | document
+  url         String
+  name        String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  request ImportRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId])
+  @@map("request_attachments")
 }
 
 // ============================================================================
-// CAPA 6 — CLIENTES
+// COTIZACIONES — Quote del proveedor para una solicitud
 // ============================================================================
 
-model Customer {
-  id          String    @id @default(cuid())
-  firstName   String    @map("first_name")
-  lastName    String    @map("last_name")
-  email       String    @unique
-  phone       String?
-  country     String?   @default("CO")
-  city        String?
-  address     String?
-  tags        String?   // comma-separated tags
-  status      String    @default("ACTIVE") // ACTIVE | INACTIVE | VIP
-  lifetimeValue Float   @default(0) @map("lifetime_value")
-  totalOrders Int       @default(0) @map("total_orders")
-  companyId   String    @map("company_id")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  deletedAt   DateTime? @map("deleted_at")
-
-  company Company @relation(fields: [companyId], references: [id])
-  orders  Order[]
-
-  @@index([companyId])
-  @@map("customers")
-}
-
-// ============================================================================
-// CAPA 7 — VENTAS
-// ============================================================================
-
-model Order {
+model Quote {
   id            String    @id @default(cuid())
-  number        String    @unique
-  customerId    String    @map("customer_id")
-  userId        String?   @map("user_id")
-  status        String    @default("PENDING") // PENDING | PAID | SHIPPED | DELIVERED | CANCELLED | REFUNDED
+  number        String    @unique // COT-2025-000001
+  requestId     String    @map("request_id")
+  supplierId    String    @map("supplier_id")
+  assignedToId  String?   @map("assigned_to_id")
+
+  unitPrice     Float     @map("unit_price")
+  quantity      Int
   subtotal      Float
   shippingCost  Float     @default(0) @map("shipping_cost")
   tax           Float     @default(0)
-  discount      Float     @default(0)
   total         Float
   currencyCode  String    @default("USD") @map("currency_code")
-  paymentMethod String?   @map("payment_method")
-  trackingNumber String?  @map("tracking_number")
+
+  leadTime      Int?      @map("lead_time") // días de producción + envío
+  warranty      String?
+  validity      DateTime? // validez de la cotización
+
+  status        String    @default("RECIBIDA")
+  // RECIBIDA | ENVIADA_AL_CLIENTE | APROBADA | RECHAZADA | EXPIRADA
+
   notes         String?
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
-  customer Customer    @relation(fields: [customerId], references: [id])
-  user     User?       @relation(fields: [userId], references: [id])
-  items    OrderItem[]
+  request   ImportRequest @relation(fields: [requestId], references: [id])
+  supplier  Supplier      @relation(fields: [supplierId], references: [id])
+  assignee  User?         @relation("QuoteAssignee", fields: [assignedToId], references: [id])
+  imports   Import[]
 
-  @@index([customerId])
+  @@index([requestId])
+  @@index([supplierId])
   @@index([status])
-  @@map("orders")
-}
-
-model OrderItem {
-  id        String @id @default(cuid())
-  orderId   String @map("order_id")
-  productId String @map("product_id")
-  quantity  Int
-  unitPrice Float  @map("unit_price")
-  total     Float
-
-  order   Order   @relation(fields: [orderId], references: [id])
-  product Product @relation(fields: [productId], references: [id])
-
-  @@index([orderId])
-  @@index([productId])
-  @@map("order_items")
+  @@map("quotes")
 }
 
 // ============================================================================
-// CAPA 8 — FINANZAS
+// IMPORTACIONES — Seguimiento del proceso de importación
+// Cuando una cotización se aprueba + se recibe el pago → se crea Import
+// ============================================================================
+
+model Import {
+  id              String    @id @default(cuid())
+  number          String    @unique // IMP-2025-000001
+  requestId       String    @map("request_id")
+  quoteId         String?   @map("quote_id")
+  supplierId      String    @map("supplier_id")
+
+  // Costos reales
+  productCost     Float     @map("product_cost")
+  shippingCost    Float     @default(0) @map("shipping_cost")
+  customsCost     Float     @default(0) @map("customs_cost") // costos de aduana
+  otherCosts      Float     @default(0) @map("other_costs")
+  totalCost       Float     @map("total_cost")
+  salePrice       Float     @map("sale_price") // precio al cliente
+  profit          Float     @default(0) // salePrice - totalCost
+  currencyCode    String    @default("USD") @map("currency_code")
+
+  // Tracking
+  status          String    @default("COMPRA_REALIZADA")
+  // COMPRA_REALIZADA | PRODUCCION | ENVIADO | EN_TRANSITO |
+  // EN_ADUANA | RECIBIDO_BODEGA | ENTREGADO | CANCELADO
+
+  // Fechas de tracking
+  purchasedAt     DateTime? @map("purchased_at")
+  productionEndsAt DateTime? @map("production_ends_at")
+  shippedAt       DateTime? @map("shipped_at")
+  arrivedAt       DateTime? @map("arrived_at")
+  deliveredAt     DateTime? @map("delivered_at")
+
+  // Logística
+  carrier         String?   // DHL, FedEx, etc
+  trackingNumber  String?   @map("tracking_number")
+  billOfLading    String?   @map("bill_of_lading") // B/L
+  incoterm        String?   @default("FOB") // FOB | CIF | EXW | DDP
+
+  // Documentos
+  documents       String?   // JSON array of {name, url, type}
+
+  notes           String?
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  request   ImportRequest @relation(fields: [requestId], references: [id])
+  quote     Quote?        @relation(fields: [quoteId], references: [id])
+  supplier  Supplier      @relation(fields: [supplierId], references: [id])
+
+  @@index([requestId])
+  @@index([supplierId])
+  @@index([status])
+  @@map("imports")
+}
+
+// ============================================================================
+// FINANZAS — Transacciones
 // ============================================================================
 
 model Transaction {
   id          String   @id @default(cuid())
   type        String   // INCOME | EXPENSE
-  category    String   // SALES | PURCHASES | SHIPPING | SALARY | MARKETING | RENT | UTILITY | OTHER
+  category    String   // SALES | PURCHASE | SHIPPING | CUSTOMS | SALARY | MARKETING | OTHER
   description String
   amount      Float
   currencyCode String  @default("USD") @map("currency_code")
-  reference   String?  // order/purchase number
+  reference   String?  // request number, quote number, etc
+  requestId   String?  @map("request_id")
   date        DateTime @default(now())
   createdAt   DateTime @default(now()) @map("created_at")
 
@@ -634,68 +444,47 @@ model Transaction {
 }
 
 // ============================================================================
-// CAPA 9 — NOTIFICACIONES & DOCUMENTOS
+// NOTIFICACIONES
 // ============================================================================
 
 model Notification {
   id          String   @id @default(cuid())
-  companyId   String   @map("company_id")
-  userId      String?  @map("user_id")
-  type        String   // info | warning | error | success | system | finance | purchases | sales | inventory | marketing | naios
-  priority    String   @default("MEDIUM") // LOW | MEDIUM | HIGH | CRITICAL
+  userId      String   @map("user_id")
+  type        String   // info | success | warning | error | system | request | quote | import
+  priority    String   @default("MEDIUM")
   title       String
   message     String
-  data        String?  // JSON string
+  data        String?  // JSON
   readAt      DateTime? @map("read_at")
   createdAt   DateTime @default(now()) @map("created_at")
 
-  @@index([companyId, userId])
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  request ImportRequest?   @relation(fields: [requestId], references: [id])
+
+  requestId String? @map("request_id")
+
+  @@index([userId])
   @@index([readAt])
-  @@index([priority])
   @@map("notifications")
 }
 
-model Document {
-  id          String    @id @default(cuid())
-  companyId   String    @map("company_id")
-  name        String
-  fileId      String?   @map("file_id")
-  url         String
-  category    String    @default("general") // invoice | contract | catalog | proforma | guarantee | manual | legal | marketing | other
-  tags        String?   // comma-separated
-  entityType  String?   @map("entity_type") // product | order | supplier | customer | purchase
-  entityId    String?   @map("entity_id")
-  status      String    @default("ACTIVE") // ACTIVE | ARCHIVED
-  ownerId     String?   @map("owner_id")
-  version     Int       @default(1)
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  deletedAt   DateTime? @map("deleted_at")
-
-  @@index([companyId])
-  @@index([category])
-  @@index([entityType, entityId])
-  @@map("documents")
-}
-
 // ============================================================================
-// CAPA 10 — IA (NAIOS)
+// NAIOS — Recomendaciones y conversaciones
 // ============================================================================
 
 model NaiosRecommendation {
   id          String   @id @default(cuid())
   type        String   // ALERT | OPPORTUNITY | RISK | INSIGHT
-  severity    String   @default("MEDIUM") // LOW | MEDIUM | HIGH | CRITICAL
+  severity    String   @default("MEDIUM")
   title       String
   description String
-  module      String   // dashboard | products | suppliers | inventory | finance ...
+  module      String   // requests | quotes | imports | suppliers | finance
   entityId    String?  @map("entity_id")
-  action      String?  // suggested action
+  action      String?
   status      String   @default("PENDING") // PENDING | DISMISSED | APPLIED
   createdAt   DateTime @default(now()) @map("created_at")
 
   @@index([status])
-  @@index([module])
   @@map("naios_recommendations")
 }
 
@@ -709,89 +498,3 @@ model NaiosConversation {
   @@index([createdAt])
   @@map("naios_conversations")
 }
-
-// ============================================================================
-// CAPA 11 — AUTOMATIZACIÓN (Workflows)
-// ============================================================================
-
-model Workflow {
-  id            String   @id @default(cuid())
-  companyId     String   @map("company_id")
-  name          String
-  description   String?
-  triggerType   String   @map("trigger_type") // product_created | order_created | inventory_low | payment_received | customer_created | supplier_created | manual | scheduled
-  triggerConfig String?  @map("trigger_config") // JSON
-  conditions    String?  // JSON array of {field, operator, value}
-  actions       String?  // JSON array of {type, config}
-  status        String   @default("ACTIVE") // ACTIVE | INACTIVE
-  lastRunAt     DateTime? @map("last_run_at")
-  runCount      Int      @default(0) @map("run_count")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  executions    WorkflowExecution[]
-
-  @@index([companyId])
-  @@index([status])
-  @@map("workflows")
-}
-
-model WorkflowExecution {
-  id          String    @id @default(cuid())
-  workflowId  String    @map("workflow_id")
-  triggerData String?   @map("trigger_data") // JSON
-  status      String    // RUNNING | COMPLETED | FAILED
-  startedAt   DateTime  @default(now()) @map("started_at")
-  finishedAt  DateTime? @map("finished_at")
-  error       String?
-  result      String?   // JSON
-
-  workflow Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
-
-  @@index([workflowId])
-  @@index([status])
-  @@map("workflow_executions")
-}
-
-// ============================================================================
-// CAPA 12 — INTEGRACIONES (External connectors)
-// ============================================================================
-
-model Integration {
-  id          String    @id @default(cuid())
-  companyId   String    @map("company_id")
-  provider    String    // shopify | stripe | paypal | dhl | fedex | whatsapp | slack | gmail | openai | anthropic | s3 | r2 | ...
-  category    String    // ecommerce | payments | logistics | messaging | email | ai | storage
-  name        String
-  config      String?   // JSON (encrypted in prod)
-  status      String    @default("DISCONNECTED") // CONNECTED | DISCONNECTED | ERROR
-  lastSyncAt  DateTime? @map("last_sync_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-
-  logs        IntegrationLog[]
-
-  @@index([companyId])
-  @@index([provider])
-  @@map("integrations")
-}
-
-model IntegrationLog {
-  id            String   @id @default(cuid())
-  integrationId String   @map("integration_id")
-  direction     String   // in | out
-  request       String?  // JSON
-  response      String?  // JSON
-  statusCode    Int?     @map("status_code")
-  duration      Int?     // ms
-  status        String   // SUCCESS | ERROR
-  error         String?
-  createdAt     DateTime @default(now()) @map("created_at")
-
-  integration Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
-
-  @@index([integrationId])
-  @@index([createdAt])
-  @@map("integration_logs")
-}
-

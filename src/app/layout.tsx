@@ -5,48 +5,20 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryProvider } from "@/components/query-provider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "NEXORA — Business Operating System",
-  description:
-    "NEXORA: la plataforma empresarial inteligente que integra administración, operación y crecimiento en un solo sistema, con NAIOS como asistente de IA estratégico.",
-  keywords: [
-    "NEXORA",
-    "Business Operating System",
-    "ERP",
-    "CRM",
-    "NAIOS",
-    "comercio electrónico",
-    "inteligencia artificial",
-  ],
-  authors: [{ name: "NEXORA" }],
+  title: "NEXORA — Importa desde China fácilmente",
+  description: "Plataforma inteligente de importación desde China. Tú eliges el producto, nosotros nos encargamos del resto.",
+  keywords: ["NEXORA", "importación", "China", "proveedores", "alibaba", "importar"],
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <QueryProvider>
             {children}
             <Toaster />

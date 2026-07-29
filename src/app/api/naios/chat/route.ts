@@ -2,74 +2,51 @@ import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import ZAI from 'z-ai-web-dev-sdk'
 
-// NEXORA — NAIOS AI Assistant chat endpoint
-// Per DOC-001: NAIOS analyzes, detects opportunities/risks, explains data, generates recommendations.
-// NAIOS never takes final decisions — the decision always belongs to the user.
 export async function POST(req: Request) {
   try {
     const { messages, businessContext } = await req.json()
 
-    // Build a rich system prompt with live business context (per DOC-002: NAIOS is transversal,
-    // it can query all modules according to user permissions)
-    const systemPrompt = `Eres NAIOS, el asistente inteligente de NEXORA, una plataforma empresarial (Business Operating System) de comercio electrónico.
+    const systemPrompt = `Eres NAIOS, el asistente inteligente de NEXORA, una plataforma de importación desde China.
 
-## Tu propósito (DOC-001)
-- Analizar información del negocio.
-- Detectar oportunidades.
-- Identificar riesgos.
-- Explicar datos.
-- Generar recomendaciones.
+## Tu propósito
+- Analizar solicitudes de importación
+- Buscar y recomendar proveedores chinos
+- Comparar cotizaciones
+- Calcular costos de importación
+- Detectar riesgos y oportunidades
+- Generar recomendaciones accionables
 
-## Reglas fundamentales
-- NUNCA tomas decisiones finales. La decisión SIEMPRE pertenece al usuario.
+## Reglas
+- NUNCA tomas decisiones finales. La decisión SIEMPRE es del usuario.
 - Eres transparente: explica cómo llegaste a una conclusión.
-- Respondes en español, de forma clara, concisa y profesional.
-- Usas formato Markdown (negritas, listas, tablas) para mejorar la legibilidad.
-- Cuando recomiendas una acción, la presentas como sugerencia, nunca como orden.
-- Cites datos concretos del contexto del negocio cuando sea relevante.
+- Respondes en español, claro, conciso y profesional.
+- Usas formato Markdown (negritas, listas, tablas).
+- Cuando recomiendas, lo presentas como sugerencia.
 
-## Contexto actual del negocio
+## Contexto del negocio
 ${businessContext}
 
-## Módulos que puedes consultar (conceptualmente)
-- Productos: catálogo, márgenes, stock
-- Proveedores: calificaciones (calidad, comunicación, precio, envío, garantía, confianza), riesgo
-- Inventario: existencias, stock mínimo, ubicaciones
-- Compras: órdenes a proveedores, costos
-- Ventas: pedidos, estados, clientes
-- Clientes: CRM, valor de vida, segmentación
-- Finanzas: ingresos, gastos, utilidad, flujo de caja
-- Dashboard: KPIs consolidados
+## Módulos que puedes consultar
+- Solicitudes: importaciones solicitadas por clientes
+- Proveedores: fabricantes chinos con calificaciones
+- Cotizaciones: precios de proveedores
+- Importaciones: tracking de envíos
+- Finanzas: ingresos, gastos, utilidad
 
-Responde como NAIOS, el copiloto estratégico del negocio.`
+Responde como NAIOS, el copiloto de importaciones.`
 
     const allMessages = [{ role: 'assistant', content: systemPrompt }, ...messages]
-
     const zai = await ZAI.create()
-    const completion = await zai.chat.completions.create({
-      messages: allMessages,
-      thinking: { type: 'disabled' },
-    })
-
+    const completion = await zai.chat.completions.create({ messages: allMessages, thinking: { type: 'disabled' } })
     const response = completion.choices[0]?.message?.content ?? ''
 
-    // Persist conversation (NAIOS memory per DOC-006)
     const lastUser = messages.filter((m: { role: string }) => m.role === 'user').pop()
-    if (lastUser) {
-      await db.naiosConversation.create({ data: { role: 'user', content: lastUser.content } })
-    }
-    await db.naiosConversation.create({ data: { role: 'assistant', content: response } })
+    if (lastUser) await db.naiosConversation.create({ data: { role: 'user', content: lastUser.content, module: 'requests' } })
+    await db.naiosConversation.create({ data: { role: 'assistant', content: response, module: 'requests' } })
 
     return NextResponse.json({ response })
   } catch (error) {
     console.error('NAIOS chat error:', error)
-    return NextResponse.json(
-      {
-        response:
-          '⚠️ No pude procesar tu solicitud en este momento. Revisa que el servicio de IA esté disponible e inténtalo de nuevo.',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 },
-    )
+    return NextResponse.json({ response: '⚠️ No pude procesar tu solicitud en este momento.' }, { status: 500 })
   }
 }

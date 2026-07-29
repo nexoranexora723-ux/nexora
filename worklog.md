@@ -501,3 +501,39 @@ Stage Summary:
 - E-commerce: Store con carrito + checkout que crea pedidos reales.
 - NAIOS: chat IA con contexto de negocio en vivo + briefing + recomendaciones.
 - Total archivos: ~100+ (schemas, services, API routes, hooks, forms, views).
+
+---
+Task ID: nexora-import-reset
+Agent: main (Z.ai Code)
+Task: RESETEO COMPLETO y reconstrucción de NEXORA como plataforma de importación desde China
+
+Work Log:
+- RESETEO: Eliminados todos los archivos del ERP anterior (views, services, schemas, hooks, API routes, components). Mantenidos: shadcn/ui, config base, globals.css, lib/db.ts, lib/utils.ts, lib/format.ts, hooks/use-toast.ts, hooks/use-mobile.ts.
+- NUEVO SCHEMA: 15 modelos centrados en ImportRequest (el corazón). 12 estados de lifecycle. Modelos: Company, User (roles CLIENT/RESELLER/EMPLOYEE/ADMIN/SUPER_ADMIN), Session, AuditLog, Setting, Category, Brand, Product, Supplier, SupplierRating, ImportRequest, RequestStatusHistory, RequestAttachment, Quote, Import, Transaction, Notification, NaiosRecommendation, NaiosConversation.
+- SEED: 6 usuarios (admin, employee, 3 clientes, 1 revendedor), 3 proveedores chinos con ratings multifactor, 8 productos importables, 6 solicitudes en varios estados (NUEVA→CERRADO), 2 cotizaciones, 2 importaciones con tracking, transacciones financieras, 6 notificaciones, 5 recomendaciones NAIOS.
+- AUTH: AuthService (login/register/logout/validate con bcrypt + session cookies httpOnly), 4 API routes, auth-store con Zustand+persist.
+- LANDING PÚBLICA: Hero con CTA, "Cómo funciona" (4 pasos), productos destacados, features (6), CTA final, footer completo. Navbar con navegación.
+- CATÁLOGO PÚBLICO: Grid de productos con búsqueda y filtros por categoría, cards con imagen/precio/CTA "Solicitar importación".
+- CÓMO FUNCIONA: Página explicativa con 4 pasos detallados, beneficios, CTA.
+- PORTAL CLIENTE: Sidebar (Dashboard/Mis solicitudes/Seguimiento/Perfil), dashboard con KPIs y solicitudes recientes, lista de solicitudes, tracking con progress tracker visual de 8 estados, formulario de creación de solicitud (producto, categoría, propósito, cantidad, presupuesto, link referencia, detalles), perfil.
+- ERP ADMIN: Sidebar (Dashboard/Solicitudes/NAIOS/Proveedores/Cotizaciones/Importaciones/Finanzas), dashboard con 8 KPIs y solicitudes recientes, gestión de solicitudes con tabla + filtros + detalle con cambio de estado, proveedores con ratings, cotizaciones, importaciones con tracking, finanzas con transacciones, NAIOS con briefing IA + recomendaciones + chat.
+- NAIOS: Copiloto de importaciones con briefing ejecutivo diario (generado por IA con datos en vivo), 5 recomendaciones (alerts/risks/opportunities/insights), chat con LLM + contexto del negocio.
+- Portal router en page.tsx: valida sesión → muestra landing (no auth), portal cliente (CLIENT/RESELLER), o portal admin (EMPLOYEE/ADMIN).
+- Verificación Agent Browser:
+  1. Landing carga con hero "Importa desde China nunca había sido tan fácil"
+  2. Login como admin@nexora.co → ERP Admin con 7 módulos en sidebar
+  3. Dashboard muestra KPIs (1 solicitud nueva, 5 activas, utilidad)
+  4. Solicitudes: tabla con 6 solicitudes (NX-2025-000001 a 000006)
+  5. NAIOS: briefing ejecutivo + 5 recomendaciones + chat
+  6. Logout → landing pública
+  7. Login como carlos@email.com → Portal Cliente con "Mis solicitudes" y "Nueva solicitud"
+  8. Formulario de creación de solicitud funciona
+  9. 0 errores en consola, 0 errores de lint
+
+Stage Summary:
+- NEXORA completamente reconstruido como plataforma de importación desde China.
+- 3 portales: Público (landing+catálogo), Cliente (solicitudes+tracking), Admin (ERP completo).
+- El corazón es ImportRequest con 12 estados de lifecycle.
+- NAIOS funciona como copiloto de importaciones con análisis de solicitudes.
+- Arquitectura: schema Zod → service layer → API routes → hooks → portal components.
+- 30+ archivos nuevos, 0 archivos del ERP anterior.

@@ -1,18 +1,14 @@
 import { NextResponse } from 'next/server'
+import { AuthService } from '@/server/services/auth.service'
 
 export async function POST(req: Request) {
   try {
-    const token = req.cookies.get('nexora-session')?.value
-    if (token) {
-      // Import dynamically to avoid circular deps in route
-      const { AuthService } = await import('@/server/services/auth.service')
-      await AuthService.logout(token)
-    }
+    const t = req.cookies.get('nexora-session')?.value
+    if (t) await AuthService.logout(t)
     const res = NextResponse.json({ success: true })
     res.cookies.delete('nexora-session')
     return res
-  } catch (error) {
-    console.error('Logout error:', error)
-    return NextResponse.json({ error: 'Error al cerrar sesión' }, { status: 500 })
+  } catch {
+    return NextResponse.json({ error: 'Error' }, { status: 500 })
   }
 }

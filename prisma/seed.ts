@@ -1,47 +1,35 @@
-// NEXORA — Database Seeder
-// Generates realistic business data per DOC-005 / DOC-006 entity specs
+// NEXORA — Import Platform Seeder
 import { db } from '../src/lib/db'
 import bcrypt from 'bcryptjs'
 
 async function main() {
-  console.log('🌱 Seeding NEXORA database...')
+  console.log('🌱 Seeding NEXORA Import Platform...')
 
   // Clean
-  await db.session.deleteMany()
-  await db.rolePermission.deleteMany()
-  await db.permission.deleteMany()
-  await db.role.deleteMany()
-  await db.branch.deleteMany()
   await db.naiosConversation.deleteMany()
   await db.naiosRecommendation.deleteMany()
+  await db.notification.deleteMany()
   await db.transaction.deleteMany()
-  await db.orderItem.deleteMany()
-  await db.order.deleteMany()
-  await db.inventoryMovement.deleteMany()
-  await db.inventory.deleteMany()
-  await db.purchaseOrderItem.deleteMany()
-  await db.purchaseOrder.deleteMany()
-  await db.supplierQuote.deleteMany()
+  await db.import.deleteMany()
+  await db.requestAttachment.deleteMany()
+  await db.requestStatusHistory.deleteMany()
+  await db.importRequest.deleteMany()
+  await db.quote.deleteMany()
   await db.supplierRating.deleteMany()
   await db.supplier.deleteMany()
-  await db.customer.deleteMany()
-  await db.productImage.deleteMany()
-  await db.productVideo.deleteMany()
-  await db.productVariant.deleteMany()
   await db.product.deleteMany()
-  await db.category.deleteMany()
   await db.brand.deleteMany()
-  await db.warehouse.deleteMany()
-  await db.setting.deleteMany()
+  await db.category.deleteMany()
   await db.auditLog.deleteMany()
+  await db.session.deleteMany()
   await db.user.deleteMany()
+  await db.setting.deleteMany()
   await db.company.deleteMany()
-  await db.file.deleteMany()
 
   // ===== Company =====
   const company = await db.company.create({
     data: {
-      legalName: 'NEXORA Commerce S.A.S.',
+      legalName: 'NEXORA Importaciones S.A.S.',
       commercialName: 'NEXORA',
       nit: '901.234.567-8',
       email: 'info@nexora.co',
@@ -50,183 +38,54 @@ async function main() {
       currencyCode: 'USD',
       timezone: 'America/Bogota',
       website: 'https://nexora.co',
+      address: 'Bogotá, Colombia',
     },
   })
 
-  // ===== Roles & Permissions (RBAC) =====
-  const MODULES = ['products', 'orders', 'users', 'suppliers', 'inventory', 'finance', 'customers', 'purchases', 'settings', 'naios']
-  const ACTIONS = ['view', 'create', 'edit', 'delete', 'export', 'approve', 'configure', 'admin']
-
-  // Create permissions
-  const permissions = []
-  for (const mod of MODULES) {
-    for (const action of ACTIONS) {
-      permissions.push(
-        await db.permission.create({
-          data: { module: mod, action, description: `${action} on ${mod}` },
-        }),
-      )
-    }
-  }
-
-  // Create system roles
-  const adminRole = await db.role.create({
-    data: {
-      name: 'ADMIN',
-      description: 'Administrador con acceso total',
-      isSystem: true,
-      status: 'ACTIVE',
-      companyId: company.id,
-    },
+  // ===== Users =====
+  const pwd = await bcrypt.hash('nexora123', 10)
+  const admin = await db.user.create({
+    data: { firstName: 'Adrián', lastName: 'Director', email: 'admin@nexora.co', password: pwd, role: 'ADMIN', position: 'Director de Operaciones', status: 'ACTIVE', companyId: company.id, phone: '+57 310 555 0001' },
   })
-  const ceoRole = await db.role.create({
-    data: {
-      name: 'CEO',
-      description: 'Director ejecutivo — acceso total + configuración',
-      isSystem: true,
-      status: 'ACTIVE',
-      companyId: company.id,
-    },
+  const employee = await db.user.create({
+    data: { firstName: 'Laura', lastName: 'Gestión', email: 'laura@nexora.co', password: pwd, role: 'EMPLOYEE', position: 'Gestora de Importaciones', status: 'ACTIVE', companyId: company.id, phone: '+57 310 555 0002' },
   })
-  const comprasRole = await db.role.create({
-    data: {
-      name: 'COMPRAS',
-      description: 'Departamento de compras',
-      isSystem: true,
-      status: 'ACTIVE',
-      companyId: company.id,
-    },
+  const client1 = await db.user.create({
+    data: { firstName: 'Carlos', lastName: 'Emprendedor', email: 'carlos@email.com', password: pwd, role: 'CLIENT', status: 'ACTIVE', companyId: company.id, phone: '+57 320 111 2222' },
   })
-  const ventasRole = await db.role.create({
-    data: {
-      name: 'VENTAS',
-      description: 'Departamento de ventas',
-      isSystem: true,
-      status: 'ACTIVE',
-      companyId: company.id,
-    },
+  const client2 = await db.user.create({
+    data: { firstName: 'María', lastName: 'Boutique', email: 'maria@email.com', password: pwd, role: 'CLIENT', status: 'ACTIVE', companyId: company.id, phone: '+57 311 333 4444' },
   })
-  const inventarioRole = await db.role.create({
-    data: {
-      name: 'INVENTARIO',
-      description: 'Departamento de inventario',
-      isSystem: true,
-      status: 'ACTIVE',
-      companyId: company.id,
-    },
+  const client3 = await db.user.create({
+    data: { firstName: 'Jorge', lastName: 'Tecnología', email: 'jorge@email.com', password: pwd, role: 'CLIENT', status: 'ACTIVE', companyId: company.id, phone: '+57 315 555 6666' },
   })
-  const finanzasRole = await db.role.create({
-    data: {
-      name: 'FINANZAS',
-      description: 'Departamento financiero',
-      isSystem: true,
-      status: 'ACTIVE',
-      companyId: company.id,
-    },
+  const reseller = await db.user.create({
+    data: { firstName: 'Valeria', lastName: 'Revendedora', email: 'valeria@email.com', password: pwd, role: 'RESELLER', status: 'ACTIVE', companyId: company.id, phone: '+57 318 777 8888' },
   })
 
-  // Assign all permissions to ADMIN and CEO
-  const allPermIds = permissions.map((p) => p.id)
-  await db.rolePermission.createMany({
+  // ===== Categories =====
+  const cats = await db.category.createMany({
     data: [
-      ...allPermIds.map((pid) => ({ roleId: adminRole.id, permissionId: pid })),
-      ...allPermIds.map((pid) => ({ roleId: ceoRole.id, permissionId: pid })),
+      { name: 'Tecnología', slug: 'tecnologia', icon: '💻' },
+      { name: 'Hogar', slug: 'hogar', icon: '🏠' },
+      { name: 'Moda', slug: 'moda', icon: '👗' },
+      { name: 'Belleza', slug: 'belleza', icon: '💄' },
+      { name: 'Herramientas', slug: 'herramientas', icon: '🔧' },
+      { name: 'Mascotas', slug: 'mascotas', icon: '🐾' },
+      { name: 'Automotriz', slug: 'automotriz', icon: '🚗' },
+      { name: 'Deportes', slug: 'deportes', icon: '⚽' },
     ],
-  })
-  // Assign scoped permissions to other roles
-  const scopedPerms = (modules: string[], actions: string[]) =>
-    permissions.filter((p) => modules.includes(p.module) && actions.includes(p.action)).map((p) => p.id)
-  await db.rolePermission.createMany({
-    data: [
-      ...scopedPerms(['products', 'suppliers', 'purchases', 'inventory'], ['view', 'create', 'edit', 'export']).map((pid) => ({ roleId: comprasRole.id, permissionId: pid })),
-      ...scopedPerms(['products', 'orders', 'customers', 'inventory'], ['view', 'create', 'edit', 'export']).map((pid) => ({ roleId: ventasRole.id, permissionId: pid })),
-      ...scopedPerms(['products', 'inventory'], ['view', 'edit', 'export']).map((pid) => ({ roleId: inventarioRole.id, permissionId: pid })),
-      ...scopedPerms(['finance', 'orders', 'purchases', 'customers'], ['view', 'export', 'approve']).map((pid) => ({ roleId: finanzasRole.id, permissionId: pid })),
-    ],
-  })
-
-  // ===== Branches =====
-  const bogBranch = await db.branch.create({
-    data: { name: 'Sede Principal Bogotá', code: 'BOG-01', address: 'Calle 100 #15-20', city: 'Bogotá', country: 'CO', state: 'Cundinamarca', companyId: company.id, status: 'ACTIVE' },
-  })
-  const mdeBranch = await db.branch.create({
-    data: { name: 'Sucursal Medellín', code: 'MDE-02', address: 'Carrera 70 #45-12', city: 'Medellín', country: 'CO', state: 'Antioquia', companyId: company.id, status: 'ACTIVE' },
-  })
-
-  // ===== Users (per DOC-006 roles) =====
-  const passwordHash = await bcrypt.hash('nexora123', 10)
-  const adrian = await db.user.create({
-    data: { firstName: 'Adrián', lastName: 'CEO', email: 'adrian@nexora.co', password: passwordHash, position: 'CEO', role: 'CEO', roleId: ceoRole.id, status: 'ACTIVE', companyId: company.id, branchId: bogBranch.id, timezone: 'America/Bogota', language: 'es' },
-  })
-  const laura = await db.user.create({
-    data: { firstName: 'Laura', lastName: 'Admin', email: 'laura@nexora.co', password: passwordHash, position: 'Administradora del sistema', role: 'ADMIN', roleId: adminRole.id, status: 'ACTIVE', companyId: company.id, branchId: bogBranch.id, timezone: 'America/Bogota', language: 'es' },
-  })
-  const carlos = await db.user.create({
-    data: { firstName: 'Carlos', lastName: 'Compras', email: 'carlos@nexora.co', password: passwordHash, position: 'Jefe de compras', role: 'COMPRAS', roleId: comprasRole.id, status: 'ACTIVE', companyId: company.id, branchId: bogBranch.id, timezone: 'America/Bogota', language: 'es' },
-  })
-  await db.user.create({
-    data: { firstName: 'Sofía', lastName: 'Ventas', email: 'sofia@nexora.co', password: passwordHash, position: 'Ejecutiva de ventas', role: 'VENTAS', roleId: ventasRole.id, status: 'ACTIVE', companyId: company.id, branchId: mdeBranch.id, timezone: 'America/Bogota', language: 'es' },
-  })
-  await db.user.create({
-    data: { firstName: 'Diego', lastName: 'Inventario', email: 'diego@nexora.co', password: passwordHash, position: 'Coordinador de inventario', role: 'INVENTARIO', roleId: inventarioRole.id, status: 'ACTIVE', companyId: company.id, branchId: bogBranch.id, timezone: 'America/Bogota', language: 'es' },
-  })
-  await db.user.create({
-    data: { firstName: 'Valeria', lastName: 'Finanzas', email: 'valeria@nexora.co', password: passwordHash, position: 'Analista financiera', role: 'FINANZAS', roleId: finanzasRole.id, status: 'ACTIVE', companyId: company.id, branchId: bogBranch.id, timezone: 'America/Bogota', language: 'es' },
-  })
-
-  // Set branch responsible
-  await db.branch.update({ where: { id: bogBranch.id }, data: { responsibleId: adrian.id } })
-  await db.branch.update({ where: { id: mdeBranch.id }, data: { responsibleId: laura.id } })
-
-  // Login audit entries
-  await db.auditLog.create({
-    data: { userId: adrian.id, action: 'LOGIN', entity: 'auth', entityId: adrian.id, result: 'SUCCESS', ipAddress: '127.0.0.1', userAgent: 'Mozilla/5.0' },
-  })
-
-  // ===== Settings =====
-  await db.setting.createMany({
-    data: [
-      { key: 'company.country', value: 'Colombia', category: 'company', companyId: company.id },
-      { key: 'company.currency', value: 'USD', category: 'company', companyId: company.id },
-      { key: 'naios.enabled', value: 'true', category: 'naios' },
-      { key: 'naios.autonomy', value: 'advisory', category: 'naios' },
-    ],
-  })
-
-  // ===== Warehouses =====
-  const mainWarehouse = await db.warehouse.create({
-    data: { name: 'Almacén Central Bogotá', code: 'BOG-01', address: 'Bogotá, Colombia', isActive: true },
-  })
-  const secondaryWarehouse = await db.warehouse.create({
-    data: { name: 'Almacén Medellín', code: 'MDE-02', address: 'Medellín, Colombia', isActive: true },
   })
 
   // ===== Brands =====
-  const brands = await db.brand.createMany({
+  await db.brand.createMany({
     data: [
-      { name: 'Apple', description: 'Consumer electronics' },
-      { name: 'Nike', description: 'Athletic footwear & apparel' },
-      { name: 'Dior', description: 'Luxury fashion house' },
-      { name: 'Rolex', description: 'Luxury watches' },
-      { name: 'Generic OEM', description: 'White-label goods' },
+      { name: 'Apple' }, { name: 'Nike' }, { name: 'Samsung' }, { name: 'Generic OEM' }, { name: 'Xiaomi' },
     ],
   })
-  const brandMap = await db.brand.findMany()
-  const apple = brandMap.find((b) => b.name === 'Apple')!
-  const nike = brandMap.find((b) => b.name === 'Nike')!
-  const dior = brandMap.find((b) => b.name === 'Dior')!
-  const rolex = brandMap.find((b) => b.name === 'Rolex')!
-  const generic = brandMap.find((b) => b.name === 'Generic OEM')!
+  const brands = await db.brand.findMany()
 
-  // ===== Categories =====
-  const catElectronics = await db.category.create({ data: { name: 'Electrónica', slug: 'electronica' } })
-  const catAudio = await db.category.create({ data: { name: 'Audio', slug: 'audio', parentId: catElectronics.id } })
-  const catWearables = await db.category.create({ data: { name: 'Wearables', slug: 'wearables', parentId: catElectronics.id } })
-  const catFootwear = await db.category.create({ data: { name: 'Calzado', slug: 'calzado' } })
-  const catBags = await db.category.create({ data: { name: 'Bolsos', slug: 'bolsos' } })
-  const catWatches = await db.category.create({ data: { name: 'Relojes', slug: 'relojes' } })
-
-  // ===== Suppliers (per DOC-006 — Chinese suppliers with rich ratings) =====
+  // ===== Suppliers (Chinese manufacturers) =====
   const sShenzhen = await db.supplier.create({
     data: {
       companyName: 'Shenzhen TechLink Electronics',
@@ -235,20 +94,12 @@ async function main() {
       wechat: 'techlink_zhang',
       email: 'sales@techlink.cn',
       website: 'techlink.cn',
-      country: 'CN',
-      city: 'Shenzhen',
-      address: 'Huaqiangbei, Futian District',
-      moq: 50,
-      paymentMethods: 'T/T, PayPal, Alibaba Trade Assurance',
+      alibaba: 'https://techlink.en.alibaba.com',
+      country: 'CN', city: 'Shenzhen', address: 'Huaqiangbei, Futian District',
+      moq: 50, paymentMethods: 'T/T, PayPal, Alibaba Trade Assurance',
       shippingMethods: 'DHL, FedEx, Air Cargo',
-      warranty: '12 meses',
-      leadTime: 7,
-      productionTime: 15,
-      oem: true,
-      odm: true,
-      status: 'ACTIVE',
-      riskLevel: 'LOW',
-      companyId: company.id,
+      warranty: '12 meses', leadTime: 7, productionTime: 15,
+      oem: true, odm: true, status: 'ACTIVE', riskLevel: 'LOW',
     },
   })
   const sGuangzhou = await db.supplier.create({
@@ -258,325 +109,246 @@ async function main() {
       whatsapp: '+86 139 8765 4321',
       wechat: 'gz_footwear',
       email: 'export@gzfootwear.com',
-      yupoo: 'x.yupoo.com/gzfootwear',
-      country: 'CN',
-      city: 'Guangzhou',
-      address: 'Baiyun District',
-      moq: 20,
-      paymentMethods: 'T/T, Western Union',
-      shippingMethods: 'EMS, DHL',
-      warranty: '3 meses',
-      leadTime: 10,
-      productionTime: 20,
-      oem: true,
-      odm: false,
-      status: 'ACTIVE',
-      riskLevel: 'MEDIUM',
-      companyId: company.id,
+      country: 'CN', city: 'Guangzhou',
+      moq: 20, paymentMethods: 'T/T, Western Union',
+      shippingMethods: 'EMS, DHL', warranty: '3 meses',
+      leadTime: 10, productionTime: 20, oem: true, odm: false,
+      status: 'ACTIVE', riskLevel: 'MEDIUM',
     },
   })
   const sYiwu = await db.supplier.create({
     data: {
-      companyName: 'Yiwu Luxury Bags Trading',
+      companyName: 'Yiwu Smart Trading Co.',
       contactName: 'Mei Wang',
       whatsapp: '+86 137 5555 1212',
-      email: 'mei@yiwubags.cn',
-      country: 'CN',
-      city: 'Yiwu',
-      moq: 10,
-      paymentMethods: 'PayPal, Western Union',
-      shippingMethods: 'EMS, ePacket',
-      warranty: '1 mes',
-      leadTime: 14,
-      productionTime: 25,
-      oem: false,
-      odm: false,
-      status: 'ACTIVE',
-      riskLevel: 'HIGH',
-      companyId: company.id,
-    },
-  })
-  const sShanghai = await db.supplier.create({
-    data: {
-      companyName: 'Shanghai TimeMaster Watches',
-      contactName: 'Jian Liu',
-      whatsapp: '+86 136 2222 3333',
-      email: 'sales@timemaster.cn',
-      country: 'CN',
-      city: 'Shanghai',
-      moq: 30,
-      paymentMethods: 'T/T, Alibaba Trade Assurance',
-      shippingMethods: 'DHL, FedEx',
-      warranty: '6 meses',
-      leadTime: 8,
-      productionTime: 18,
-      oem: true,
-      odm: true,
-      status: 'ACTIVE',
-      riskLevel: 'MEDIUM',
-      companyId: company.id,
+      email: 'mei@yiwusmart.cn',
+      country: 'CN', city: 'Yiwu',
+      moq: 10, paymentMethods: 'PayPal, Western Union',
+      shippingMethods: 'EMS, ePacket', warranty: '1 mes',
+      leadTime: 14, productionTime: 25, oem: false, odm: false,
+      status: 'ACTIVE', riskLevel: 'HIGH',
     },
   })
 
   // ===== Supplier Ratings =====
   await db.supplierRating.createMany({
     data: [
-      { supplierId: sShenzhen.id, communicationScore: 92, qualityScore: 95, priceScore: 88, shippingScore: 90, warrantyScore: 93, trustScore: 94, overallScore: 92.0, review: 'Excellent quality, fast shipping. Top tier supplier.', ratedBy: 'carlos@nexora.co' },
-      { supplierId: sGuangzhou.id, communicationScore: 78, qualityScore: 82, priceScore: 90, shippingScore: 75, warrantyScore: 60, trustScore: 76, overallScore: 76.8, review: 'Good price, quality varies by batch.', ratedBy: 'carlos@nexora.co' },
-      { supplierId: sYiwu.id, communicationScore: 65, qualityScore: 58, priceScore: 92, shippingScore: 62, warrantyScore: 40, trustScore: 55, overallScore: 62.0, review: 'Cheap but inconsistent. Risk of defects.', ratedBy: 'carlos@nexora.co' },
-      { supplierId: sShanghai.id, communicationScore: 85, qualityScore: 88, priceScore: 80, shippingScore: 86, warrantyScore: 82, trustScore: 85, overallScore: 84.3, review: 'Reliable watch supplier, good OEM support.', ratedBy: 'carlos@nexora.co' },
+      { supplierId: sShenzhen.id, communicationScore: 92, qualityScore: 95, priceScore: 88, shippingScore: 90, warrantyScore: 93, trustScore: 94, overallScore: 92.0, review: 'Excelente calidad, envío rápido. Proveedor top.' },
+      { supplierId: sGuangzhou.id, communicationScore: 78, qualityScore: 82, priceScore: 90, shippingScore: 75, warrantyScore: 60, trustScore: 76, overallScore: 76.8, review: 'Buen precio, calidad variable por lote.' },
+      { supplierId: sYiwu.id, communicationScore: 65, qualityScore: 58, priceScore: 92, shippingScore: 62, warrantyScore: 40, trustScore: 55, overallScore: 62.0, review: 'Barato pero inconsistente. Riesgo de defectos.' },
     ],
   })
 
-  // ===== Supplier Quotes =====
-  await db.supplierQuote.createMany({
+  // ===== Products (importable catalog) =====
+  const catMap = await db.category.findMany()
+  const tech = catMap.find((c) => c.slug === 'tecnologia')!
+  const moda = catMap.find((c) => c.slug === 'moda')!
+  const hogar = catMap.find((c) => c.slug === 'hogar')!
+  const belleza = catMap.find((c) => c.slug === 'belleza')!
+  const depor = catMap.find((c) => c.slug === 'deportes')!
+  const apple = brands.find((b) => b.name === 'Apple')!
+  const nike = brands.find((b) => b.name === 'Nike')!
+  const xiaomi = brands.find((b) => b.name === 'Xiaomi')!
+  const samsung = brands.find((b) => b.name === 'Samsung')!
+  const generic = brands.find((b) => b.name === 'Generic OEM')!
+
+  await db.product.createMany({
     data: [
-      { supplierId: sShenzhen.id, productName: 'AirPods Pro 2 OEM', quantity: 100, unitPrice: 68.5, currencyCode: 'USD', status: 'APPROVED', validUntil: new Date('2025-12-31') },
-      { supplierId: sGuangzhou.id, productName: 'Air Jordan 1 Retro', quantity: 50, unitPrice: 42.0, currencyCode: 'USD', status: 'PENDING' },
-      { supplierId: sYiwu.id, productName: 'Bolso Dior Replica', quantity: 30, unitPrice: 28.0, currencyCode: 'USD', status: 'REJECTED' },
-      { supplierId: sShanghai.id, productName: 'Apple Watch Ultra Clone', quantity: 60, unitPrice: 55.0, currencyCode: 'USD', status: 'APPROVED' },
+      { sku: 'APL-APP-PRO2', name: 'AirPods Pro 2 (OEM)', brandId: apple.id, categoryId: tech.id, supplierId: sShenzhen.id, imageUrl: 'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=400', referenceUrl: 'https://www.alibaba.com/product/airpods-pro-2', estimatedCost: 68.5, suggestedPrice: 129, status: 'ACTIVE', isFeatured: true, description: 'AirPods Pro 2 OEM con cancelación de ruido activa. Calidad premium.' },
+      { sku: 'APL-AW-U2', name: 'Apple Watch Ultra 2 (Clone)', brandId: apple.id, categoryId: tech.id, supplierId: sShenzhen.id, imageUrl: 'https://images.unsplash.com/photo-1551816230-ef5deaed4a26?w=400', referenceUrl: 'https://www.alibaba.com/product/apple-watch-ultra', estimatedCost: 95, suggestedPrice: 199, status: 'ACTIVE', isFeatured: true, description: 'Apple Watch Ultra clon de alta calidad. Pantalla AMOLED.' },
+      { sku: 'XIA-EARBUDS', name: 'Xiaomi Earbuds Basic 2', brandId: xiaomi.id, categoryId: tech.id, supplierId: sShenzhen.id, imageUrl: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400', estimatedCost: 8.5, suggestedPrice: 25, status: 'ACTIVE', description: 'Auriculares Bluetooth económicos. Ideal para revender.' },
+      { sku: 'NKE-AJ1', name: 'Air Jordan 1 Retro (Replica)', brandId: nike.id, categoryId: moda.id, supplierId: sGuangzhou.id, imageUrl: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?w=400', referenceUrl: 'https://www.alibaba.com/product/air-jordan-1', estimatedCost: 42, suggestedPrice: 89, status: 'ACTIVE', isFeatured: true, description: 'Air Jordan 1 replica premium. Cuero genuino.' },
+      { sku: 'SAMS-PHONE', name: 'Samsung Galaxy S24 Case Lot', brandId: samsung.id, categoryId: tech.id, supplierId: sShenzhen.id, imageUrl: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=400', estimatedCost: 1.2, suggestedPrice: 8, status: 'ACTIVE', description: 'Lote de 100 fundas Samsung Galaxy S24. Various colores.' },
+      { sku: 'GEN-LED', name: 'Tira LED Inteligente 5m', brandId: generic.id, categoryId: hogar.id, supplierId: sYiwu.id, imageUrl: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=400', estimatedCost: 3.5, suggestedPrice: 15, status: 'ACTIVE', description: 'Tira LED RGB con control WiFi. Ideal para hogar.' },
+      { sku: 'GEN-PHONES', name: 'Soporte Celular Coche (x100)', brandId: generic.id, categoryId: depor.id, supplierId: sYiwu.id, imageUrl: 'https://images.unsplash.com/photo-1582142306909-195724d0a735?w=400', estimatedCost: 0.8, suggestedPrice: 6, status: 'ACTIVE', description: 'Lote de 100 soportes para celular de coche.' },
+      { sku: 'GEN-BEAUTY', name: 'Set Brochas Maquillaje (x50)', brandId: generic.id, categoryId: belleza.id, supplierId: sYiwu.id, imageUrl: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400', estimatedCost: 2.5, suggestedPrice: 12, status: 'ACTIVE', description: 'Set de 50 brochas de maquillaje profesional.' },
     ],
   })
 
-  // ===== Products (per DOC-006 examples: AirPods, Jordan, Dior, Apple Watch) =====
-  const products = await db.product.createMany({
-    data: [
-      {
-        sku: 'APL-APP-PRO2', name: 'AirPods Pro 2', description: 'Active noise cancellation, adaptive transparency, USB-C charging case.', brandId: apple.id, categoryId: catAudio.id, supplierId: sShenzhen.id, weight: 0.054, material: 'Plástico ABS', warranty: '12 meses', purchasePrice: 68.5, salePrice: 189.0, currencyCode: 'USD', status: 'ACTIVE', imageUrl: 'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=400', companyId: company.id,
-      },
-      {
-        sku: 'APL-AW-U9', name: 'Apple Watch Ultra 2', description: 'Titanium case, 72-hour battery, precision dual-frequency GPS.', brandId: apple.id, categoryId: catWearables.id, supplierId: sShenzhen.id, weight: 0.061, material: 'Titanio', warranty: '12 meses', purchasePrice: 95.0, salePrice: 329.0, currencyCode: 'USD', status: 'ACTIVE', imageUrl: 'https://images.unsplash.com/photo-1551816230-ef5deaed4a26?w=400', companyId: company.id,
-      },
-      {
-        sku: 'NKE-AJ1-RETRO', name: 'Air Jordan 1 Retro High', description: 'Classic high-top silhouette, leather upper, iconic colorway.', brandId: nike.id, categoryId: catFootwear.id, supplierId: sGuangzhou.id, weight: 1.2, material: 'Cuero', warranty: '3 meses', purchasePrice: 42.0, salePrice: 159.0, currencyCode: 'USD', status: 'ACTIVE', imageUrl: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?w=400', companyId: company.id,
-      },
-      {
-        sku: 'NKE-AJ4-BLACK', name: 'Air Jordan 4 Black Canvas', description: 'Premium canvas upper, visible air cushioning.', brandId: nike.id, categoryId: catFootwear.id, supplierId: sGuangzhou.id, weight: 1.3, material: 'Lona', warranty: '3 meses', purchasePrice: 48.0, salePrice: 179.0, currencyCode: 'USD', status: 'ACTIVE', imageUrl: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400', companyId: company.id,
-      },
-      {
-        sku: 'DIO-SADDLE-BLK', name: 'Bolso Dior Saddle', description: 'Iconic saddle silhouette, calfskin leather, adjustable strap.', brandId: dior.id, categoryId: catBags.id, supplierId: sYiwu.id, weight: 0.85, material: 'Piel de ternero', warranty: '1 mes', purchasePrice: 28.0, salePrice: 129.0, currencyCode: 'USD', status: 'ACTIVE', imageUrl: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=400', companyId: company.id,
-      },
-      {
-        sku: 'RLX-SUB-DATE', name: 'Rolex Submariner Date', description: 'Oystersteel, 41mm, Cerachrom bezel, automatic movement.', brandId: rolex.id, categoryId: catWatches.id, supplierId: sShanghai.id, weight: 0.15, material: 'Acero Oystersteel', warranty: '6 meses', purchasePrice: 120.0, salePrice: 449.0, currencyCode: 'USD', status: 'ACTIVE', imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400', companyId: company.id,
-      },
-      {
-        sku: 'GEN-CHGR-65W', name: 'Cargador GaN 65W', description: 'USB-C PD fast charger, dual port, compact GaN design.', brandId: generic.id, categoryId: catElectronics.id, supplierId: sShenzhen.id, weight: 0.09, material: 'PC + ABS', warranty: '12 meses', purchasePrice: 8.5, salePrice: 34.9, currencyCode: 'USD', status: 'ACTIVE', imageUrl: 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=400', companyId: company.id,
-      },
-      {
-        sku: 'GEN-CABLE-USBC', name: 'Cable USB-C a Lightning (2m)', description: 'MFi certified, braided nylon, 2 meter length.', brandId: generic.id, categoryId: catElectronics.id, supplierId: sShenzhen.id, weight: 0.05, material: 'Nylon trenzado', warranty: '6 meses', purchasePrice: 2.8, salePrice: 19.9, currencyCode: 'USD', status: 'ACTIVE', imageUrl: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=400', companyId: company.id,
-      },
-    ],
-  })
-  const allProducts = await db.product.findMany()
-
-  // ===== Inventory =====
-  const invData = [
-    { sku: 'APL-APP-PRO2', stock: 124, reserved: 12, minStock: 30, warehouse: mainWarehouse.id, location: 'A-01-03' },
-    { sku: 'APL-AW-U9', stock: 18, reserved: 4, minStock: 25, warehouse: mainWarehouse.id, location: 'A-02-01' },
-    { sku: 'NKE-AJ1-RETRO', stock: 76, reserved: 8, minStock: 20, warehouse: secondaryWarehouse.id, location: 'B-01-05' },
-    { sku: 'NKE-AJ4-BLACK', stock: 9, reserved: 2, minStock: 15, warehouse: secondaryWarehouse.id, location: 'B-02-02' },
-    { sku: 'DIO-SADDLE-BLK', stock: 3, reserved: 1, minStock: 10, warehouse: mainWarehouse.id, location: 'C-01-01' },
-    { sku: 'RLX-SUB-DATE', stock: 5, reserved: 0, minStock: 5, warehouse: mainWarehouse.id, location: 'D-01-01' },
-    { sku: 'GEN-CHGR-65W', stock: 340, reserved: 20, minStock: 50, warehouse: mainWarehouse.id, location: 'E-01-04' },
-    { sku: 'GEN-CABLE-USBC', stock: 0, reserved: 0, minStock: 100, warehouse: mainWarehouse.id, location: 'E-02-08' },
+  // ===== Import Requests (the heart) =====
+  const requests = [
+    {
+      number: 'NX-2025-000001', clientId: client1.id, assignedToId: employee.id,
+      productName: 'AirPods Pro 2', description: 'Busco AirPods Pro 2 originales o de alta calidad OEM para revender.',
+      category: 'Tecnología', purpose: 'resale', quantity: 50, budget: 3500, currencyCode: 'USD',
+      referenceUrl: 'https://www.alibaba.com/product/airpods-pro-2-oem',
+      referenceImages: JSON.stringify(['https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=400']),
+      details: 'Color blanco. Con caja original. Garantía mínima 6 meses.',
+      priority: 'HIGH',
+      naiosSummary: 'Cliente busca 50 unidades de AirPods Pro 2 para reventa. Presupuesto $3,500 ($70/u). Proveedor recomendado: Shenzhen TechLink Electronics (score 92). Margen estimado: 46%.',
+      naiosCategory: 'Electrónica', naiosPriority: 'ALTO',
+      status: 'COTIZACION_ENVIADA', notes: 'Cliente urgente. Cotización enviada con Shenzhen TechLink.',
+    },
+    {
+      number: 'NX-2025-000002', clientId: client2.id, assignedToId: employee.id,
+      productName: 'Air Jordan 1 Retro', description: 'Zapatillas Jordan 1 para boutique de moda.',
+      category: 'Moda', purpose: 'business', quantity: 30, budget: 2500, currencyCode: 'USD',
+      referenceUrl: 'https://www.alibaba.com/product/air-jordan-1-retro',
+      details: 'Tallas 38-44. Colores variados. Calidad premium.',
+      priority: 'MEDIUM',
+      naiosSummary: 'Cliente boutique busca 30 pares de Jordan 1. Presupuesto $2,500 ($83/u). Proveedor: Guangzhou Premium Footwear (score 77). Margen estimado: 35%.',
+      naiosCategory: 'Calzado', naiosPriority: 'MEDIO',
+      status: 'BUSCANDO_PROVEEDOR', notes: 'Esperando respuesta de Guangzhou.',
+    },
+    {
+      number: 'NX-2025-000003', clientId: client3.id, assignedToId: admin.id,
+      productName: 'Smartwatch Xiaomi', description: 'Smartwatches Xiaomi para tienda online.',
+      category: 'Tecnología', purpose: 'resale', quantity: 100, budget: 2000, currencyCode: 'USD',
+      referenceUrl: 'https://www.alibaba.com/product/xiaomi-smartwatch',
+      details: 'Modelo Mi Band 8. Color negro. Empaque retail.',
+      priority: 'HIGH',
+      naiosSummary: 'Cliente busca 100 smartwatches Xiaomi Mi Band 8. Presupuesto $2,000 ($20/u). Proveedor recomendado: Shenzhen TechLink. Margen estimado: 50%.',
+      naiosCategory: 'Electrónica', naiosPriority: 'ALTO',
+      status: 'PAGO_RECIBIDO', notes: 'Pago recibido. Listo para comprar.',
+    },
+    {
+      number: 'NX-2025-000004', clientId: reseller.id, assignedToId: employee.id,
+      productName: 'Fundas Samsung Galaxy S24', description: 'Lote de fundas para revender en marketplace.',
+      category: 'Tecnología', purpose: 'resale', quantity: 200, budget: 500, currencyCode: 'USD',
+      details: 'Colores variados. Material TPU + vidrio templado.',
+      priority: 'LOW',
+      naiosSummary: 'Revendedora busca 200 fundas Samsung S24. Presupuesto $500 ($2.5/u). Proveedor: Shenzhen TechLink. Margen estimado: 70%.',
+      naiosCategory: 'Accesorios', naiosPriority: 'BAJO',
+      status: 'EN_TRANSITO', notes: 'Enviado vía DHL. ETA 7 días.',
+    },
+    {
+      number: 'NX-2025-000005', clientId: client1.id,
+      productName: 'Tiras LED Inteligentes', description: 'Para proyecto de decoración de hogar.',
+      category: 'Hogar', purpose: 'personal', quantity: 10, budget: 150, currencyCode: 'USD',
+      details: '5 metros cada una. Control WiFi RGB.',
+      priority: 'MEDIUM',
+      naiosSummary: 'Cliente personal busca 10 tiras LED. Presupuesto $150 ($15/u). Proveedor: Yiwu Smart Trading. Margen bajo pero volumen alto.',
+      naiosCategory: 'Iluminación', naiosPriority: 'MEDIO',
+      status: 'NUEVA', notes: 'Solicitud nueva. Pendiente analizar.',
+    },
+    {
+      number: 'NX-2025-000006', clientId: client2.id, assignedToId: employee.id,
+      productName: 'Set Brochas Maquillaje', description: 'Para línea de productos de belleza.',
+      category: 'Belleza', purpose: 'business', quantity: 50, budget: 600, currencyCode: 'USD',
+      details: 'Set profesional. 12 piezas por set.',
+      priority: 'MEDIUM',
+      naiosSummary: 'Cliente boutique belleza busca 50 sets de brochas. Presupuesto $600 ($12/u). Proveedor: Yiwu. Riesgo medio.',
+      naiosCategory: 'Cosméticos', naiosPriority: 'MEDIO',
+      status: 'ENTREGADO', notes: 'Entregado exitosamente. Cliente satisfecho.',
+    },
   ]
-  for (const inv of invData) {
-    const p = allProducts.find((x) => x.sku === inv.sku)!
-    await db.inventory.create({
-      data: { productId: p.id, warehouseId: inv.warehouse, stock: inv.stock, reserved: inv.reserved, minStock: inv.minStock, maxStock: 500, location: inv.location },
-    })
-  }
 
-  // ===== Customers =====
-  const customers = await db.customer.createMany({
-    data: [
-      { firstName: 'Andrés', lastName: 'Gómez', email: 'andres.gomez@gmail.com', phone: '+57 311 234 5678', country: 'CO', city: 'Bogotá', address: 'Calle 85 #12-34', status: 'VIP', lifetimeValue: 4580.5, totalOrders: 14, tags: 'vip,frequent', companyId: company.id },
-      { firstName: 'María', lastName: 'Rodríguez', email: 'maria.r@hotmail.com', phone: '+57 320 987 6543', country: 'CO', city: 'Medellín', address: 'Carrera 70 #45-12', status: 'ACTIVE', lifetimeValue: 1240.0, totalOrders: 6, tags: 'frequent', companyId: company.id },
-      { firstName: 'Jorge', lastName: 'Martínez', email: 'jorge.m@gmail.com', phone: '+57 315 456 7890', country: 'CO', city: 'Cali', address: 'Av 6N #22-10', status: 'ACTIVE', lifetimeValue: 680.0, totalOrders: 3, companyId: company.id },
-      { firstName: 'Daniela', lastName: 'Sánchez', email: 'dani.sanchez@gmail.com', phone: '+57 300 111 2233', country: 'CO', city: 'Barranquilla', address: 'Calle 50 #30-18', status: 'ACTIVE', lifetimeValue: 320.0, totalOrders: 2, companyId: company.id },
-      { firstName: 'Felipe', lastName: 'Castro', email: 'felipe.castro@gmail.com', phone: '+57 318 444 5566', country: 'MX', city: 'CDMX', address: 'Polanco 45', status: 'VIP', lifetimeValue: 2980.0, totalOrders: 9, tags: 'vip,international', companyId: company.id },
-    ],
-  })
-  const allCustomers = await db.customer.findMany()
-
-  // ===== Orders =====
-  const orderSeed = [
-    { cust: 0, items: [{ sku: 'APL-APP-PRO2', qty: 1 }, { sku: 'GEN-CABLE-USBC', qty: 2 }], status: 'DELIVERED', daysAgo: 28, paymentMethod: 'Tarjeta' },
-    { cust: 4, items: [{ sku: 'RLX-SUB-DATE', qty: 1 }], status: 'SHIPPED', daysAgo: 3, paymentMethod: 'Nequi' },
-    { cust: 1, items: [{ sku: 'NKE-AJ1-RETRO', qty: 1 }], status: 'PAID', daysAgo: 1, paymentMethod: 'Tarjeta' },
-    { cust: 2, items: [{ sku: 'APL-AW-U9', qty: 1 }, { sku: 'GEN-CHGR-65W', qty: 1 }], status: 'PENDING', daysAgo: 0, paymentMethod: 'Contraentrega' },
-    { cust: 3, items: [{ sku: 'DIO-SADDLE-BLK', qty: 1 }], status: 'PAID', daysAgo: 5, paymentMethod: 'PayPal' },
-    { cust: 0, items: [{ sku: 'NKE-AJ4-BLACK', qty: 1 }], status: 'DELIVERED', daysAgo: 40, paymentMethod: 'Tarjeta' },
-    { cust: 4, items: [{ sku: 'APL-APP-PRO2', qty: 2 }], status: 'DELIVERED', daysAgo: 60, paymentMethod: 'Tarjeta' },
-    { cust: 1, items: [{ sku: 'GEN-CHGR-65W', qty: 3 }], status: 'DELIVERED', daysAgo: 18, paymentMethod: 'Nequi' },
-    // Additional historical sales for a healthier P&L
-    { cust: 0, items: [{ sku: 'APL-APP-PRO2', qty: 2 }, { sku: 'GEN-CHGR-65W', qty: 2 }], status: 'DELIVERED', daysAgo: 12, paymentMethod: 'Tarjeta' },
-    { cust: 4, items: [{ sku: 'RLX-SUB-DATE', qty: 2 }], status: 'DELIVERED', daysAgo: 22, paymentMethod: 'Tarjeta' },
-    { cust: 1, items: [{ sku: 'NKE-AJ1-RETRO', qty: 2 }, { sku: 'NKE-AJ4-BLACK', qty: 1 }], status: 'DELIVERED', daysAgo: 9, paymentMethod: 'Nequi' },
-    { cust: 2, items: [{ sku: 'APL-AW-U9', qty: 2 }], status: 'DELIVERED', daysAgo: 16, paymentMethod: 'Tarjeta' },
-    { cust: 3, items: [{ sku: 'DIO-SADDLE-BLK', qty: 2 }, { sku: 'GEN-CABLE-USBC', qty: 3 }], status: 'DELIVERED', daysAgo: 25, paymentMethod: 'PayPal' },
-    { cust: 0, items: [{ sku: 'APL-APP-PRO2', qty: 3 }], status: 'DELIVERED', daysAgo: 35, paymentMethod: 'Tarjeta' },
-    { cust: 4, items: [{ sku: 'NKE-AJ1-RETRO', qty: 1 }, { sku: 'GEN-CHGR-65W', qty: 2 }], status: 'DELIVERED', daysAgo: 48, paymentMethod: 'Tarjeta' },
-    { cust: 1, items: [{ sku: 'RLX-SUB-DATE', qty: 1 }, { sku: 'APL-APP-PRO2', qty: 1 }], status: 'DELIVERED', daysAgo: 55, paymentMethod: 'Nequi' },
-    { cust: 2, items: [{ sku: 'NKE-AJ4-BLACK', qty: 2 }], status: 'DELIVERED', daysAgo: 7, paymentMethod: 'Tarjeta' },
-    { cust: 3, items: [{ sku: 'APL-AW-U9', qty: 1 }, { sku: 'GEN-CHGR-65W', qty: 1 }], status: 'DELIVERED', daysAgo: 14, paymentMethod: 'PayPal' },
-    // High-value sales to reflect a healthy, growing business
-    { cust: 0, items: [{ sku: 'RLX-SUB-DATE', qty: 3 }], status: 'DELIVERED', daysAgo: 19, paymentMethod: 'Tarjeta' },
-    { cust: 4, items: [{ sku: 'APL-AW-U9', qty: 4 }], status: 'DELIVERED', daysAgo: 26, paymentMethod: 'Tarjeta' },
-    { cust: 1, items: [{ sku: 'APL-APP-PRO2', qty: 5 }, { sku: 'GEN-CABLE-USBC', qty: 5 }], status: 'DELIVERED', daysAgo: 31, paymentMethod: 'Nequi' },
-    { cust: 2, items: [{ sku: 'NKE-AJ1-RETRO', qty: 4 }], status: 'DELIVERED', daysAgo: 42, paymentMethod: 'Tarjeta' },
-    { cust: 3, items: [{ sku: 'DIO-SADDLE-BLK', qty: 3 }], status: 'DELIVERED', daysAgo: 50, paymentMethod: 'PayPal' },
-    { cust: 4, items: [{ sku: 'RLX-SUB-DATE', qty: 2 }, { sku: 'APL-APP-PRO2', qty: 3 }], status: 'DELIVERED', daysAgo: 58, paymentMethod: 'Tarjeta' },
-    { cust: 0, items: [{ sku: 'APL-AW-U9', qty: 3 }, { sku: 'GEN-CHGR-65W', qty: 3 }], status: 'DELIVERED', daysAgo: 11, paymentMethod: 'Tarjeta' },
-    { cust: 4, items: [{ sku: 'RLX-SUB-DATE', qty: 2 }], status: 'DELIVERED', daysAgo: 33, paymentMethod: 'Tarjeta' },
-    { cust: 1, items: [{ sku: 'APL-APP-PRO2', qty: 4 }, { sku: 'APL-AW-U9', qty: 2 }], status: 'DELIVERED', daysAgo: 45, paymentMethod: 'Nequi' },
-    { cust: 0, items: [{ sku: 'RLX-SUB-DATE', qty: 2 }, { sku: 'NKE-AJ1-RETRO', qty: 2 }], status: 'DELIVERED', daysAgo: 38, paymentMethod: 'Tarjeta' },
-  ]
-  let orderNum = 1001
-  for (const o of orderSeed) {
-    const customer = allCustomers[o.cust]
-    let subtotal = 0
-    const itemRows = o.items.map((it) => {
-      const p = allProducts.find((x) => x.sku === it.sku)!
-      const total = p.salePrice * it.qty
-      subtotal += total
-      return { productId: p.id, quantity: it.qty, unitPrice: p.salePrice, total }
+  for (const r of requests) {
+    const req = await db.importRequest.create({ data: r })
+    // Create status history
+    await db.requestStatusHistory.create({
+      data: { requestId: req.id, toStatus: 'NUEVA', notes: 'Solicitud creada' },
     })
-    const shippingCost = subtotal > 200 ? 0 : 12
-    const tax = subtotal * 0.19
-    const total = subtotal + shippingCost + tax
-    await db.order.create({
-      data: {
-        number: `ORD-${orderNum++}`,
-        customerId: customer.id,
-        userId: adrian.id,
-        status: o.status,
-        subtotal,
-        shippingCost,
-        tax,
-        discount: 0,
-        total,
-        currencyCode: 'USD',
-        paymentMethod: o.paymentMethod,
-        trackingNumber: o.status === 'SHIPPED' || o.status === 'DELIVERED' ? `TRK${Math.floor(Math.random() * 9000000 + 1000000)}` : null,
-        createdAt: new Date(Date.now() - o.daysAgo * 86400000),
-        items: { create: itemRows },
-      },
-    })
-  }
-
-  // ===== Purchase Orders =====
-  const poSeed = [
-    { supplier: sShenzhen, items: [{ sku: 'APL-APP-PRO2', qty: 100 }, { sku: 'GEN-CHGR-65W', qty: 200 }], status: 'RECEIVED', daysAgo: 35 },
-    { supplier: sGuangzhou, items: [{ sku: 'NKE-AJ1-RETRO', qty: 80 }], status: 'SHIPPED', daysAgo: 6 },
-    { supplier: sShanghai, items: [{ sku: 'RLX-SUB-DATE', qty: 40 }], status: 'PENDING', daysAgo: 1 },
-    { supplier: sShenzhen, items: [{ sku: 'GEN-CABLE-USBC', qty: 500 }], status: 'APPROVED', daysAgo: 3 },
-  ]
-  let poNum = 5001
-  for (const po of poSeed) {
-    let subtotal = 0
-    const itemRows = po.items.map((it) => {
-      const p = allProducts.find((x) => x.sku === it.sku)!
-      const totalCost = p.purchasePrice * it.qty
-      subtotal += totalCost
-      return { productId: p.id, quantity: it.qty, unitCost: p.purchasePrice, totalCost }
-    })
-    const shippingCost = 45
-    const tax = subtotal * 0.0
-    const total = subtotal + shippingCost + tax
-    await db.purchaseOrder.create({
-      data: {
-        number: `PO-${poNum++}`,
-        status: po.status,
-        supplierId: po.supplier.id,
-        userId: carlos.id,
-        subtotal,
-        shippingCost,
-        tax,
-        total,
-        currencyCode: 'USD',
-        expectedDate: new Date(Date.now() + 14 * 86400000),
-        receivedDate: po.status === 'RECEIVED' ? new Date(Date.now() - 5 * 86400000) : null,
-        createdAt: new Date(Date.now() - po.daysAgo * 86400000),
-        items: { create: itemRows },
-      },
-    })
-  }
-
-  // ===== Transactions (Finance) =====
-  const orders = await db.order.findMany({ include: { items: true } })
-  for (const order of orders) {
-    if (order.status === 'PAID' || order.status === 'SHIPPED' || order.status === 'DELIVERED') {
-      await db.transaction.create({
-        data: { type: 'INCOME', category: 'SALES', description: `Venta ${order.number}`, amount: order.total, currencyCode: 'USD', reference: order.number, date: order.createdAt },
+    if (req.status !== 'NUEVA') {
+      await db.requestStatusHistory.create({
+        data: { requestId: req.id, fromStatus: 'NUEVA', toStatus: req.status, notes: 'Cambio de estado automático' },
       })
     }
   }
-  const purchases = await db.purchaseOrder.findMany()
-  for (const po of purchases) {
-    if (po.status === 'APPROVED' || po.status === 'SHIPPED' || po.status === 'RECEIVED') {
-      await db.transaction.create({
-        data: { type: 'EXPENSE', category: 'PURCHASES', description: `Compra ${po.number}`, amount: po.total, currencyCode: 'USD', reference: po.number, date: po.createdAt },
-      })
-    }
+
+  // ===== Quotes =====
+  const req1 = await db.importRequest.findFirst({ where: { number: 'NX-2025-000001' } })
+  const req3 = await db.importRequest.findFirst({ where: { number: 'NX-2025-000003' } })
+  if (req1) {
+    await db.quote.create({
+      data: {
+        number: 'COT-2025-000001', requestId: req1.id, supplierId: sShenzhen.id, assignedToId: employee.id,
+        unitPrice: 68.5, quantity: 50, subtotal: 3425, shippingCost: 180, tax: 0, total: 3605,
+        currencyCode: 'USD', leadTime: 22, warranty: '12 meses', validity: new Date('2025-12-31'),
+        status: 'ENVIADA_AL_CLIENTE', notes: 'Cotización con Shenzhen TechLink. Calidad OEM premium.',
+      },
+    })
   }
-  // Operating expenses
-  const expenses = [
-    { category: 'MARKETING', description: 'Campaña Meta Ads - Octubre', amount: 850, daysAgo: 10 },
-    { category: 'SALARY', description: 'Nómina personal - Quincena', amount: 3200, daysAgo: 5 },
-    { category: 'RENT', description: 'Arriendo bodega Bogotá', amount: 1200, daysAgo: 12 },
-    { category: 'UTILITY', description: 'Servicios públicos', amount: 180, daysAgo: 8 },
-    { category: 'SHIPPING', description: 'Envíos DHL Express', amount: 540, daysAgo: 3 },
-    { category: 'MARKETING', description: 'Influencer - TikTok', amount: 600, daysAgo: 20 },
-  ]
-  for (const e of expenses) {
+  if (req3) {
+    await db.quote.create({
+      data: {
+        number: 'COT-2025-000002', requestId: req3.id, supplierId: sShenzhen.id, assignedToId: admin.id,
+        unitPrice: 18, quantity: 100, subtotal: 1800, shippingCost: 150, tax: 0, total: 1950,
+        currencyCode: 'USD', leadTime: 20, warranty: '6 meses',
+        status: 'APROBADA', notes: 'Aprobada por cliente. Pago recibido.',
+      },
+    })
+  }
+
+  // ===== Imports =====
+  const req4 = await db.importRequest.findFirst({ where: { number: 'NX-2025-000004' } })
+  const req6 = await db.importRequest.findFirst({ where: { number: 'NX-2025-000006' } })
+  if (req4) {
+    await db.import.create({
+      data: {
+        number: 'IMP-2025-000001', requestId: req4.id, supplierId: sShenzhen.id,
+        productCost: 240, shippingCost: 80, customsCost: 45, otherCosts: 15,
+        totalCost: 380, salePrice: 1200, profit: 820, currencyCode: 'USD',
+        status: 'EN_TRANSITO', purchasedAt: new Date(Date.now() - 15 * 86400000),
+        shippedAt: new Date(Date.now() - 8 * 86400000),
+        carrier: 'DHL Express', trackingNumber: 'DHL8871234567',
+        incoterm: 'FOB', notes: 'En tránsito. ETA 5 días.',
+      },
+    })
+  }
+  if (req6) {
+    await db.import.create({
+      data: {
+        number: 'IMP-2025-000002', requestId: req6.id, supplierId: sYiwu.id,
+        productCost: 125, shippingCost: 60, customsCost: 30, otherCosts: 10,
+        totalCost: 225, salePrice: 600, profit: 375, currencyCode: 'USD',
+        status: 'ENTREGADO', purchasedAt: new Date(Date.now() - 45 * 86400000),
+        shippedAt: new Date(Date.now() - 35 * 86400000),
+        arrivedAt: new Date(Date.now() - 20 * 86400000),
+        deliveredAt: new Date(Date.now() - 15 * 86400000),
+        carrier: 'EMS', trackingNumber: 'EMS5566778899',
+        incoterm: 'CIF', notes: 'Entregado exitosamente.',
+      },
+    })
+  }
+
+  // ===== Transactions =====
+  const imports = await db.import.findMany()
+  for (const imp of imports) {
     await db.transaction.create({
-      data: { type: 'EXPENSE', category: e.category, description: e.description, amount: e.amount, currencyCode: 'USD', date: new Date(Date.now() - e.daysAgo * 86400000) },
+      data: { type: 'INCOME', category: 'SALES', description: `Venta importación ${imp.number}`, amount: imp.salePrice, reference: imp.number, requestId: imp.requestId, date: imp.createdAt },
+    })
+    await db.transaction.create({
+      data: { type: 'EXPENSE', category: 'PURCHASE', description: `Compra a proveedor ${imp.number}`, amount: imp.totalCost, reference: imp.number, requestId: imp.requestId, date: imp.createdAt },
     })
   }
 
-  // ===== Inventory Movements =====
-  for (const inv of await db.inventory.findMany()) {
-    await db.inventoryMovement.create({
-      data: { productId: inv.productId, warehouseId: inv.warehouseId, type: 'IN', quantity: inv.stock + 20, reason: 'Recepción de compra', reference: 'PO-5001', createdAt: new Date(Date.now() - 30 * 86400000) },
-    })
-    if (inv.stock > 10) {
-      await db.inventoryMovement.create({
-        data: { productId: inv.productId, warehouseId: inv.warehouseId, type: 'OUT', quantity: 20, reason: 'Venta', reference: 'ORD-1001', createdAt: new Date(Date.now() - 20 * 86400000) },
-      })
-    }
-  }
+  // ===== Notifications =====
+  const req5 = await db.importRequest.findFirst({ where: { number: 'NX-2025-000005' } })
+  await db.notification.createMany({
+    data: [
+      { userId: admin.id, type: 'request', priority: 'HIGH', title: 'Nueva solicitud recibida', message: 'Solicitud NX-2025-000005: Tiras LED Inteligentes', data: JSON.stringify({ requestId: req5?.id }) },
+      { userId: admin.id, type: 'quote', priority: 'MEDIUM', title: 'Cotización enviada', message: 'COT-2025-000001 enviada al cliente Carlos Emprendedor' },
+      { userId: admin.id, type: 'import', priority: 'CRITICAL', title: 'Importación en tránsito', message: 'IMP-2025-000001 (Fundas Samsung) está en tránsito vía DHL. ETA 5 días.' },
+      { userId: employee.id, type: 'request', priority: 'HIGH', title: 'Cliente esperando respuesta', message: 'NX-2025-000002: María Boutique lleva 48h esperando cotización' },
+      { userId: client1.id, type: 'request', priority: 'MEDIUM', title: 'Tu solicitud fue actualizada', message: 'NX-2025-000001: Cotización enviada. Revisa los detalles.' },
+      { userId: client3.id, type: 'request', priority: 'HIGH', title: 'Pago confirmado', message: 'NX-2025-000003: Hemos recibido tu pago. Iniciando proceso de compra.' },
+    ],
+  })
 
-  // ===== NAIOS Recommendations (per DOC-006 — alerts, opportunities, risks, insights) =====
+  // ===== NAIOS Recommendations =====
   await db.naiosRecommendation.createMany({
     data: [
-      { type: 'ALERT', severity: 'CRITICAL', title: 'Stock agotado: Cable USB-C', description: 'El producto "Cable USB-C a Lightning" tiene 0 unidades disponibles. Es el accesorio más vendido.', module: 'inventory', action: 'Crear orden de compra urgente al proveedor Shenzhen TechLink.', status: 'PENDING' },
-      { type: 'ALERT', severity: 'HIGH', title: 'Stock bajo en 4 productos', description: 'Apple Watch Ultra 2, Air Jordan 4, Bolso Dior Saddle y Rolex Submariner están por debajo del stock mínimo.', module: 'inventory', action: 'Revisar rotación y programar reposición.', status: 'PENDING' },
-      { type: 'RISK', severity: 'HIGH', title: 'Proveedor de alto riesgo: Yiwu', description: 'Yiwu Luxury Bags tiene un overall score de 62.0 y warranty score de 40. Riesgo de defectos elevado.', module: 'suppliers', action: 'Diversificar hacia Shanghai TimeMaster o renegociar garantía.', status: 'PENDING' },
-      { type: 'OPPORTUNITY', severity: 'MEDIUM', title: 'Margen alto en Rolex Submariner', description: 'El Rolex Submariner tiene un margen del 73.3% (precio compra $120 → venta $449). La demanda es fuerte.', module: 'products', action: 'Aumentar inventario y explorar campañas de marketing.', status: 'PENDING' },
-      { type: 'INSIGHT', severity: 'MEDIUM', title: 'Cliente VIP Andrés Gómez', description: 'Andrés ha realizado 14 pedidos por $4,580. Su ticket promedio creció 22% en los últimos 3 meses.', module: 'customers', action: 'Ofrecer programa de fidelización y acceso anticipado a lanzamientos.', status: 'PENDING' },
-      { type: 'INSIGHT', severity: 'LOW', title: 'Flujo de caja saludable', description: 'Ingresos del mes superan gastos en 38%. Utilidad neta proyectada positiva para el trimestre.', module: 'finance', action: 'Considerar reinversión en inventario de alta rotación.', status: 'PENDING' },
-      { type: 'OPPORTUNITY', severity: 'MEDIUM', title: 'Mercado internacional en crecimiento', description: 'Felipe Castro (México) representa el 18% de ingresos del mes. Potencial de expansión a LATAM.', module: 'customers', action: 'Habilitar envíos internacionales y marketing geolocalizado.', status: 'PENDING' },
-      { type: 'RISK', severity: 'LOW', title: 'Garantía limitada en calzado', description: 'Guangzhou Premium Footwear ofrece solo 3 meses de garantía. Historial de devoluciones del 4%.', module: 'suppliers', action: 'Negociar extensión de garantía a 6 meses.', status: 'PENDING' },
+      { type: 'ALERT', severity: 'CRITICAL', title: 'Solicitud sin analizar', description: 'NX-2025-000005 (Tiras LED) lleva más de 24h sin ser analizada. Asignar responsable.', module: 'requests', action: 'Asignar a Laura Gestión' },
+      { type: 'RISK', severity: 'HIGH', title: 'Proveedor de alto riesgo', description: 'Yiwu Smart Trading tiene score 62. Considerar diversificar hacia Shenzhen TechLink.', module: 'suppliers', action: 'Evaluar proveedores alternativos' },
+      { type: 'OPPORTUNITY', severity: 'MEDIUM', title: 'Cliente recurrente detectado', description: 'Carlos Emprendedor tiene 2 solicitudes activas. Ofrecer programa de fidelización.', module: 'requests', action: 'Contactar para ofrecer beneficios' },
+      { type: 'INSIGHT', severity: 'LOW', title: 'Margen saludable', description: 'Importaciones completadas muestran margen promedio del 68%. Rentabilidad sólida.', module: 'finance' },
+      { type: 'ALERT', severity: 'HIGH', title: 'Cliente esperando respuesta', description: 'NX-2025-000002 (María Boutique) lleva 48h esperando cotización de Jordan 1.', module: 'requests', action: 'Contactar proveedor Guangzhou urgentemente' },
     ],
   })
 
-  console.log('✅ NEXORA database seeded successfully!')
-  console.log(`   - Company: ${company.commercialName}`)
-  console.log(`   - Users: 6`)
-  console.log(`   - Products: ${allProducts.length}`)
-  console.log(`   - Suppliers: 4 (con ratings)`)
-  console.log(`   - Customers: ${allCustomers.length}`)
-  console.log(`   - Orders: ${orderNum - 1001}`)
-  console.log(`   - Purchase Orders: ${poNum - 5001}`)
-  console.log(`   - NAIOS Recommendations: 8`)
+  console.log('✅ NEXORA Import Platform seeded!')
+  console.log(`   Company: ${company.commercialName}`)
+  console.log(`   Users: 6 (1 admin, 1 employee, 3 clients, 1 reseller)`)
+  console.log(`   Suppliers: 3 (con ratings)`)
+  console.log(`   Products: 8`)
+  console.log(`   Import Requests: 6 (varios estados)`)
+  console.log(`   Quotes: 2`)
+  console.log(`   Imports: 2`)
+  console.log(`   Notifications: 6`)
+  console.log(`   NAIOS Recommendations: 5`)
 }
 
 main()
-  .catch((e) => {
-    console.error('❌ Seed failed:', e)
-    process.exit(1)
-  })
-  .finally(async () => {
-    await db.$disconnect()
-  })
+  .catch((e) => { console.error('❌ Seed failed:', e); process.exit(1) })
+  .finally(async () => { await db.$disconnect() })
