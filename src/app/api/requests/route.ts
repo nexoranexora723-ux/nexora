@@ -24,7 +24,17 @@ export async function GET(req: Request) {
     }
 
     const reqs = await RequestService.list(filters)
-    return NextResponse.json(reqs)
+
+    // Strip internal NAIOS fields from responses to clients
+    const isClient = user.role === 'CLIENT' || user.role === 'RESELLER'
+    const safeReqs = isClient
+      ? reqs.map((r: Record<string, unknown>) => {
+          const { naiosSummary, naiosCategory, naiosPriority, notes, ...publicFields } = r
+          return publicFields
+        })
+      : reqs
+
+    return NextResponse.json(safeReqs)
   } catch (error) {
     console.error('GET /api/requests error:', error)
     return NextResponse.json({ error: 'Error' }, { status: 500 })

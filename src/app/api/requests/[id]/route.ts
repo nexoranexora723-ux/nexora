@@ -15,6 +15,13 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     if ((user.role === 'CLIENT' || user.role === 'RESELLER') && r.clientId !== user.id) {
       return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
     }
+
+    // Strip internal NAIOS fields and admin notes from client responses
+    if (user.role === 'CLIENT' || user.role === 'RESELLER') {
+      const { naiosSummary, naiosCategory, naiosPriority, notes, ...publicFields } = r
+      return NextResponse.json(publicFields)
+    }
+
     return NextResponse.json(r)
   } catch (error) {
     console.error('GET /api/requests/[id] error:', error)

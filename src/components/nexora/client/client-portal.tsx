@@ -512,11 +512,7 @@ function ClientTracking({ requestId }: { requestId: string | null }) {
 
       {req.description && <Card><CardContent className="p-4"><p className="text-xs font-medium text-muted-foreground">Descripción</p><p className="mt-1 text-sm">{req.description}</p></CardContent></Card>}
 
-      {req.naiosSummary && (
-        <Card className="border-primary/20 bg-primary/5"><CardContent className="p-4">
-          <div className="flex items-start gap-2"><Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" /><div><p className="text-xs font-semibold text-primary">Análisis de NAIOS</p><p className="mt-1 text-sm text-muted-foreground">{req.naiosSummary}</p></div></div>
-        </CardContent></Card>
-      )}
+      {/* NAIOS analysis is INTERNAL — only shown in admin portal, NOT to clients */}
 
       <Card><CardContent className="p-6">
         <h3 className="mb-6 text-sm font-semibold">Progreso de tu importación</h3>
