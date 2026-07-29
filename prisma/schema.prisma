@@ -148,17 +148,24 @@ model Product {
   sku           String   @unique
   name          String
   description   String?
+  longDescription String? @map("long_description") // rich text for detail page
   brandId       String?  @map("brand_id")
   categoryId    String?  @map("category_id")
   supplierId    String?  @map("supplier_id")
   imageUrl      String?  @map("image_url")
-  images        String?  // JSON array of URLs
-  referenceUrl  String?  @map("reference_url") // link to Alibaba/AliExpress/etc
-  estimatedCost Float?   @map("estimated_cost") // costo estimado desde China
-  suggestedPrice Float?  @map("suggested_price") // precio sugerido de venta
+  images        String?  // JSON array of image URLs
+  videoUrl      String?  @map("video_url") // YouTube or direct video URL
+  referenceUrl  String?  @map("reference_url")
+  estimatedCost Float?   @map("estimated_cost")
+  suggestedPrice Float?  @map("suggested_price")
   currencyCode  String   @default("USD") @map("currency_code")
-  status        String   @default("ACTIVE") // ACTIVE | INACTIVE
+  status        String   @default("ACTIVE")
   isFeatured    Boolean  @default(false) @map("is_featured")
+  specs         String?  // JSON: [{label, value}, ...]
+  features      String?  // JSON: ["feature1", "feature2", ...]
+  rating        Float?   @default(4.0)
+  reviewCount   Int      @default(0) @map("review_count")
+  soldCount     Int      @default(0) @map("sold_count")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 

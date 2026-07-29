@@ -24,6 +24,7 @@ import { cn } from '@/lib/utils'
 import { NotificationBell } from '@/components/nexora/shared/notification-bell'
 import { WizardDialog } from '@/components/nexora/client/wizard-dialog'
 import { OnboardingTour, CommandPalette } from '@/components/nexora/shared/extra-features'
+import { ProductDetailPage } from '@/components/nexora/public/product-detail-page'
 import { useTheme } from 'next-themes'
 import { Sun, Moon, Command as CommandIcon } from 'lucide-react'
 
@@ -47,6 +48,7 @@ export function ClientPortal() {
   const [wizardOpen, setWizardOpen] = useState(false)
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [cmdOpen, setCmdOpen] = useState(false)
+  const [detailProductId, setDetailProductId] = useState<string | null>(null)
 
   // Onboarding on first visit
   useEffect(() => {
@@ -191,7 +193,7 @@ export function ClientPortal() {
         <main className="nexora-scroll flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <div className="mx-auto max-w-5xl">
             {view === 'dashboard' && <ClientDashboard onNewRequest={openCreateBlank} onViewRequest={(id) => { setSelectedRequest(id); setView('tracking') }} onNavigate={setView} />}
-            {view === 'catalog' && <ClientCatalog onProductClick={(p) => setSelectedProduct(p)} />}
+            {view === 'catalog' && <ClientCatalog onProductClick={(p) => setDetailProductId(p.id)} />}
             {view === 'requests' && <ClientRequests onViewRequest={(id) => { setSelectedRequest(id); setView('tracking') }} />}
             {view === 'tracking' && <ClientTracking requestId={selectedRequest} />}
             {view === 'profile' && <ClientProfile />}
@@ -202,6 +204,31 @@ export function ClientPortal() {
       {/* Product detail dialog */}
       {selectedProduct && (
         <ProductDetailDialog product={selectedProduct} onClose={() => setSelectedProduct(null)} onRequest={(p) => { setSelectedProduct(null); openCreateWithProduct(p) }} />
+      )}
+
+      {/* Product detail page (full page, not dialog) */}
+      {detailProductId && (
+        <ProductDetailPage
+          productId={detailProductId}
+          onBack={() => setDetailProductId(null)}
+          onRequest={async () => {
+            // Fetch product data and prefill the request form
+            try {
+              const res = await fetch(`/api/products/${detailProductId}`)
+              const p = await res.json()
+              setDetailProductId(null)
+              openCreateWithProduct({
+                name: p.name,
+                category: p.category?.name ?? '',
+                description: p.description ?? '',
+                referenceUrl: p.referenceUrl ?? '',
+              } as unknown as Product)
+            } catch {
+              setDetailProductId(null)
+              openCreateBlank()
+            }
+          }}
+        />
       )}
 
       {/* Wizard dialog */}

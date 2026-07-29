@@ -16,9 +16,10 @@ interface CatalogViewProps {
   onNavigate: (view: string) => void
   onLogin: () => void
   onRegister: () => void
+  onProductClick?: (id: string) => void
 }
 
-export function CatalogView({ onNavigate, onRegister }: CatalogViewProps) {
+export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogViewProps) {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('all')
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
@@ -89,7 +90,7 @@ export function CatalogView({ onNavigate, onRegister }: CatalogViewProps) {
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filtered.map((p) => (
-              <ProductCard key={p.id} product={p} onClick={() => setSelectedProduct(p)} />
+              <ProductCard key={p.id} product={p} onClick={() => onProductClick ? onProductClick(p.id) : setSelectedProduct(p)} />
             ))}
           </div>
         )}

@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs'
 async function main() {
   console.log('🌱 Seeding NEXORA Import Platform...')
 
-  // Clean
+  // Clean (order matters for FK constraints)
   await db.naiosConversation.deleteMany()
   await db.naiosRecommendation.deleteMany()
   await db.notification.deleteMany()
@@ -13,8 +13,8 @@ async function main() {
   await db.import.deleteMany()
   await db.requestAttachment.deleteMany()
   await db.requestStatusHistory.deleteMany()
-  await db.importRequest.deleteMany()
   await db.quote.deleteMany()
+  await db.importRequest.deleteMany()
   await db.supplierRating.deleteMany()
   await db.supplier.deleteMany()
   await db.product.deleteMany()
@@ -152,18 +152,87 @@ async function main() {
   const samsung = brands.find((b) => b.name === 'Samsung')!
   const generic = brands.find((b) => b.name === 'Generic OEM')!
 
+  // ===== Products =====
   await db.product.createMany({
     data: [
-      { sku: 'APL-APP-PRO2', name: 'AirPods Pro 2 (OEM)', brandId: apple.id, categoryId: tech.id, supplierId: sShenzhen.id, imageUrl: 'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=400', referenceUrl: 'https://www.alibaba.com/product/airpods-pro-2', estimatedCost: 68.5, suggestedPrice: 129, status: 'ACTIVE', isFeatured: true, description: 'AirPods Pro 2 OEM con cancelación de ruido activa. Calidad premium.' },
-      { sku: 'APL-AW-U2', name: 'Apple Watch Ultra 2 (Clone)', brandId: apple.id, categoryId: tech.id, supplierId: sShenzhen.id, imageUrl: 'https://images.unsplash.com/photo-1551816230-ef5deaed4a26?w=400', referenceUrl: 'https://www.alibaba.com/product/apple-watch-ultra', estimatedCost: 95, suggestedPrice: 199, status: 'ACTIVE', isFeatured: true, description: 'Apple Watch Ultra clon de alta calidad. Pantalla AMOLED.' },
-      { sku: 'XIA-EARBUDS', name: 'Xiaomi Earbuds Basic 2', brandId: xiaomi.id, categoryId: tech.id, supplierId: sShenzhen.id, imageUrl: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400', estimatedCost: 8.5, suggestedPrice: 25, status: 'ACTIVE', description: 'Auriculares Bluetooth económicos. Ideal para revender.' },
-      { sku: 'NKE-AJ1', name: 'Air Jordan 1 Retro (Replica)', brandId: nike.id, categoryId: moda.id, supplierId: sGuangzhou.id, imageUrl: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?w=400', referenceUrl: 'https://www.alibaba.com/product/air-jordan-1', estimatedCost: 42, suggestedPrice: 89, status: 'ACTIVE', isFeatured: true, description: 'Air Jordan 1 replica premium. Cuero genuino.' },
-      { sku: 'SAMS-PHONE', name: 'Samsung Galaxy S24 Case Lot', brandId: samsung.id, categoryId: tech.id, supplierId: sShenzhen.id, imageUrl: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=400', estimatedCost: 1.2, suggestedPrice: 8, status: 'ACTIVE', description: 'Lote de 100 fundas Samsung Galaxy S24. Various colores.' },
-      { sku: 'GEN-LED', name: 'Tira LED Inteligente 5m', brandId: generic.id, categoryId: hogar.id, supplierId: sYiwu.id, imageUrl: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=400', estimatedCost: 3.5, suggestedPrice: 15, status: 'ACTIVE', description: 'Tira LED RGB con control WiFi. Ideal para hogar.' },
-      { sku: 'GEN-PHONES', name: 'Soporte Celular Coche (x100)', brandId: generic.id, categoryId: depor.id, supplierId: sYiwu.id, imageUrl: 'https://images.unsplash.com/photo-1582142306909-195724d0a735?w=400', estimatedCost: 0.8, suggestedPrice: 6, status: 'ACTIVE', description: 'Lote de 100 soportes para celular de coche.' },
-      { sku: 'GEN-BEAUTY', name: 'Set Brochas Maquillaje (x50)', brandId: generic.id, categoryId: belleza.id, supplierId: sYiwu.id, imageUrl: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400', estimatedCost: 2.5, suggestedPrice: 12, status: 'ACTIVE', description: 'Set de 50 brochas de maquillaje profesional.' },
+      { sku: 'APL-APP-PRO2', name: 'AirPods Pro 2 (OEM)', brandId: apple.id, categoryId: tech.id, supplierId: sShenzhen.id, imageUrl: 'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=800', referenceUrl: 'https://www.alibaba.com/product/airpods-pro-2', estimatedCost: 68.5, suggestedPrice: 129, status: 'ACTIVE', isFeatured: true, description: 'AirPods Pro 2 OEM con cancelación de ruido activa. Calidad premium.' },
+      { sku: 'APL-AW-U2', name: 'Apple Watch Ultra 2 (Clone)', brandId: apple.id, categoryId: tech.id, supplierId: sShenzhen.id, imageUrl: 'https://images.unsplash.com/photo-1551816230-ef5deaed4a26?w=800', referenceUrl: 'https://www.alibaba.com/product/apple-watch-ultra', estimatedCost: 95, suggestedPrice: 199, status: 'ACTIVE', isFeatured: true, description: 'Apple Watch Ultra clon de alta calidad. Pantalla AMOLED.' },
+      { sku: 'XIA-EARBUDS', name: 'Xiaomi Earbuds Basic 2', brandId: xiaomi.id, categoryId: tech.id, supplierId: sShenzhen.id, imageUrl: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800', estimatedCost: 8.5, suggestedPrice: 25, status: 'ACTIVE', description: 'Auriculares Bluetooth económicos. Ideal para revender.' },
+      { sku: 'NKE-AJ1', name: 'Air Jordan 1 Retro (Replica)', brandId: nike.id, categoryId: moda.id, supplierId: sGuangzhou.id, imageUrl: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?w=800', referenceUrl: 'https://www.alibaba.com/product/air-jordan-1', estimatedCost: 42, suggestedPrice: 89, status: 'ACTIVE', isFeatured: true, description: 'Air Jordan 1 replica premium. Cuero genuino.' },
+      { sku: 'SAMS-PHONE', name: 'Samsung Galaxy S24 Case Lot', brandId: samsung.id, categoryId: tech.id, supplierId: sShenzhen.id, imageUrl: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=800', estimatedCost: 1.2, suggestedPrice: 8, status: 'ACTIVE', description: 'Lote de 100 fundas Samsung Galaxy S24. Varios colores.' },
+      { sku: 'GEN-LED', name: 'Tira LED Inteligente 5m', brandId: generic.id, categoryId: hogar.id, supplierId: sYiwu.id, imageUrl: 'https://images.unsplash.com/photo-1558002038-1055907df827?w=800', estimatedCost: 3.5, suggestedPrice: 15, status: 'ACTIVE', description: 'Tira LED RGB con control WiFi. Ideal para hogar.' },
+      { sku: 'GEN-PHONES', name: 'Soporte Celular Coche (x100)', brandId: generic.id, categoryId: depor.id, supplierId: sYiwu.id, imageUrl: 'https://images.unsplash.com/photo-1582142306909-195724d0a735?w=800', estimatedCost: 0.8, suggestedPrice: 6, status: 'ACTIVE', description: 'Lote de 100 soportes para celular de coche.' },
+      { sku: 'GEN-BEAUTY', name: 'Set Brochas Maquillaje (x50)', brandId: generic.id, categoryId: belleza.id, supplierId: sYiwu.id, imageUrl: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=800', estimatedCost: 2.5, suggestedPrice: 12, status: 'ACTIVE', description: 'Set de 50 brochas de maquillaje profesional.' },
     ],
   })
+
+  // Update products with rich detail data (gallery, video, specs, features)
+  const allProds = await db.product.findMany()
+  for (const p of allProds) {
+    const updates: Record<string, unknown> = { rating: 4.0 + Math.random() * 0.8, reviewCount: Math.floor(Math.random() * 200) + 20, soldCount: Math.floor(Math.random() * 500) + 30 }
+    // Add gallery images based on product
+    if (p.sku === 'APL-APP-PRO2') {
+      updates.images = JSON.stringify([
+        'https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=800',
+        'https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=800',
+        'https://images.unsplash.com/photo-1600294037681-c80b4cb5b434?w=800',
+        'https://images.unsplash.com/photo-1607945024110-4f5c6f87c947?w=800',
+      ])
+      updates.videoUrl = 'https://www.youtube.com/watch?v=KgWtMNjCFYc'
+      updates.longDescription = 'Los AirPods Pro 2 ofrecen cancelación de ruido activa de nivel superior, audio espacial con seguimiento de cabeza y un diseño cómodo para todo el día. Versión OEM con calidad premium, ideal para reventa con márgenes altos.\n\nEl estuche de carga MagSafe proporciona hasta 30 horas de batería total. Incluye control táctil, resistente al agua IPX4 y chip H2 para conexión instantánea.'
+      updates.specs = JSON.stringify([
+        { label: 'Cancelación de ruido', value: 'Activa (ANC)' },
+        { label: 'Conectividad', value: 'Bluetooth 5.3' },
+        { label: 'Batería', value: '6h + 24h estuche' },
+        { label: 'Resistencia', value: 'IPX4 (agua y sudor)' },
+        { label: 'Carga', value: 'USB-C + MagSafe' },
+        { label: 'Chip', value: 'H2' },
+        { label: 'Audio espacial', value: 'Sí, con seguimiento' },
+        { label: 'Peso', value: '5.3g cada uno' },
+      ])
+      updates.features = JSON.stringify(['Cancelación de ruido activa', 'Audio espacial 3D', 'Resistente al agua IPX4', 'Carga MagSafe', '30h batería total', 'Detección de oreja automática'])
+    } else if (p.sku === 'APL-AW-U2') {
+      updates.images = JSON.stringify([
+        'https://images.unsplash.com/photo-1551816230-ef5deaed4a26?w=800',
+        'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=800',
+        'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=800',
+      ])
+      updates.videoUrl = 'https://www.youtube.com/watch?v=a6sXhNdwWgY'
+      updates.longDescription = 'Apple Watch Ultra 2 con caja de titanio de 49mm, pantalla LTPO OLED siempre activa de 3000 nits. GPS de doble frecuencia para precisión extrema. Hasta 36 horas de batería.\n\nVersión clone premium con materiales de alta calidad. Pantalla AMOLED idéntica al original. Ideal para deportistas y aventureros.'
+      updates.specs = JSON.stringify([
+        { label: 'Caja', value: 'Titanio 49mm' },
+        { label: 'Pantalla', value: 'LTPO OLED 3000 nits' },
+        { label: 'Batería', value: '36h uso normal' },
+        { label: 'GPS', value: 'Doble frecuencia L1+L5' },
+        { label: 'Resistencia', value: '100m (buceo)' },
+        { label: 'Conectividad', value: 'LTE + WiFi + BT 5.3' },
+      ])
+      updates.features = JSON.stringify(['Caja de titanio', 'Pantalla 3000 nits', 'GPS doble frecuencia', 'Resistente 100m', '36h batería', 'Modo buceo'])
+    } else if (p.sku === 'NKE-AJ1') {
+      updates.images = JSON.stringify([
+        'https://images.unsplash.com/photo-1552346154-21d32810aba3?w=800',
+        'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800',
+        'https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=800',
+        'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800',
+      ])
+      updates.longDescription = 'Air Jordan 1 Retro High con cuero genuino de primera calidad. Réplica premium con atención al detalle: logo bordado, suela de goma original, caja incluida.\n\nDisponible en tallas 38-44. Colores clásicos y edición limitada. Perfecto para reventa en marketplace con márgenes del 100%+.'
+      updates.specs = JSON.stringify([
+        { label: 'Material', value: 'Cuero genuino' },
+        { label: 'Tallas', value: '38-44 EU' },
+        { label: 'Suela', value: 'Goma original' },
+        { label: 'Caja', value: 'Incluida' },
+        { label: 'Colores', value: 'Múltiples disponibles' },
+        { label: 'MOQ', value: '20 pares' },
+      ])
+      updates.features = JSON.stringify(['Cuero genuino', 'Logo bordado', 'Caja original incluida', 'Tallas 38-44', 'Múltiples colores', 'Ideal para reventa'])
+    } else {
+      // Generic products get basic gallery
+      updates.images = JSON.stringify([p.imageUrl].filter(Boolean))
+      updates.specs = JSON.stringify([{ label: 'Categoría', value: p.description ?? 'N/A' }])
+      updates.features = JSON.stringify(['Importación desde China', 'Calidad verificada', 'Garantía del proveedor'])
+    }
+    await db.product.update({ where: { id: p.id }, data: updates })
+  }
 
   // ===== Import Requests (the heart) =====
   const requests = [
