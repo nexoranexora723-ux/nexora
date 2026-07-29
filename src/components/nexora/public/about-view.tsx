@@ -18,7 +18,7 @@ export function AboutView({ onNavigate, onLogin }: { onNavigate: (v: string) => 
             <ArrowLeft className="h-4 w-4" /> Volver
           </button>
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground">
               <span className="text-sm font-black">N</span>
             </div>
             <span className="font-bold">NEXORA</span>

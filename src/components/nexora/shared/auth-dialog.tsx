@@ -50,7 +50,7 @@ export function AuthDialog({ open, onOpenChange, mode, onModeChange }: AuthDialo
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="mb-2 flex justify-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground shadow-lg">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-blue-700 text-primary-foreground shadow-lg">
               <span className="text-2xl font-black">N</span>
             </div>
           </div>

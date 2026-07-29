@@ -99,7 +99,7 @@ export function ClientPortal() {
       {/* Sidebar */}
       <aside className="hidden w-64 shrink-0 border-r bg-sidebar lg:flex lg:flex-col">
         <div className="flex h-16 items-center gap-2.5 border-b border-sidebar-border px-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground shadow-sm">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground shadow-sm">
             <span className="text-lg font-black">N</span>
           </div>
           <div className="leading-tight">
@@ -127,7 +127,7 @@ export function ClientPortal() {
         </nav>
         <div className="border-t border-sidebar-border p-3">
           <div className="flex items-center gap-2.5 rounded-lg border bg-card px-3 py-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-emerald-700 text-xs font-bold text-primary-foreground">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-blue-700 text-xs font-bold text-primary-foreground">
               {initials(user?.firstName ?? '', user?.lastName)}
             </div>
             <div className="min-w-0 flex-1 leading-tight">
@@ -143,7 +143,7 @@ export function ClientPortal() {
       <div className="flex flex-1 flex-col overflow-hidden">
         <header className="flex h-16 items-center justify-between border-b px-4 sm:px-6">
           <div className="flex items-center gap-2 lg:hidden">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground">
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-primary to-blue-700 text-primary-foreground">
               <span className="text-xs font-black">N</span>
             </div>
             <span className="font-bold">NEXORA</span>
@@ -894,7 +894,7 @@ function PaymentSection({ requestId }: { requestId: string }) {
           className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950"
         >
           <motion.svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <motion.path d="M9 16 L14 21 L23 10" stroke="#10b981" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+            <motion.path d="M9 16 L14 21 L23 10" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
               initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5, delay: 0.4, ease: 'easeInOut' }}
             />
           </motion.svg>
@@ -937,7 +937,7 @@ function ClientProfile() {
   return (
     <Card><CardContent className="p-6">
       <div className="flex items-center gap-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary to-emerald-700 text-xl font-bold text-primary-foreground">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary to-blue-700 text-xl font-bold text-primary-foreground">
           {initials(user?.firstName ?? '', user?.lastName)}
         </div>
         <div>

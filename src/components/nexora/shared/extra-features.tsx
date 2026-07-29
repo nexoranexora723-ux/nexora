@@ -98,7 +98,7 @@ export function BlogView() {
       <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground"><span className="text-sm font-black">N</span></div>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground"><span className="text-sm font-black">N</span></div>
             <span className="font-bold">NEXORA Blog</span>
           </div>
           <Button size="sm" variant="ghost" onClick={() => window.history.back()}>Volver</Button>

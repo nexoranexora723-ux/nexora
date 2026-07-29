@@ -45,7 +45,7 @@ export function AdminPortal() {
       {/* Sidebar */}
       <aside className="hidden w-64 shrink-0 border-r bg-sidebar lg:flex lg:flex-col">
         <div className="flex h-16 items-center gap-2.5 border-b border-sidebar-border px-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground shadow-sm">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground shadow-sm">
             <span className="text-lg font-black">N</span>
           </div>
           <div className="leading-tight">
@@ -81,7 +81,7 @@ export function AdminPortal() {
         </nav>
         <div className="border-t border-sidebar-border p-3">
           <div className="flex items-center gap-2.5 rounded-lg border bg-card px-3 py-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-emerald-700 text-xs font-bold text-primary-foreground">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-blue-700 text-xs font-bold text-primary-foreground">
               {initials(user?.firstName ?? '', user?.lastName)}
             </div>
             <div className="min-w-0 flex-1 leading-tight">
@@ -187,7 +187,7 @@ function AdminDashboard({ onViewRequest, onNavigate }: { onViewRequest: (id: str
           <div className="flex items-center justify-between"><p className="text-xs text-muted-foreground">Utilidad</p><TrendingUp className="h-5 w-5 text-emerald-500" /></div>
           <p className="mt-2 text-2xl font-bold text-emerald-600">{formatCurrency(stats.profit)}</p>
           <p className="text-xs text-muted-foreground">Ing: {formatCurrency(stats.revenue)}</p>
-          <Sparkline color="#10b981" data={stats.revenueByDay?.map((d: { revenue: number }) => d.revenue) ?? [0,0,100,0,200,150,300]} />
+          <Sparkline color="#3b82f6" data={stats.revenueByDay?.map((d: { revenue: number }) => d.revenue) ?? [0,0,100,0,200,150,300]} />
         </CardContent></Card>
       </div>
 
@@ -647,7 +647,7 @@ function AdminNaios() {
     <div className="space-y-6">
       {/* Briefing */}
       <Card className="border-primary/20 bg-primary/5"><CardContent className="p-5">
-        <div className="flex items-center gap-2 mb-3"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground"><Sparkles className="h-4 w-4" /></div><div><h3 className="text-base font-semibold">Briefing ejecutivo</h3><p className="text-xs text-muted-foreground">Resumen generado por IA</p></div></div>
+        <div className="flex items-center gap-2 mb-3"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground"><Sparkles className="h-4 w-4" /></div><div><h3 className="text-base font-semibold">Briefing ejecutivo</h3><p className="text-xs text-muted-foreground">Resumen generado por IA</p></div></div>
         <div className="naios-markdown rounded-lg bg-muted/40 p-4 text-sm"><ReactMarkdown skipHtml>{briefing?.briefing ?? 'Cargando...'}</ReactMarkdown></div>
       </CardContent></Card>
 
@@ -675,7 +675,7 @@ function AdminNaios() {
       <Card className="overflow-hidden"><CardContent className="p-0">
         <div className="border-b bg-gradient-to-r from-primary/5 to-transparent p-4">
           <div className="flex items-center gap-2">
-            <BreathingAvatar className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground"><Bot className="h-4 w-4" /><span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card bg-emerald-500" /></BreathingAvatar>
+            <BreathingAvatar className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground"><Bot className="h-4 w-4" /><span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card bg-emerald-500" /></BreathingAvatar>
             <div><h3 className="text-base font-semibold">Conversación con NAIOS</h3><p className="text-xs text-muted-foreground">Tu copiloto de importaciones</p></div>
           </div>
         </div>
@@ -696,7 +696,7 @@ function AdminNaios() {
                 const isLastAssistant = m.role === 'assistant' && i === messages.length - 1 && !sending
                 return (
                 <motion.div key={i} variants={messageSlideIn} initial="hidden" animate="visible" className={cn('flex gap-2', m.role === 'user' && 'flex-row-reverse')}>
-                  <div className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-lg', m.role === 'assistant' ? 'bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground' : 'bg-muted')}>
+                  <div className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-lg', m.role === 'assistant' ? 'bg-gradient-to-br from-primary to-blue-700 text-primary-foreground' : 'bg-muted')}>
                     {m.role === 'assistant' ? <Bot className="h-3.5 w-3.5" /> : <Users className="h-3.5 w-3.5" />}
                   </div>
                   <div className={cn('max-w-[80%] rounded-2xl px-3 py-2 text-sm', m.role === 'assistant' ? 'rounded-tl-sm bg-muted/60' : 'rounded-tr-sm bg-primary text-primary-foreground')}>
@@ -711,7 +711,7 @@ function AdminNaios() {
                 </motion.div>
                 )
               })}
-              {sending && <div className="flex gap-2"><BreathingAvatar className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground"><Bot className="h-3.5 w-3.5" /></BreathingAvatar><NaiosTyping /></div>}
+              {sending && <div className="flex gap-2"><BreathingAvatar className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground"><Bot className="h-3.5 w-3.5" /></BreathingAvatar><NaiosTyping /></div>}
             </div>
           )}
         </div>

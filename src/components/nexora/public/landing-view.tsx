@@ -37,7 +37,7 @@ export function LandingView({ onNavigate, onLogin, onRegister }: LandingViewProp
       <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground shadow-sm">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground shadow-sm">
               <span className="text-lg font-black">N</span>
             </div>
             <span className="text-lg font-bold tracking-tight">NEXORA</span>
@@ -71,7 +71,7 @@ export function LandingView({ onNavigate, onLogin, onRegister }: LandingViewProp
               </Badge>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
                 Importa desde China
-                <span className="block bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent">nunca había sido tan fácil</span>
+                <span className="block bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">nunca había sido tan fácil</span>
               </h1>
               <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground lg:mx-0">
                 Tú eliges el producto. Nosotros nos encargamos del resto: buscar proveedores, negociar, comprar, importar y entregar.
@@ -324,7 +324,7 @@ export function LandingView({ onNavigate, onLogin, onRegister }: LandingViewProp
       {/* ===== CTA ===== */}
       <section className="py-20">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-emerald-700 px-8 py-16 text-center text-primary-foreground shadow-2xl sm:px-16">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-blue-700 px-8 py-16 text-center text-primary-foreground shadow-2xl sm:px-16">
             <div className="absolute inset-0 bg-grid-white/10" />
             <div className="relative">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">¿Listo para importar?</h2>
@@ -350,7 +350,7 @@ export function LandingView({ onNavigate, onLogin, onRegister }: LandingViewProp
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
             <div className="col-span-2">
               <div className="mb-3 flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground">
                   <span className="text-sm font-black">N</span>
                 </div>
                 <span className="font-bold">NEXORA</span>

@@ -7,7 +7,7 @@ import { CheckCircle2, Loader2, Sparkles, ShoppingCart } from 'lucide-react'
 
 // === #1 Confeti al crear solicitud ===
 export function fireConfetti() {
-  const colors = ['#10b981', '#0ea5e9', '#8b5cf6', '#f59e0b', '#f43f5e']
+  const colors = ['#3b82f6', '#0ea5e9', '#8b5cf6', '#f59e0b', '#f43f5e']
   confetti({
     particleCount: 80,
     spread: 70,
@@ -30,7 +30,7 @@ export function fireConfettiSmall() {
     origin: { y: 0.7 },
     zIndex: 9999,
     scalar: 0.8,
-    colors: ['#10b981', '#f59e0b', '#0ea5e9'],
+    colors: ['#3b82f6', '#f59e0b', '#0ea5e9'],
   })
 }
 
@@ -76,7 +76,7 @@ export function SuccessOverlay({ show, title, subtitle, onDone }: { show: boolea
               >
                 <motion.path
                   d="M14 24 L21 31 L34 16"
-                  stroke="#10b981"
+                  stroke="#3b82f6"
                   strokeWidth="4"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -169,7 +169,7 @@ export function LoadingOverlay({ show, message }: { show: boolean; message: stri
             <motion.div
               animate={{ scale: [1, 1.15, 1], opacity: [0.8, 1, 0.8] }}
               transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
-              className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground shadow-2xl"
+              className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-blue-700 text-primary-foreground shadow-2xl"
             >
               <span className="text-2xl font-black">N</span>
             </motion.div>
@@ -267,7 +267,7 @@ export function BreathingAvatar({ children, className }: { children: React.React
 
 // === #24 Typing indicator elegante ===
 export function NaiosTyping() {
-  const colors = ['#10b981', '#0ea5e9', '#8b5cf6']
+  const colors = ['#3b82f6', '#0ea5e9', '#8b5cf6']
   return (
     <div className="flex items-center gap-1.5 rounded-2xl rounded-tl-sm bg-muted/60 px-4 py-3">
       {[0, 1, 2].map((i) => (

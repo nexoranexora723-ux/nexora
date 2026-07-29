@@ -113,7 +113,7 @@ export function RegisterPage({ onBack, onLogin }: RegisterPageProps) {
             <ArrowLeft className="h-4 w-4" /> Volver al inicio
           </button>
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-primary-foreground">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground">
               <span className="text-sm font-black">N</span>
             </div>
             <span className="font-bold">NEXORA</span>
@@ -233,7 +233,7 @@ export function RegisterPage({ onBack, onLogin }: RegisterPageProps) {
 
         {/* Right: Benefits */}
         <div className="hidden lg:flex lg:flex-col lg:justify-center">
-          <div className="rounded-3xl bg-gradient-to-br from-primary to-emerald-700 p-8 text-primary-foreground shadow-xl">
+          <div className="rounded-3xl bg-gradient-to-br from-primary to-blue-700 p-8 text-primary-foreground shadow-xl">
             <h2 className="text-2xl font-bold">Importa desde China con NEXORA</h2>
             <p className="mt-2 opacity-90">Únete a cientos de emprendedores que ya importan productos sin complicaciones.</p>
 
