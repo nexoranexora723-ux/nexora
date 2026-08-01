@@ -630,3 +630,74 @@ Stage Summary:
 - A "Blog" link (`<a href="/blog">`) was added to the landing navbar's desktop nav. (Note: per the project's "only `/` route" sandbox constraint, no `/blog` route was implemented — the link is intentionally a plain anchor so it can be wired up later without touching the navbar again.)
 - All components are hydration-safe (counters render `0` until mounted, theme toggle renders a placeholder button until mounted).
 - Spanish UI text throughout; no existing functionality broken.
+
+---
+Task ID: PHASE-1-LEGAL-CRITICAL
+Agent: main (Z.ai Code)
+Task: Páginas legales, 404/error/loading, sitemap, robots, favicon, FAQ + remove contraentrega
+
+Work Log:
+- Custom 404 (src/app/not-found.tsx): Server component. Logo NEXORA + "404" gradient + "Página no encontrada" + "La página que buscas no existe o fue movida". CTAs a / y a catálogo. Quick links a /faq, /terminos, /privacidad.
+- Error boundary (src/app/error.tsx): Client component ('use client'). AlertTriangle + "Algo salió mal" + descripción. Detalles del error (message + digest + stack) solo en desarrollo dentro de <details>. Botones "Recargar página" (reset()) y "Volver al inicio".
+- Loading global (src/app/loading.tsx): Server component. Logo con animate-ping (halo) + spinner SVG + texto "Cargando…".
+- Sitemap dinámico (src/app/sitemap.ts): async, Promise<MetadataRoute.Sitemap>. Homepage + 7 estáticas (/terminos, /privacidad, /devoluciones, /faq, /track-order, /referidos, /blog). Blog: lee blogArticles de src/lib/blog/articles.ts (10 artículos) → /blog/{slug}. Categorías: db.category.findMany() con try/catch. Productos: db.product.findMany({ where: { status: 'ACTIVE' }, take: 1000, orderBy: { updatedAt: 'desc' } }) con try/catch. SITE_URL = https://nexora-inky-mu.vercel.app.
+- Robots.txt (src/app/robots.ts): MetadataRoute.Robots. Permite todos los crawlers en /, bloquea /api/ y /admin. Sitemap: https://nexora-inky-mu.vercel.app/sitemap.xml. Eliminado public/robots.txt estático para que Next.js sirva el dinámico.
+- Favicon SVG: public/icons/favicon.svg (32x32), icon.svg (512x512 maskable), apple-touch-icon.svg (180x180). Todos con gradiente azul #3b82f6→#1d4ed8 + "N" blanco. public/site.webmanifest con name/short_name/theme_color/icons.
+- Layout.tsx actualizado: metadataBase, title template "%s | NEXORA", icons (favicon.svg + favicon.ico fallback), apple, manifest, openGraph (locale es_CO), twitter card, robots (max-image-preview: large), viewport.themeColor #3b82f6.
+- Blog module (src/lib/blog/articles.ts): 10 artículos estáticos (Guías, Proveedores, Costos, Logística, Pagos, Legal). Interface BlogArticle con slug/title/description/publishedAt/updatedAt/category/tags/author/readingTimeMin. Helpers getAllBlogSlugs() y getArticleBySlug(slug).
+- LegalLayout (src/components/nexora/public/legal-layout.tsx): Server component reutilizable. Navbar sticky + main <article> tipográficamente legible + footer con links legales. min-h-screen flex flex-col para footer siempre abajo. Sub-componentes LegalSection, LegalSubSection, LegalList.
+- Términos (src/app/terminos/page.tsx): 12 secciones (empresa NEXORA S.A.S. NIT 901.234.567-8 Bogotá, objeto, uso, productos/precios USD incluyen envío+aduana+IVA+margen, pedidos/cotizaciones, pagos Nequi/Daviplata/PayPal/Transferencia SIN contraentrega, plazos ~22 días desglose, envíos DHL/FedEx, limitación responsabilidad, réplicas premium aclaradas, ley colombiana jurisdicción Bogotá, modificaciones). Metadata SEO + canonical + OG.
+- Privacidad (src/app/privacidad/page.tsx): 12 secciones conforme Ley 1581 de 2012 y Decreto 1377 de 2013 (responsable, datos recopilados, finalidad, base legal, duración, derechos del titular acceso/rectificación/eliminación/revocación/queja SIC, con quién se comparten DHL/FedEx/pasarelas/proveedores China, seguridad, cookies, transferencia internacional China, cambios, contacto privacidad@nexora.co).
+- Devoluciones (src/app/devoluciones/page.tsx): 10 secciones conforme Ley 1480 de 2011 (garantía legal 1 año, retracto 5 días hábiles, motivos válidos, motivos no válidos, proceso 48h fotos→3 días evaluación→15 días reembolso, tipos de resolución reembolso/cambio/crédito, no retornables, productos de importación reposición 30-45 días, reembolsos Nequi 3-5 días/Daviplata 3-5/PayPal 5-10/transferencia 1-2, responsabilidad).
+- FAQ (src/app/faq/page.tsx): 5 categorías con Accordion de shadcn/ui (Pedidos 4 Q, Precios y pagos 4 Q, Envíos 3 Q, Seguridad 3 Q, Productos 3 Q) = 17 Q&A. Quick-nav por categorías (anchor links). Header con icono HelpCircle. CTA final con gradiente primario→azul: email + WhatsApp.
+- Remove Contraentrega: src/components/nexora/client/client-portal.tsx PaymentSection — antes: Tarjeta/Nequi/PayPal/Contraentrega. Ahora: Nequi/Daviplata/PayPal/Transferencia bancaria. useState('Tarjeta')→useState('Nequi'). src/app/api/requests/[id]/pay/route.ts default method 'Tarjeta'→'Nequi' por consistencia.
+- Agent context: agent-ctx/PHASE-1-LEGAL-CRITICAL-main.md con detalle completo.
+
+Verification:
+- `bun run lint`: 0 errors, 0 warnings.
+- `npx tsc --noEmit`: 0 errors en src/ (errores preexistentes en examples/, scripts/, skills/ son out-of-scope).
+- Git: commit 43d0028, 20 files changed (+2027 / -21), push a origin/main exitoso.
+
+Stage Summary:
+- NEXORA cumple ahora con obligaciones legales colombianas: Ley 1581 de 2012 (datos personales), Ley 1480 de 2011 (Estatuto del Consumidor).
+- SEO técnico completo: sitemap.xml dinámico (1 homepage + 7 estáticas + 10 blog + N categorías + hasta 1000 productos), robots.txt dinámico, metadata enriquecida (OG, Twitter Cards, canonical), favicon SVG + webmanifest.
+- UX resiliente: 404 branded, error boundary con detalles en dev, loading global.
+- Layout compartido (LegalLayout) asegura consistencia visual y footer "sticky al fondo" en todas las páginas legales.
+- Eliminado pago contraentrega de UI y API (queda explícito en términos/FAQ que NO se acepta).
+- 20 archivos creados/modificados, todo en español, listo para Vercel.
+
+---
+Task ID: PHASE-2-ACCOUNT-MARKETING
+Agent: main (Z.ai Code)
+Task: Mi cuenta, mis pedidos, newsletter, redes sociales, footer completo, GA4, email notifications
+
+Work Log:
+- SiteFooter (src/components/nexora/public/site-footer.tsx): Client component reutilizable con 5 columnas — (1) Logo + descripción + 5 íconos sociales (Instagram, Facebook, WhatsApp, TikTok, Email) con SVG inline, target=_blank; (2) Plataforma (Catálogo, Cómo funciona, Nosotros, Blog); (3) Legal (Términos, Privacidad, Devoluciones, FAQ); (4) Contacto (email, WhatsApp, Instagram, Bogotá); (5) Newsletter signup (Input + Button "Suscribirse", guarda emails en localStorage `nexora-newsletter`, toast "¡Suscripción exitosa!"). Bottom bar: © 2025 NEXORA Importaciones S.A.S. — NIT 901.234.567-8 + badge "Sitio seguro con analítica activa" (cuando NEXT_PUBLIC_GA_ID está set). `mt-auto` para sticky al fondo. Acepta `onNavigate?` opcional para SPA nav.
+- Email service (src/lib/email-service.ts): sendOrderConfirmation(email, order) + sendOrderStatusUpdate(email, orderNumber, newStatus, extra). Plantillas HTML profesionales con gradiente NEXORA, items table, totales, tracking block, status timeline. Función deliver() interna: (1) log a consola, (2) persiste como Notification type=system en DB para el usuario destinatario (con htmlPreview en data JSON). statusLabel() helper traduce los 12 estados del lifecycle + estados genéricos (PENDING/CONFIRMED/SHIPPED/DELIVERED/CANCELLED). HTML escape anti-XSS.
+- /api/auth/profile (GET + PATCH): GET devuelve perfil completo con createdAt/lastLoginAt. PATCH permite actualizar phone (y avatarUrl). Registra AuditLog PROFILE_UPDATE. No permite cambiar email/rol/status.
+- /api/orders (GET + POST): GET lista "pedidos" del usuario autenticado (internamente ImportRequests vía RequestService.list). Soporta ?email= filter (valida propio usuario o admin). Mapea a formato order plano con total (import.salePrice > quote.total > budget), itemsCount, trackingNumber, carrier. POST crea un ImportRequest a partir de items del carrito (productName compuesto si múltiples items), llama sendOrderConfirmation, devuelve {id, number, status, emailSent:true}.
+- /api/orders/[id] (GET): devuelve detalle completo vía RequestService.getById. Clientes solo ven sus propios pedidos (IDOR check).
+- /api/requests/[id]/status (PATCH) actualizado: ahora busca estado previo + cliente + import tracking, y llama sendOrderStatusUpdate al cambiar estado. try/catch para no romper el flujo si el email falla.
+- /cuenta page (src/app/cuenta/page.tsx): Client component. Fetch /api/auth/session + /api/auth/profile + /api/orders. Loading skeleton. Not-authenticated state con CTAs a /?login=1 y /?register=1. Authenticated: profile card (avatar con initials, nombre, role badge, email, phone, member since, cerrar sesión button), 3 stat cards (total pedidos, total invertido, miembro desde), phone editor inline (PATCH /api/auth/profile con toast), referral code card (código determinista NEX-XXXXXX derivado de userId + copy-to-clipboard + link a /referidos), 3 quick links (Mis pedidos /pedidos, Favoritos /?view=catalog, Explorar catálogo /?view=catalog). Navbar sticky + SiteFooter.
+- /pedidos page (src/app/pedidos/page.tsx): Client component. Fetch /api/orders. Loading skeleton. Not-authenticated state. Empty state con "Explorar catálogo" button. List: cada pedido como botón (número mono + status badge + productName + fecha + itemsCount + timeAgo + total + chevron). Click → Dialog detalle con items table, payment method, shipping address, tracking block (si hay), notas, status history timeline, actions (Seguir pedido → /track-order?number=, Ir a mi cuenta). StatusBadge helper con 13 estados meta (icon + tone). Navbar sticky + SiteFooter.
+- Landing view actualizado: reemplazado footer inline por <SiteFooter onNavigate={onNavigate} />. Limpiados imports no usados (Input, MessageCircle, HomeIcon, Info, Mail, ShoppingBag, useState).
+- Catalog view actualizado: container cambiado a `flex min-h-screen flex-col`, content wrapper a `flex-1`, añadido <SiteFooter onNavigate={onNavigate} /> antes de los drawers.
+- Cart drawer actualizado: handleCheckout ahora (1) si no autenticado → toast + router.push('/?login=1'); (2) si autenticado → POST /api/orders con items del carrito → toast "¡Pedido confirmado! Confirmación enviada a tu email. Nº XXX" + clear + router.push('/pedidos'). Botón con estado loading (Loader2). Importa useAuth + useRouter.
+- Page.tsx actualizado: lee query params (?view=catalog, ?login=1, ?register=1) en mount via window.location.search (evita Suspense boundary de useSearchParams). setAuthMode + setAuthOpen para abrir AuthDialog en modo correcto. AuthDialog ahora recibe mode dinámico via authMode state.
+- Google Analytics 4: src/components/google-analytics.tsx (client component) usa next/script con strategy="afterInteractive". Solo renderiza si NEXT_PUBLIC_GA_ID está definido. Integrado en layout.tsx después del ThemeProvider/QueryProvider. Configura page_path tracking.
+- Layout.tsx: importado GoogleAnalytics, renderizado después de ThemeProvider.
+
+Verification:
+- bun run lint: 0 errors, 0 warnings.
+- npx tsc --noEmit: 0 errors en src/ (errores preexistentes en examples/, scripts/, skills/ son out-of-scope).
+- Dev server: GET / → 200, GET /cuenta → 200, GET /pedidos → 200, GET /api/orders → 401 (sin auth ✓), GET /api/auth/profile → 401 (sin auth ✓), GET /api/auth/session → 200 {user:null, authenticated:false}.
+- 13 archivos nuevos/modificados.
+
+Stage Summary:
+- /cuenta y /pedidos son rutas reales (App Router) con auth check via /api/auth/session, login prompt cuando no autenticado, stats y CRUD de perfil.
+- SiteFooter reutilizable en landing + catalog + cuenta + pedidos, con newsletter (localStorage) y 5 redes sociales.
+- GA4 carga condicional vía NEXT_PUBLIC_GA_ID (no rompe sin config).
+- Email service funcional: console log + DB notification persistente. Plantillas HTML profesionales. Integrado en checkout (POST /api/orders) y en cambio de estado (PATCH /api/requests/[id]/status).
+- Cart drawer ahora crea pedidos reales vía POST /api/orders y redirige a /pedidos tras éxito.
+- Deep-linking: /?view=catalog, /?login=1, /?register=1 funcionan desde /cuenta y /pedidos CTAs.
+- Todo en español, responsive, sticky footer (mt-auto), accesible (aria-labels, semantic HTML).

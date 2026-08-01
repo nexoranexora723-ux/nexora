@@ -1,21 +1,20 @@
 'use client'
 
-import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
   Globe, Ship, Search, ShieldCheck, Zap, TrendingUp, Users, Package,
-  ArrowRight, CheckCircle2, Sparkles, MessageCircle, FileSearch,
-  CreditCard, Truck, Home as HomeIcon, ShoppingBag, Info, Mail,
+  ArrowRight, CheckCircle2, Sparkles, FileSearch,
+  CreditCard, Truck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Product } from '@/lib/types'
 import { ImportCalculator } from '@/components/nexora/public/import-calculator'
 import { CartCounter, CartDrawer } from '@/components/nexora/public/cart-drawer'
 import { WishlistCounter, WishlistDrawer } from '@/components/nexora/public/wishlist-button'
+import { SiteFooter } from '@/components/nexora/public/site-footer'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { motion } from 'framer-motion'
 
@@ -216,40 +215,7 @@ export function LandingView({ onNavigate, onLogin, onRegister }: LandingViewProp
       </section>
 
       {/* ===== FOOTER ===== */}
-      <footer className="border-t bg-muted/30 py-12">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-            <div className="col-span-2">
-              <div className="mb-3 flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground">
-                  <span className="text-sm font-black">N</span>
-                </div>
-                <span className="font-bold">NEXORA</span>
-              </div>
-              <p className="max-w-xs text-sm text-muted-foreground">Plataforma inteligente de importación desde China. Tú eliges el producto, nosotros nos encargamos del resto.</p>
-            </div>
-            <div>
-              <h4 className="mb-3 text-sm font-semibold">Plataforma</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><button onClick={() => onNavigate('catalog')} className="hover:text-foreground">Catálogo</button></li>
-                <li><button onClick={() => onNavigate('how-it-works')} className="hover:text-foreground">Cómo Funciona</button></li>
-                <li><button onClick={() => onNavigate('about')} className="hover:text-foreground">Nosotros</button></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="mb-3 text-sm font-semibold">Contacto</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2"><Mail className="h-3.5 w-3.5" /> info@nexora.co</li>
-                <li className="flex items-center gap-2"><MessageCircle className="h-3.5 w-3.5" /> +57 310 555 0100</li>
-                <li className="flex items-center gap-2"><HomeIcon className="h-3.5 w-3.5" /> Bogotá, Colombia</li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-8 border-t pt-6 text-center text-xs text-muted-foreground">
-            © 2025 NEXORA Importaciones S.A.S. Todos los derechos reservados.
-          </div>
-        </div>
-      </footer>
+      <SiteFooter onNavigate={onNavigate} />
 
       {/* ===== DRAWERS (cart + wishlist) ===== */}
       <CartDrawer />

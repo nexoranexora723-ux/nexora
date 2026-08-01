@@ -18,9 +18,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 type View = 'landing' | 'catalog' | 'how-it-works' | 'about' | 'contact' | 'register' | 'product-detail'
 
+const VALID_VIEWS: View[] = ['landing', 'catalog', 'how-it-works', 'about', 'contact']
+
 export default function NexoraPage() {
   const [view, setView] = useState<View>('landing')
   const [authOpen, setAuthOpen] = useState(false)
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
   const { user, isAuthenticated, isLoading, setUser, setLoading } = useAuth()
 
@@ -38,7 +41,29 @@ export default function NexoraPage() {
     }
   }, [session, setUser, setLoading])
 
-  const openLogin = () => setAuthOpen(true)
+  // Apply deep-link query params once on mount (only when not authenticated).
+  // Used by /cuenta and /pedidos login CTAs and the SiteFooter links:
+  //   ?view=catalog | ?view=about | ?login=1 | ?register=1
+  useEffect(() => {
+    if (isAuthenticated) return
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const v = params.get('view')
+    if (v && VALID_VIEWS.includes(v as View)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setView(v as View)
+    }
+    if (params.get('login') === '1') {
+      setAuthMode('login')
+      setAuthOpen(true)
+    } else if (params.get('register') === '1') {
+      setAuthMode('register')
+      setAuthOpen(true)
+    }
+  }, [isAuthenticated])
+
+  const openLogin = () => { setAuthMode('login'); setAuthOpen(true) }
+  const openRegister = () => { setAuthMode('register'); setAuthOpen(true) }
 
   if (isLoading) {
     return (
@@ -71,17 +96,17 @@ export default function NexoraPage() {
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
         >
-          {view === 'landing' && <LandingView onNavigate={(view) => setView(view as View)} onLogin={openLogin} onRegister={() => setView('register')} />}
-          {view === 'catalog' && <CatalogView onNavigate={(view) => setView(view as View)} onLogin={openLogin} onRegister={() => setView('register')} onProductClick={(id) => { setSelectedProductId(id); setView('product-detail') }} />}
+          {view === 'landing' && <LandingView onNavigate={(view) => setView(view as View)} onLogin={openLogin} onRegister={openRegister} />}
+          {view === 'catalog' && <CatalogView onNavigate={(view) => setView(view as View)} onLogin={openLogin} onRegister={openRegister} onProductClick={(id) => { setSelectedProductId(id); setView('product-detail') }} />}
           {view === 'product-detail' && selectedProductId && (
-            <ProductDetailPage productId={selectedProductId} onBack={() => setView('catalog')} onRequest={() => setView('register')} />
+            <ProductDetailPage productId={selectedProductId} onBack={() => setView('catalog')} onRequest={openRegister} />
           )}
           {view === 'how-it-works' && <HowItWorksView onNavigate={(view) => setView(view as View)} onLogin={openLogin} />}
           {view === 'about' && <AboutView onNavigate={(view) => setView(view as View)} onLogin={openLogin} />}
           {view === 'contact' && <ContactView onNavigate={(view) => setView(view as View)} onLogin={openLogin} />}
         </motion.div>
       </AnimatePresence>
-      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} mode="login" onModeChange={() => {}} />
+      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} mode={authMode} onModeChange={setAuthMode} />
     </>
   )
 }

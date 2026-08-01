@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { QueryProvider } from "@/components/query-provider";
+import { GoogleAnalytics } from "@/components/google-analytics";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -70,6 +71,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <Toaster />
           </QueryProvider>
         </ThemeProvider>
+        {/* Google Analytics 4 — solo carga si NEXT_PUBLIC_GA_ID está configurado */}
+        <GoogleAnalytics />
       </body>
     </html>
   );

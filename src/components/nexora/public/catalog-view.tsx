@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import { CartCounter, CartDrawer } from '@/components/nexora/public/cart-drawer'
 import { WishlistCounter, WishlistDrawer } from '@/components/nexora/public/wishlist-button'
+import { SiteFooter } from '@/components/nexora/public/site-footer'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { useWishlist } from '@/lib/wishlist-store'
 import { useCart } from '@/lib/cart-store'
@@ -128,7 +129,7 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-background to-muted/20">
       <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <button onClick={() => onNavigate('landing')} className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
@@ -149,7 +150,7 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
         </div>
       </nav>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
         {/* Hero del catálogo */}
         <div className="mb-8 rounded-2xl bg-gradient-to-br from-primary/10 via-emerald-500/5 to-transparent p-6">
           <div className="flex items-center gap-2 mb-2">
@@ -282,6 +283,9 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
       {selectedProduct && (
         <ProductDetailDialog product={selectedProduct} onClose={() => setSelectedProduct(null)} onRequest={onRegister} />
       )}
+
+      {/* Footer */}
+      <SiteFooter onNavigate={onNavigate} />
 
       {/* Drawers */}
       <CartDrawer />

@@ -1,12 +1,14 @@
 'use client'
 
 import * as React from 'react'
-import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag, ArrowRight, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
 import { useCart, selectCartCount, selectCartTotal } from '@/lib/cart-store'
+import { useAuth } from '@/lib/auth-store'
 import { formatCurrency } from '@/lib/format'
 import { useToast } from '@/hooks/use-toast'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -70,15 +72,60 @@ export function CartDrawer() {
   const removeItem = useCart((s) => s.removeItem)
   const clear = useCart((s) => s.clear)
   const { toast } = useToast()
+  const router = useRouter()
+  const { isAuthenticated } = useAuth()
+  const [submitting, setSubmitting] = React.useState(false)
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (items.length === 0) return
-    toast({
-      title: '¡Carrito enviado!',
-      description: `Solicitud de importación creada para ${items.length} producto(s). Te contactaremos pronto.`,
-    })
-    clear()
-    setOpen(false)
+
+    // Si no está autenticado, redirige al login conservando el carrito.
+    if (!isAuthenticated) {
+      toast({
+        title: 'Inicia sesión para continuar',
+        description: 'Necesitas una cuenta para enviar tu solicitud de importación.',
+      })
+      setOpen(false)
+      router.push('/?login=1')
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items.map((i) => ({
+            name: i.name,
+            quantity: i.quantity,
+            price: i.price,
+            currencyCode: i.currencyCode ?? 'USD',
+            sku: i.sku,
+            imageUrl: i.imageUrl,
+          })),
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Error al crear el pedido')
+
+      toast({
+        title: '¡Pedido confirmado!',
+        description: `Confirmación enviada a tu email. Nº ${data.number ?? ''}`.trim(),
+      })
+      clear()
+      setOpen(false)
+      // Lleva al usuario a su historial de pedidos
+      router.push('/pedidos')
+    } catch (err) {
+      toast({
+        title: 'No se pudo crear el pedido',
+        description: err instanceof Error ? err.message : 'Intenta de nuevo',
+        variant: 'destructive',
+      })
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -196,8 +243,12 @@ export function CartDrawer() {
                   <span>{formatCurrency(total)}</span>
                 </div>
               </div>
-              <Button onClick={handleCheckout} className="w-full gap-2">
-                Solicitar importación <ArrowRight className="size-4" />
+              <Button onClick={handleCheckout} className="w-full gap-2" disabled={submitting}>
+                {submitting ? (
+                  <><Loader2 className="size-4 animate-spin" /> Creando pedido…</>
+                ) : (
+                  <>Solicitar importación <ArrowRight className="size-4" /></>
+                )}
               </Button>
               <p className="text-center text-[10px] text-muted-foreground">
                 Sin compromiso · Cotización gratis · Pago seguro
