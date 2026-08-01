@@ -332,11 +332,12 @@ interface RelatedProduct {
 }
 
 function RelatedProducts({ currentProductId, category, onRequest }: { currentProductId: string; category: string | null; onRequest: () => void }) {
-  const { data: products } = useQuery<RelatedProduct[]>({
+  const { data } = useQuery<{ products: RelatedProduct[] }>({
     queryKey: ['related-products', category],
-    queryFn: async () => (await fetch('/api/products')).json(),
+    queryFn: async () => (await fetch('/api/products?limit=60')).json(),
     staleTime: 60000,
   })
+  const products = data?.products ?? []
 
   const related = useMemo(() => {
     if (!products) return []

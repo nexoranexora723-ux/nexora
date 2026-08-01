@@ -24,10 +24,11 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('all')
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const { data: products, isLoading } = useQuery<Product[]>({
+  const { data, isLoading } = useQuery<{ products: Product[]; total: number }>({
     queryKey: ['products-public'],
-    queryFn: async () => (await fetch('/api/products')).json(),
+    queryFn: async () => (await fetch('/api/products?limit=60')).json(),
   })
+  const products = data?.products ?? []
 
   const categories = products ? [...new Set(products.map((p) => p.category?.name).filter(Boolean))] : []
   const filtered = (products ?? []).filter((p) => {

@@ -23,10 +23,11 @@ interface LandingViewProps {
 }
 
 export function LandingView({ onNavigate, onLogin, onRegister }: LandingViewProps) {
-  const { data: products } = useQuery<Product[]>({
+  const { data } = useQuery<{ products: Product[]; total: number }>({
     queryKey: ['products-public'],
-    queryFn: async () => (await fetch('/api/products')).json(),
+    queryFn: async () => (await fetch('/api/products?featured=true&limit=20')).json(),
   })
+  const products = data?.products ?? []
 
   const featured = products?.filter((p) => p.isFeatured).slice(0, 4) ?? []
   const allProducts = products?.slice(0, 8) ?? []
