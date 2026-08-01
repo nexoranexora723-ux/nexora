@@ -193,37 +193,6 @@ export function LandingView({ onNavigate, onLogin, onRegister }: LandingViewProp
                   </div>
                 </div>
 
-                {/* Floating badge 1 */}
-                <motion.div
-                  initial={{ opacity: 0, x: -20, y: 10 }}
-                  animate={{ opacity: 1, x: 0, y: 0 }}
-                  transition={{ delay: 0.8, type: 'spring', stiffness: 300 }}
-                  className="absolute -left-4 top-1/3 flex items-center gap-2 rounded-xl border bg-card p-3 shadow-xl"
-                >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
-                    <CheckCircle2 className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold">¡Solicitud aprobada!</p>
-                    <p className="text-[10px] text-muted-foreground">Proveedor encontrado</p>
-                  </div>
-                </motion.div>
-
-                {/* Floating badge 2 */}
-                <motion.div
-                  initial={{ opacity: 0, x: 20, y: -10 }}
-                  animate={{ opacity: 1, x: 0, y: 0 }}
-                  transition={{ delay: 1, type: 'spring', stiffness: 300 }}
-                  className="absolute -right-4 bottom-1/4 flex items-center gap-2 rounded-xl border bg-card p-3 shadow-xl"
-                >
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <Truck className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold">En tránsito</p>
-                    <p className="text-[10px] text-muted-foreground">ETA: 5 días</p>
-                  </div>
-                </motion.div>
               </motion.div>
             </div>
           </div>
