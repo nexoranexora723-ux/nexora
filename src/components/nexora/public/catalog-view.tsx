@@ -159,28 +159,11 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
           <p className="mt-2 text-muted-foreground">Productos verificados desde China con precios de fabricante. Tú eliges, nosotros importamos.</p>
         </div>
 
-        {/* Búsqueda + Filtro de marca (cascade: brands depend on category) */}
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="relative flex-1 max-w-md">
+        {/* Búsqueda */}
+        <div className="mb-4">
+          <div className="relative max-w-md">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="Buscar productos..." value={query} onChange={(e) => setQuery(e.target.value)} className="pl-9" />
-          </div>
-          {/* Filtro de marca (cascade - se actualiza según categoría) */}
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <Select value={brandFilter} onValueChange={setBrandFilter}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder={categoryId ? "Marcas en esta categoría" : "Todas las marcas"} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{categoryId ? "Todas las marcas (categoría)" : "Todas las marcas"}</SelectItem>
-                {brands.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>
-                    {b.name}{b.productCount ? ` (${b.productCount})` : ''}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </div>
 
@@ -199,6 +182,42 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
               onClick={() => setCategoryId(c.id)}
             >{c.icon} {c.name}</Button>
           ))}
+        </div>
+
+        {/* Filtro de marca (debajo de categorías, con mejor diseño) */}
+        <div className="mb-4 flex items-center gap-3 rounded-xl border bg-muted/30 p-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <Filter className="h-4 w-4 text-primary" />
+            <span>Filtrar por marca:</span>
+          </div>
+          <Select value={brandFilter} onValueChange={setBrandFilter}>
+            <SelectTrigger className="h-9 w-[220px] border-primary/20 bg-background">
+              <SelectValue placeholder={categoryId ? "Marcas en esta categoría" : "Todas las marcas"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{categoryId ? "Todas las marcas (categoría)" : "Todas las marcas"}</SelectItem>
+              {brands.map((b) => (
+                <SelectItem key={b.id} value={b.id}>
+                  {b.name}{b.productCount ? ` (${b.productCount})` : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {brandFilter !== 'all' && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-9 gap-1 text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => setBrandFilter('all')}
+            >
+              ✕ Quitar filtro
+            </Button>
+          )}
+          {categoryId && (
+            <span className="ml-auto text-xs text-muted-foreground">
+              {brands.length} marca{brands.length !== 1 ? 's' : ''} disponible{brands.length !== 1 ? 's' : ''}
+            </span>
+          )}
         </div>
 
         {/* Contador de resultados */}
