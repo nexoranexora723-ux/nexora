@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/auth-middleware'
 import { db } from '@/lib/db'
 import ZAI from 'z-ai-web-dev-sdk'
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const auth = await requireAuth(req)
     if (auth instanceof NextResponse) return auth

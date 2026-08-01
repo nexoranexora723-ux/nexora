@@ -64,7 +64,7 @@ export function WizardDialog({ open, onOpenChange }: WizardDialogProps) {
   const canProceed = () => {
     switch (step) {
       case 1: return data.category !== ''
-      case 2: return data.purpose !== ''
+      case 2: return true
       case 3: return data.quantity > 0
       case 4: return true // budget is optional
       case 5: return data.productName.trim() !== ''

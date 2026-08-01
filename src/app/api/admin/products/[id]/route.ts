@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { AuthService } from '@/server/services/auth.service'
 
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const t = _req.cookies.get('nexora-session')?.value
     const user = t ? await AuthService.validate(t) : null
@@ -25,7 +25,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   } catch { return NextResponse.json({ error: 'Error' }, { status: 500 }) }
 }
 
-export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const t = req.cookies.get('nexora-session')?.value
     const user = t ? await AuthService.validate(t) : null
@@ -70,7 +70,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   }
 }
 
-export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const t = _req.cookies.get('nexora-session')?.value
     const user = t ? await AuthService.validate(t) : null
@@ -83,7 +83,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   } catch { return NextResponse.json({ error: 'Error' }, { status: 500 }) }
 }
 
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const t = req.cookies.get('nexora-session')?.value
     const user = t ? await AuthService.validate(t) : null

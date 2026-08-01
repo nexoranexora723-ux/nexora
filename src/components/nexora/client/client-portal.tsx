@@ -368,7 +368,7 @@ function ClientCatalog({ onProductClick }: { onProductClick: (p: Product) => voi
         <div className="flex flex-wrap gap-1.5">
           <Button variant={category === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setCategory('all')}>Todos</Button>
           {categories.map((c) => (
-            <Button key={c} variant={category === c ? 'default' : 'outline'} size="sm" onClick={() => setCategory(c)}>{c}</Button>
+            <Button key={c} variant={category === c ? 'default' : 'outline'} size="sm" onClick={() => setCategory(c as string)}>{c}</Button>
           ))}
         </div>
       </div>
@@ -968,7 +968,6 @@ function CreateRequestDialog({ open, onOpenChange, prefill }: { open: boolean; o
   // Prefill from catalog product when dialog opens
   useEffect(() => {
     if (open && prefill) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm((f) => ({
         ...f,
         productName: prefill.name ?? f.productName,
@@ -977,7 +976,6 @@ function CreateRequestDialog({ open, onOpenChange, prefill }: { open: boolean; o
         referenceUrl: prefill.referenceUrl ?? f.referenceUrl,
       }))
     } else if (open && !prefill) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm({ productName: '', description: '', category: '', purpose: 'personal', quantity: 1, budget: '', referenceUrl: '', referenceImages: '', details: '', priority: 'MEDIUM' })
     }
   }, [open, prefill])

@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { RequestService } from '@/server/services/request.service'
 import { createRequestSchema } from '@/lib/schemas'
 import { AuthService } from '@/server/services/auth.service'
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
     const t = req.cookies.get('nexora-session')?.value
     const user = t ? await AuthService.validate(t) : null
@@ -41,7 +41,7 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const t = req.cookies.get('nexora-session')?.value
     const user = t ? await AuthService.validate(t) : null

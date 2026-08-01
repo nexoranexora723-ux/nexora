@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { AuthService } from '@/server/services/auth.service'
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
     const t = req.cookies.get('nexora-session')?.value
     if (!t) return NextResponse.json({ user: null, authenticated: false })

@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   },
   eslint: {
     ignoreDuringBuilds: true,
-  },
+  } as any,
   reactStrictMode: false,
   images: {
     remotePatterns: [
@@ -20,6 +20,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-};
+} as NextConfig;
 
 export default nextConfig;

@@ -71,14 +71,14 @@ export default function NexoraPage() {
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.25, ease: 'easeOut' }}
         >
-          {view === 'landing' && <LandingView onNavigate={setView} onLogin={openLogin} onRegister={() => setView('register')} />}
-          {view === 'catalog' && <CatalogView onNavigate={setView} onLogin={openLogin} onRegister={() => setView('register')} onProductClick={(id) => { setSelectedProductId(id); setView('product-detail') }} />}
+          {view === 'landing' && <LandingView onNavigate={(view) => setView(view as View)} onLogin={openLogin} onRegister={() => setView('register')} />}
+          {view === 'catalog' && <CatalogView onNavigate={(view) => setView(view as View)} onLogin={openLogin} onRegister={() => setView('register')} onProductClick={(id) => { setSelectedProductId(id); setView('product-detail') }} />}
           {view === 'product-detail' && selectedProductId && (
             <ProductDetailPage productId={selectedProductId} onBack={() => setView('catalog')} onRequest={() => setView('register')} />
           )}
-          {view === 'how-it-works' && <HowItWorksView onNavigate={setView} onLogin={openLogin} />}
-          {view === 'about' && <AboutView onNavigate={setView} onLogin={openLogin} />}
-          {view === 'contact' && <ContactView onNavigate={setView} onLogin={openLogin} />}
+          {view === 'how-it-works' && <HowItWorksView onNavigate={(view) => setView(view as View)} onLogin={openLogin} />}
+          {view === 'about' && <AboutView onNavigate={(view) => setView(view as View)} onLogin={openLogin} />}
+          {view === 'contact' && <ContactView onNavigate={(view) => setView(view as View)} onLogin={openLogin} />}
         </motion.div>
       </AnimatePresence>
       <AuthDialog open={authOpen} onOpenChange={setAuthOpen} mode="login" onModeChange={() => {}} />

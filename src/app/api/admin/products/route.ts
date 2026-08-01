@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { AuthService } from '@/server/services/auth.service'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   // Auth check
   try {
     const t = req.cookies.get('nexora-session')?.value
@@ -73,7 +73,7 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const t = req.cookies.get('nexora-session')?.value
     const user = t ? await AuthService.validate(t) : null
@@ -122,7 +122,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ id: product.id, success: true }, { status: 201 })
   } catch (error) {
-    log('error', 'POST /api/admin/products', { error })
+    console.error('POST /api/admin/products error:', error)
     return NextResponse.json({ error: 'Error al crear producto' }, { status: 500 })
   }
 }

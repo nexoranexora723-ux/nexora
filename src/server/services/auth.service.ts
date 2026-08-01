@@ -1,6 +1,7 @@
 import { db } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 import { LoginInput, RegisterInput } from '@/lib/schemas'
+import { ChangePasswordInput } from '@/lib/schemas/auth.schema'
 
 const SESSION_DURATION = 24 * 60 * 60 * 1000
 
@@ -69,5 +70,23 @@ export class AuthService {
       return null
     }
     return { id: s.user.id, firstName: s.user.firstName, lastName: s.user.lastName, email: s.user.email, role: s.user.role, position: s.user.position, phone: s.user.phone, avatarUrl: s.user.avatarUrl }
+  }
+
+  static async validateSession(t: string) {
+    return this.validate(t)
+  }
+
+  static async changePassword(userId: string, input: ChangePasswordInput): Promise<void> {
+    const user = await db.user.findUnique({ where: { id: userId, deletedAt: null } })
+    if (!user) throw new Error('Usuario no encontrado')
+
+    const valid = await bcrypt.compare(input.currentPassword, user.password)
+    if (!valid) throw new Error('La contraseña actual es incorrecta')
+
+    const hash = await bcrypt.hash(input.newPassword, 10)
+    await db.user.update({ where: { id: userId }, data: { password: hash } })
+    await db.auditLog.create({
+      data: { userId, action: 'PASSWORD_CHANGE', entity: 'user', entityId: userId, result: 'SUCCESS' },
+    })
   }
 }

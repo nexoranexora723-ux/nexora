@@ -72,7 +72,7 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
           <div className="flex flex-wrap gap-1.5">
             <Button variant={category === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setCategory('all')}>Todos</Button>
             {categories.map((c) => (
-              <Button key={c} variant={category === c ? 'default' : 'outline'} size="sm" onClick={() => setCategory(c)}>{c}</Button>
+              <Button key={c} variant={category === c ? 'default' : 'outline'} size="sm" onClick={() => setCategory(c as string)}>{c}</Button>
             ))}
           </div>
         </div>

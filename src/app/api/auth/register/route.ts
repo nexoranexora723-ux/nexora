@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { AuthService } from '@/server/services/auth.service'
 import { registerSchema } from '@/lib/schemas'
 import { db } from '@/lib/db'
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const parsed = registerSchema.safeParse(body)

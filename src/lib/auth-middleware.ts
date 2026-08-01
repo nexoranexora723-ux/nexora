@@ -1,5 +1,5 @@
 // NEXORA — Auth middleware for API routes
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { AuthService } from '@/server/services/auth.service'
 
 export interface AuthUser {
@@ -14,21 +14,21 @@ export interface AuthUser {
 }
 
 // Get authenticated user from request, or null
-export async function getUser(req: Request): Promise<AuthUser | null> {
+export async function getUser(req: NextRequest): Promise<AuthUser | null> {
   const token = req.cookies.get('nexora-session')?.value
   if (!token) return null
   return await AuthService.validate(token)
 }
 
 // Require authentication — returns user or 401 response
-export async function requireAuth(req: Request): Promise<AuthUser | NextResponse> {
+export async function requireAuth(req: NextRequest): Promise<AuthUser | NextResponse> {
   const user = await getUser(req)
   if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
   return user
 }
 
 // Require admin role — returns user or 403 response
-export async function requireAdmin(req: Request): Promise<AuthUser | NextResponse> {
+export async function requireAdmin(req: NextRequest): Promise<AuthUser | NextResponse> {
   const result = await requireAuth(req)
   if (result instanceof NextResponse) return result
   if (result.role !== 'ADMIN' && result.role !== 'SUPER_ADMIN' && result.role !== 'EMPLOYEE') {
@@ -38,7 +38,7 @@ export async function requireAdmin(req: Request): Promise<AuthUser | NextRespons
 }
 
 // Require admin only (no employees) — for sensitive operations
-export async function requireSuperAdmin(req: Request): Promise<AuthUser | NextResponse> {
+export async function requireSuperAdmin(req: NextRequest): Promise<AuthUser | NextResponse> {
   const result = await requireAuth(req)
   if (result instanceof NextResponse) return result
   if (result.role !== 'ADMIN' && result.role !== 'SUPER_ADMIN') {

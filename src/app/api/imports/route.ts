@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth, requireAdmin } from "@/lib/auth-middleware"
 import { db } from '@/lib/db'
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
     const auth = await requireAuth(req)
     if (auth instanceof NextResponse) return auth
@@ -37,7 +37,7 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const auth = await requireAdmin(req)
     if (auth instanceof NextResponse) return auth
@@ -77,7 +77,7 @@ export async function POST(req: Request) {
   }
 }
 
-export async function PATCH(req: Request) {
+export async function PATCH(req: NextRequest) {
   try {
     const auth = await requireAdmin(req)
     if (auth instanceof NextResponse) return auth

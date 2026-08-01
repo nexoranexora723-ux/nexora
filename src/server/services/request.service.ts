@@ -8,7 +8,6 @@ const INCLUDE = {
   imports: { include: { supplier: { select: { id: true, companyName: true } } }, orderBy: { createdAt: 'desc' } },
 } as const
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function enrich(r: any) {
   return {
     ...r,

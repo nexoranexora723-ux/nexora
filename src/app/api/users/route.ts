@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth-middleware'
 import { db } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
     const auth = await requireAdmin(req)
     if (auth instanceof NextResponse) return auth
@@ -19,7 +19,7 @@ export async function GET(req: Request) {
   } catch { return NextResponse.json([]) }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const auth = await requireAdmin(req)
     if (auth instanceof NextResponse) return auth

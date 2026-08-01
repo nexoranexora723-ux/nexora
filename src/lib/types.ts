@@ -65,6 +65,8 @@ export interface ImportRequest {
   details: string | null
   priority: string
   naiosSummary: string | null
+  naiosCategory: string | null
+  naiosPriority: string | null
   status: string
   notes: string | null
   createdAt: string
@@ -136,6 +138,7 @@ export interface Supplier {
   moq: number | null
   leadTime: number | null
   productionTime: number | null
+  warranty: string | null
   oem: boolean
   odm: boolean
   status: string
@@ -153,6 +156,7 @@ export interface Product {
   category: { id: string; name: string; icon: string | null } | null
   supplier: { id: string; companyName: string } | null
   imageUrl: string | null
+  referenceUrl: string | null
   estimatedCost: number | null
   suggestedPrice: number | null
   currencyCode: string
@@ -172,6 +176,7 @@ export interface DashboardStats {
   activeSuppliers: number
   requestsByStatus: { status: string; count: number }[]
   recentRequests: ImportRequest[]
+  revenueByDay?: { revenue: number }[]
 }
 
 export interface NaiosRecommendation {

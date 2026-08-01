@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { AuthService } from '@/server/services/auth.service'
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
     const t = req.cookies.get('nexora-session')?.value
     const user = t ? await AuthService.validate(t) : null

@@ -373,7 +373,7 @@ function RequestDetail({ id, onBack }: { id: string; onBack: () => void }) {
 
       {(req.quotes?.length ?? 0) > 0 && (
         <Card><CardContent className="p-5">
-          <h3 className="mb-3 text-sm font-semibold">Cotizaciones ({req.quotes.length})</h3>
+          <h3 className="mb-3 text-sm font-semibold">Cotizaciones ({req.quotes?.length ?? 0})</h3>
           <div className="space-y-2">
             {req.quotes!.map((q) => (
               <div key={q.id} className="rounded-lg border p-3">

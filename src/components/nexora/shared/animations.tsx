@@ -1,7 +1,7 @@
 'use client'
 
 import confetti from 'canvas-confetti'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { useEffect, useState, useRef } from 'react'
 import { CheckCircle2, Loader2, Sparkles, ShoppingCart } from 'lucide-react'
 
@@ -188,7 +188,7 @@ export function LoadingOverlay({ show, message }: { show: boolean; message: stri
 }
 
 // === #6 Stagger de productos al cargar ===
-export const staggerContainer = {
+export const staggerContainer: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -196,7 +196,7 @@ export const staggerContainer = {
   },
 }
 
-export const staggerItem = {
+export const staggerItem: Variants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 24 } },
 }
@@ -284,7 +284,7 @@ export function NaiosTyping() {
 }
 
 // === #25 Mensaje con slide ===
-export const messageSlideIn = {
+export const messageSlideIn: Variants = {
   hidden: { opacity: 0, y: 10, scale: 0.95 },
   visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 400, damping: 28 } },
 }
@@ -342,7 +342,7 @@ export function AnimatedTimeline({ currentStep, totalSteps }: { currentStep: num
       className="absolute left-0 top-4 h-0.5 bg-primary"
       initial={{ width: 0 }}
       animate={{ width: `${progress}%` }}
-      transition={{ duration: 0.8, ease: 'easeOutCubic' }}
+      transition={{ duration: 0.8, ease: 'easeOut' }}
     />
   )
 }

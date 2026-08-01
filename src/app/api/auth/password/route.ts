@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { AuthService } from '@/server/services/auth.service'
 import { changePasswordSchema } from '@/lib/schemas/auth.schema'
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const token = req.cookies.get('nexora-session')?.value
     if (!token) {

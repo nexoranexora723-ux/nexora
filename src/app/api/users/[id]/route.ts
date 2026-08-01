@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth-middleware'
 import { db } from '@/lib/db'
 import bcrypt from 'bcryptjs'
 
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await requireAdmin(req)
     if (auth instanceof NextResponse) return auth
@@ -14,7 +14,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   } catch { return NextResponse.json({ error: 'Error' }, { status: 500 }) }
 }
 
-export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await requireAdmin(req)
     if (auth instanceof NextResponse) return auth
@@ -34,7 +34,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   } catch { return NextResponse.json({ error: 'Error' }, { status: 500 }) }
 }
 
-export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await requireAdmin(req)
     if (auth instanceof NextResponse) return auth
@@ -45,7 +45,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   } catch { return NextResponse.json({ error: 'Error' }, { status: 500 }) }
 }
 
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await requireAdmin(req)
     if (auth instanceof NextResponse) return auth
