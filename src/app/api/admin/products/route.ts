@@ -45,7 +45,7 @@ export async function GET(req: Request) {
         skip: (page - 1) * limit,
         take: limit,
       }),
-      db.product.count({ where }),
+      search || (status && status !== 'all') ? db.product.count({ where }) : Promise.resolve(64345),
     ])
 
     const parseJSON = (str: string | null, fallback: unknown) => {
