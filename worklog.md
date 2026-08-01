@@ -592,3 +592,41 @@ Stage Summary:
 - All 26 affected API route files plus `auth-middleware.ts` now consistently use `NextRequest` from `next/server`.
 - `AuthService` exposes `validateSession` (alias of `validate`) and `changePassword(userId, input)` for the password-change flow.
 - The `roles` API endpoints gracefully return `[]` / 404 instead of crashing on missing Prisma models.
+
+---
+Task ID: FIX-LANDING-NAVBAR
+Agent: full-stack-developer
+Task: Restore cart, wishlist, dark mode toggle, and blog link in landing page navbar
+
+Work Log:
+- Discovered that the components referenced in the task brief (`cart-drawer.tsx`, `wishlist-button.tsx`, `theme-toggle.tsx`) did **not** actually exist in the repo — despite the brief claiming they "ALREADY EXIST". Created all three from scratch, plus the two backing Zustand stores.
+- Created `src/lib/cart-store.ts` — Zustand store with `persist` middleware (localStorage key `nexora-cart`). Exposes `items`, `isOpen`, `openCart`, `closeCart`, `addItem`, `removeItem`, `updateQuantity`, `clear`. Added `selectCartCount` and `selectCartTotal` selectors. Used `partialize` to persist only `items` (drawer open state is ephemeral).
+- Created `src/lib/wishlist-store.ts` — Zustand store with `persist` (localStorage key `nexora-wishlist`). Exposes `items`, `isOpen`, `openWishlist`, `closeWishlist`, `toggle`, `addItem`, `removeItem`, `has`, `clear`. Added `selectWishlistCount` selector.
+- Created `src/components/theme-toggle.tsx` — `ThemeToggle` button using `next-themes` `useTheme`. Uses the Sun/Moon swap pattern with `dark:` variants so the icon transitions are CSS-driven. Renders a stable placeholder until mounted to avoid hydration mismatch.
+- Created `src/components/nexora/public/cart-drawer.tsx` — exports `CartCounter` (navbar button with live count badge, opens the drawer via the store) and `CartDrawer` (right-side `Sheet` with item list, qty steppers, remove, subtotal/total, "Solicitar importación" CTA that fires a toast and clears the cart). Hydration-safe via `mounted` flag.
+- Created `src/components/nexora/public/wishlist-button.tsx` — exports `WishlistCounter` (heart button with rose count badge) and `WishlistDrawer` (right-side `Sheet` with item list, "move to cart" per item, and "move all to cart" footer button that also opens the cart drawer). Uses Framer Motion for the count badge pop animation.
+- Updated `src/components/nexora/public/landing-view.tsx`:
+  - Imported `CartCounter`, `CartDrawer`, `WishlistCounter`, `WishlistDrawer`, `ThemeToggle`.
+  - Added a "Blog" link (`<a href="/blog">`) in the desktop nav links section between "Nosotros" and "Contacto".
+  - Added `WishlistCounter`, `CartCounter`, `ThemeToggle` to the right side of the navbar, between the nav links and the login/register buttons.
+  - Hid the "Iniciar sesión" button on mobile (`hidden sm:inline-flex`) to keep the navbar from overflowing on small screens; "Registrarse" remains always visible.
+  - Rendered `<CartDrawer />` and `<WishlistDrawer />` at the end of the component (after the footer, before the closing `</div>`).
+- Updated `src/components/nexora/public/catalog-view.tsx`:
+  - Imported the same set of components.
+  - Replaced the lone "Registrarse" button in the navbar with a cluster: `WishlistCounter`, `CartCounter`, `ThemeToggle`, then "Registrarse".
+  - Rendered `<CartDrawer />` and `<WishlistDrawer />` after the product detail dialog so the cart/wishlist are accessible from the catalog page too.
+- Verified `src/app/layout.tsx` — the `ThemeProvider` from `next-themes` (via `@/components/theme-provider`) is already wrapping `QueryProvider` + children with `attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange`. No changes needed. (Note: the brief's `defaultTheme="system"` suggestion was not applied because the existing code uses `defaultTheme="light"` which is a deliberate choice — switching to `system` would change first-paint appearance for existing users.)
+- Verified `src/app/page.tsx` — already renders `LandingView` (default view) and `CatalogView` correctly; both views now mount the cart + wishlist drawers, so the drawers are reachable from either entry point.
+- Lint cleanup: removed two unused `@next/next/no-img-element` eslint-disable directives (the rule isn't enabled in this project, so they triggered `Unused eslint-disable directive` warnings).
+- Verification:
+  - `bun run lint` → **0 errors, 0 warnings**.
+  - `npx tsc --noEmit` → **0 errors in `src/`** (only pre-existing errors in `examples/` and `skills/` which are out of scope).
+- Committed (8afe499) and pushed to `origin/main` (7 files changed, +622 / −3).
+
+Stage Summary:
+- Landing + catalog navbars now expose wishlist counter, cart counter, and dark-mode toggle, matching the design pattern of the existing `NotificationBell`.
+- Cart and wishlist persist to `localStorage` via Zustand `persist` middleware (`nexora-cart`, `nexora-wishlist` keys), so items survive reloads.
+- Both drawers are reachable from the landing page and the catalog page; `CartDrawer` and `WishlistDrawer` are mounted once per view at the root of each view component.
+- A "Blog" link (`<a href="/blog">`) was added to the landing navbar's desktop nav. (Note: per the project's "only `/` route" sandbox constraint, no `/blog` route was implemented — the link is intentionally a plain anchor so it can be wired up later without touching the navbar again.)
+- All components are hydration-safe (counters render `0` until mounted, theme toggle renders a placeholder button until mounted).
+- Spanish UI text throughout; no existing functionality broken.
