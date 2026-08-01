@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { AuthService } from '@/server/services/auth.service'
-import { log } from '@/lib/platform-utils'
 
 export async function GET(req: Request) {
   try {
@@ -12,8 +11,8 @@ export async function GET(req: Request) {
     }
 
     const { searchParams } = new URL(req.url)
-    const page = parseInt(searchParams.get('page') ?? '1')
-    const limit = Math.min(parseInt(searchParams.get('limit') ?? '50'), 200)
+    const page = Math.max(1, parseInt(searchParams.get('page') ?? '1'))
+    const limit = Math.min(Math.max(1, parseInt(searchParams.get('limit') ?? '20')), 100)
     const search = searchParams.get('search') ?? ''
     const status = searchParams.get('status') ?? ''
 
@@ -32,8 +31,7 @@ export async function GET(req: Request) {
       db.product.findMany({
         where,
         select: {
-          id: true, sku: true, name: true, description: true, longDescription: true,
-          brandId: true, categoryId: true, supplierId: true,
+          id: true, sku: true, name: true, description: true,
           imageUrl: true, images: true, videoUrl: true,
           estimatedCost: true, suggestedPrice: true, currencyCode: true,
           status: true, isFeatured: true, specs: true, features: true,
@@ -58,7 +56,7 @@ export async function GET(req: Request) {
       products: products.map((p) => ({
         id: p.id, sku: p.sku, name: p.name,
         description: p.description,
-        longDescription: p.longDescription,
+        longDescription: null,
         brand: p.brand, category: p.category, supplier: p.supplier,
         imageUrl: p.imageUrl,
         images: parseJSON(p.images, p.imageUrl ? [p.imageUrl] : []),
@@ -81,8 +79,14 @@ export async function GET(req: Request) {
       totalPages: Math.ceil(total / limit),
     })
   } catch (error) {
-    log('error', 'GET /api/admin/products', { error })
-    return NextResponse.json({ error: 'Error' }, { status: 500 })
+    console.error('GET /api/admin/products error:', error)
+    return NextResponse.json({ 
+      products: [], 
+      total: 0, 
+      page: 1, 
+      totalPages: 0,
+      error: 'Error interno del servidor' 
+    }, { status: 500 })
   }
 }
 
