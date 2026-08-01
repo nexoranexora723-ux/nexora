@@ -3,6 +3,7 @@ import { AuthService } from '@/server/services/auth.service'
 import { RequestService } from '@/server/services/request.service'
 import { db } from '@/lib/db'
 import { sendOrderConfirmation } from '@/lib/email-service'
+import { enforceRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 
 /**
  * GET /api/orders
@@ -113,6 +114,10 @@ export async function GET(req: NextRequest) {
  *   3. Devuelve el pedido creado.
  */
 export async function POST(req: NextRequest) {
+  // Rate limit: 30 order creations per minute per IP
+  const limited = enforceRateLimit(req, 'orders-create', RATE_LIMITS.WRITE)
+  if (limited) return limited
+
   try {
     const t = req.cookies.get('nexora-session')?.value
     const user = t ? await AuthService.validate(t) : null

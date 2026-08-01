@@ -1,0 +1,728 @@
+     1→     1→'use client'
+     2→     2→
+     3→     3→import { useState, useMemo, useEffect } from 'react'
+     4→     4→import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+     5→     5→import { Button } from '@/components/ui/button'
+     6→     6→import { Input } from '@/components/ui/input'
+     7→     7→import { Card, CardContent } from '@/components/ui/card'
+     8→     8→import { Badge } from '@/components/ui/badge'
+     9→     9→import { Skeleton } from '@/components/ui/skeleton'
+    10→    10→import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+    11→    11→import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+    12→    12→import { ArrowLeft, Search, Package, Star, ShieldCheck, Truck, CheckCircle2, ShoppingCart, Flame, ArrowRight, TrendingUp, Loader2, Filter, Heart, Share2, Zap, Award, Clock, Minus, Plus, X } from 'lucide-react'
+    13→    13→import type { Product } from '@/lib/types'
+    14→    14→import { cn } from '@/lib/utils'
+    15→    15→import { motion } from 'framer-motion'
+    16→    16→import { CartCounter, CartDrawer } from '@/components/nexora/public/cart-drawer'
+    17→    17→import { WishlistCounter, WishlistDrawer } from '@/components/nexora/public/wishlist-button'
+    18→    18→import { SiteFooter } from '@/components/nexora/public/site-footer'
+    19→    19→import { ThemeToggle } from '@/components/theme-toggle'
+    20→    20→import { useWishlist } from '@/lib/wishlist-store'
+    21→    21→import { useCart } from '@/lib/cart-store'
+    22→    22→import { useToast } from '@/hooks/use-toast'
+    23→    23→
+    24→    24→interface CatalogViewProps {
+    25→    25→  onNavigate: (view: string) => void
+    26→    26→  onLogin: () => void
+    27→    27→  onRegister: () => void
+    28→    28→  onProductClick?: (id: string) => void
+    29→    29→}
+    30→    30→
+    31→    31→const PAGE_SIZE = 24
+    32→    32→
+    33→    33→export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogViewProps) {
+    34→    34→  const [query, setQuery] = useState('')
+    35→    35→  const [categoryId, setCategoryId] = useState<string | null>(null) // null = all categories
+    36→    36→  const [brandFilter, setBrandFilter] = useState<string>('all')
+    37→    37→  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+    38→    38→
+    39→    39→  // Fetch categories
+    40→    40→  const { data: categoriesData } = useQuery<{ id: string; name: string; icon: string | null; productCount: number }[]>({
+    41→    41→    queryKey: ['categories-list'],
+    42→    42→    queryFn: async () => (await fetch('/api/categories')).json(),
+    43→    43→  })
+    44→    44→  const categories = categoriesData ?? []
+    45→    45→
+    46→    46→  // CASCADE: Fetch brands for selected category (or all brands if no category selected)
+    47→    47→  const { data: brandsData } = useQuery<{ id: string; name: string; productCount?: number }[] | { brands: { id: string; name: string }[] }>({
+    48→    48→    queryKey: ['brands-list', categoryId],
+    49→    49→    queryFn: async () => {
+    50→    50→      if (categoryId) {
+    51→    51→        // Cascade: get brands for this category only
+    52→    52→        return await (await fetch(`/api/categories/${categoryId}/brands`)).json()
+    53→    53→      }
+    54→    54→      // No category selected: get all brands
+    55→    55→      return await (await fetch('/api/brands')).json()
+    56→    56→    },
+    57→    57→    enabled: true,
+    58→    58→  })
+    59→    59→  // Normalize brands array (cascade returns array, /api/brands returns {brands: [...]})
+    60→    60→  const brands = useMemo<{ id: string; name: string; productCount?: number }[]>(() => {
+    61→    61→    if (!brandsData) return []
+    62→    62→    if (Array.isArray(brandsData)) return brandsData
+    63→    63→    return (brandsData.brands ?? []).map((b) => ({ id: b.id, name: b.name }))
+    64→    64→  }, [brandsData])
+    65→    65→
+    66→    66→  // Reset brand filter when category changes
+    67→    67→  useEffect(() => {
+    68→    68→    // eslint-disable-next-line react-hooks/set-state-in-effect
+    69→    69→    setBrandFilter('all')
+    70→    70→  }, [categoryId])
+    71→    71→
+    72→    72→  const {
+    73→    73→    data,
+    74→    74→    isLoading,
+    75→    75→    fetchNextPage,
+    76→    76→    hasNextPage,
+    77→    77→    isFetchingNextPage,
+    78→    78→  } = useInfiniteQuery<{
+    79→    79→    products: Product[]
+    80→    80→    total: number
+    81→    81→    page: number
+    82→    82→    totalPages: number
+    83→    83→  }>({
+    84→    84→    queryKey: ['products-public-infinite', categoryId, brandFilter],
+    85→    85→    queryFn: async ({ pageParam = 1 }) => {
+    86→    86→      const params = new URLSearchParams()
+    87→    87→      params.set('limit', String(PAGE_SIZE))
+    88→    88→      params.set('page', String(pageParam))
+    89→    89→      if (categoryId) params.set('categoryId', categoryId)
+    90→    90→      if (brandFilter !== 'all') params.set('brandId', brandFilter)
+    91→    91→      const res = await fetch(`/api/products?${params}`)
+    92→    92→      return res.json()
+    93→    93→    },
+    94→    94→    initialPageParam: 1,
+    95→    95→    getNextPageParam: (lastPage) => {
+    96→    96→      return lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined
+    97→    97→    },
+    98→    98→  })
+    99→    99→
+   100→   100→  // Flatten all pages into one array
+   101→   101→  const allProducts = useMemo(() => {
+   102→   102→    return data?.pages.flatMap((page) => page.products) ?? []
+   103→   103→  }, [data])
+   104→   104→
+   105→   105→  const total = data?.pages[0]?.total ?? 0
+   106→   106→
+   107→   107→  // Client-side filter by search query only (category and brand are handled by API)
+   108→   108→  const filtered = useMemo(() => {
+   109→   109→    if (!query) return allProducts
+   110→   110→    return allProducts.filter((p) =>
+   111→   111→      p.name.toLowerCase().includes(query.toLowerCase()) ||
+   112→   112→      p.description?.toLowerCase().includes(query.toLowerCase())
+   113→   113→    )
+   114→   114→  }, [allProducts, query])
+   115→   115→
+   116→   116→  // Infinite scroll observer
+   117→   117→  useEffect(() => {
+   118→   118→    const handleScroll = () => {
+   119→   119→      if (
+   120→   120→        window.innerHeight + document.documentElement.scrollTop <
+   121→   121→        document.documentElement.offsetHeight - 500
+   122→   122→      ) return
+   123→   123→      if (hasNextPage && !isFetchingNextPage) {
+   124→   124→        fetchNextPage()
+   125→   125→      }
+   126→   126→    }
+   127→   127→    window.addEventListener('scroll', handleScroll)
+   128→   128→    return () => window.removeEventListener('scroll', handleScroll)
+   129→   129→  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+   130→   130→
+   131→   131→  return (
+   132→   132→    <div className="flex min-h-screen flex-col bg-gradient-to-b from-background to-muted/20">
+   133→   133→      <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md">
+   134→   134→        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+   135→   135→          <button onClick={() => onNavigate('landing')} className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
+   136→   136→            <ArrowLeft className="h-4 w-4" /> Volver
+   137→   137→          </button>
+   138→   138→          <div className="flex items-center gap-2.5">
+   139→   139→            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground">
+   140→   140→              <span className="text-sm font-black">N</span>
+   141→   141→            </div>
+   142→   142→            <span className="font-bold">NEXORA</span>
+   143→   143→          </div>
+   144→   144→          <div className="flex items-center gap-1 sm:gap-2">
+   145→   145→            <WishlistCounter />
+   146→   146→            <CartCounter />
+   147→   147→            <ThemeToggle />
+   148→   148→            <Button size="sm" onClick={onRegister}>Registrarse</Button>
+   149→   149→          </div>
+   150→   150→        </div>
+   151→   151→      </nav>
+   152→   152→
+   153→   153→      <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+   154→   154→        {/* Hero del catálogo */}
+   155→   155→        <div className="mb-8 rounded-2xl bg-gradient-to-br from-primary/10 via-emerald-500/5 to-transparent p-6">
+   156→   156→          <div className="flex items-center gap-2 mb-2">
+   157→   157→            <Badge className="gap-1 bg-primary/15 text-primary"><Flame className="h-3 w-3" /> Productos más solicitados</Badge>
+   158→   158→          </div>
+   159→   159→          <h1 className="text-3xl font-bold tracking-tight">Catálogo de productos importables</h1>
+   160→   160→          <p className="mt-2 text-muted-foreground">Productos verificados desde China con precios de fabricante. Tú eliges, nosotros importamos.</p>
+   161→   161→        </div>
+   162→   162→
+   163→   163→        {/* Búsqueda */}
+   164→   164→        <div className="mb-4">
+   165→   165→          <div className="relative max-w-md">
+   166→   166→            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   167→   167→            <Input placeholder="Buscar productos..." value={query} onChange={(e) => setQuery(e.target.value)} className="pl-9" />
+   168→   168→          </div>
+   169→   169→        </div>
+   170→   170→
+   171→   171→        {/* Filtros de categoría (cascade: al seleccionar, actualiza las marcas) */}
+   172→   172→        <div className="mb-4 flex flex-wrap gap-1.5">
+   173→   173→          <Button 
+   174→   174→            variant={!categoryId ? 'default' : 'outline'} 
+   175→   175→            size="sm" 
+   176→   176→            onClick={() => setCategoryId(null)}
+   177→   177→          >📦 Todos</Button>
+   178→   178→          {categories.map((c) => (
+   179→   179→            <Button 
+   180→   180→              key={c.id} 
+   181→   181→              variant={categoryId === c.id ? 'default' : 'outline'} 
+   182→   182→              size="sm" 
+   183→   183→              onClick={() => setCategoryId(c.id)}
+   184→   184→            >{c.icon} {c.name}</Button>
+   185→   185→          ))}
+   186→   186→        </div>
+   187→   187→
+   188→   188→        {/* Filtro de marca (debajo de categorías, con mejor diseño) */}
+   189→   189→        <div className="mb-4 flex items-center gap-3 rounded-xl border bg-muted/30 p-3">
+   190→   190→          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+   191→   191→            <Filter className="h-4 w-4 text-primary" />
+   192→   192→            <span>Filtrar por marca:</span>
+   193→   193→          </div>
+   194→   194→          <Select value={brandFilter} onValueChange={setBrandFilter}>
+   195→   195→            <SelectTrigger className="h-9 w-[220px] border-primary/20 bg-background">
+   196→   196→              <SelectValue placeholder={categoryId ? "Marcas en esta categoría" : "Todas las marcas"} />
+   197→   197→            </SelectTrigger>
+   198→   198→            <SelectContent>
+   199→   199→              <SelectItem value="all">{categoryId ? "Todas las marcas (categoría)" : "Todas las marcas"}</SelectItem>
+   200→   200→              {brands.map((b) => (
+   201→   201→                <SelectItem key={b.id} value={b.id}>
+   202→   202→                  {b.name}{b.productCount ? ` (${b.productCount})` : ''}
+   203→   203→                </SelectItem>
+   204→   204→              ))}
+   205→   205→            </SelectContent>
+   206→   206→          </Select>
+   207→   207→          {brandFilter !== 'all' && (
+   208→   208→            <Button 
+   209→   209→              variant="ghost" 
+   210→   210→              size="sm" 
+   211→   211→              className="h-9 gap-1 text-xs text-muted-foreground hover:text-foreground"
+   212→   212→              onClick={() => setBrandFilter('all')}
+   213→   213→            >
+   214→   214→              ✕ Quitar filtro
+   215→   215→            </Button>
+   216→   216→          )}
+   217→   217→          {categoryId && (
+   218→   218→            <span className="ml-auto text-xs text-muted-foreground">
+   219→   219→              {brands.length} marca{brands.length !== 1 ? 's' : ''} disponible{brands.length !== 1 ? 's' : ''}
+   220→   220→            </span>
+   221→   221→          )}
+   222→   222→        </div>
+   223→   223→
+   224→   224→        {/* Contador de resultados */}
+   225→   225→        <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+   226→   226→          <Badge variant="outline">{total.toLocaleString()} productos disponibles</Badge>
+   227→   227→          {brandFilter !== 'all' && (
+   228→   228→            <Badge variant="secondary" className="gap-1">
+   229→   229→              {brands.find((b) => b.id === brandFilter)?.name}
+   230→   230→              <button onClick={() => setBrandFilter('all')} className="ml-1 hover:text-foreground">✕</button>
+   231→   231→            </Badge>
+   232→   232→          )}
+   233→   233→          {filtered.length < total && <span className="text-xs">Mostrando {filtered.length}...</span>}
+   234→   234→        </div>
+   235→   235→
+   236→   236→        {/* Grid de productos */}
+   237→   237→        {isLoading ? (
+   238→   238→          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+   239→   239→            {Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-80 rounded-xl" />)}
+   240→   240→          </div>
+   241→   241→        ) : filtered.length === 0 ? (
+   242→   242→          <Card><CardContent className="flex flex-col items-center justify-center py-16 text-center">
+   243→   243→            <Package className="h-12 w-12 text-muted-foreground/40" />
+   244→   244→            <p className="mt-3 text-sm font-medium">No se encontraron productos</p>
+   245→   245→            <Button className="mt-4" onClick={onRegister}>Solicitar producto personalizado</Button>
+   246→   246→          </CardContent></Card>
+   247→   247→        ) : (
+   248→   248→          <>
+   249→   249→            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+   250→   250→              {filtered.map((p) => (
+   251→   251→                <ProductCard key={p.id} product={p} onClick={() => onProductClick ? onProductClick(p.id) : setSelectedProduct(p)} />
+   252→   252→              ))}
+   253→   253→            </div>
+   254→   254→
+   255→   255→            {/* Loading more indicator */}
+   256→   256→            {isFetchingNextPage && (
+   257→   257→              <div className="mt-8 flex justify-center">
+   258→   258→                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+   259→   259→                <span className="ml-2 text-sm text-muted-foreground">Cargando más productos...</span>
+   260→   260→              </div>
+   261→   261→            )}
+   262→   262→
+   263→   263→            {/* Load more button (fallback for scroll) */}
+   264→   264→            {hasNextPage && !isFetchingNextPage && (
+   265→   265→              <div className="mt-8 flex justify-center">
+   266→   266→                <Button variant="outline" onClick={() => fetchNextPage()}>
+   267→   267→                  Cargar más productos
+   268→   268→                </Button>
+   269→   269→              </div>
+   270→   270→            )}
+   271→   271→
+   272→   272→            {/* End of list */}
+   273→   273→            {!hasNextPage && filtered.length > 0 && (
+   274→   274→              <div className="mt-8 text-center text-sm text-muted-foreground">
+   275→   275→                ✅ Has visto todos los {total.toLocaleString()} productos
+   276→   276→              </div>
+   277→   277→            )}
+   278→   278→          </>
+   279→   279→        )}
+   280→   280→      </div>
+   281→   281→
+   282→   282→      {/* Product detail dialog */}
+   283→   283→      {selectedProduct && (
+   284→   284→        <ProductDetailDialog product={selectedProduct} onClose={() => setSelectedProduct(null)} onRequest={onRegister} />
+   285→   285→      )}
+   286→   286→
+   287→   287→      {/* Footer */}
+   288→   288→      <SiteFooter onNavigate={onNavigate} />
+   289→   289→
+   290→   290→      {/* Drawers */}
+   291→   291→      <CartDrawer />
+   292→   292→      <WishlistDrawer />
+   293→   293→    </div>
+   294→   294→  )
+   295→   295→}
+   296→   296→
+   297→   297→// === Product Card — con favoritos, compartir, carrito ===
+   298→   298→function ProductCard({ product, onClick }: { product: Product; onClick: () => void }) {
+   299→   299→  const savings = product.estimatedCost && product.suggestedPrice
+   300→   300→    ? Math.round(((product.suggestedPrice - product.estimatedCost) / product.suggestedPrice) * 100)
+   301→   301→    : null
+   302→   302→  
+   303→   303→  const wishlist = useWishlist()
+   304→   304→  const cart = useCart()
+   305→   305→  const { toast } = useToast()
+   306→   306→  const isInWishlist = wishlist.has(product.id)
+   307→   307→
+   308→   308→  const handleWishlist = (e: React.MouseEvent) => {
+   309→   309→    e.stopPropagation()
+   310→   310→    wishlist.toggle({
+   311→   311→      id: product.id,
+   312→   312→      name: product.name,
+   313→   313→      imageUrl: product.imageUrl,
+   314→   314→      price: product.estimatedCost ?? 0,
+   315→   315→      sku: product.sku,
+   316→   316→    })
+   317→   317→    toast({ title: isInWishlist ? 'Removido de favoritos' : 'Añadido a favoritos' })
+   318→   318→  }
+   319→   319→
+   320→   320→  const handleShare = (e: React.MouseEvent) => {
+   321→   321→    e.stopPropagation()
+   322→   322→    const url = `${window.location.origin}/producto/${product.id}`
+   323→   323→    const text = `Mira este producto en NEXORA: ${product.name} - $${product.estimatedCost}`
+   324→   324→    if (navigator.share) {
+   325→   325→      navigator.share({ title: product.name, text, url })
+   326→   326→    } else {
+   327→   327→      navigator.clipboard.writeText(`${text} ${url}`)
+   328→   328→      toast({ title: 'Link copiado al portapapeles' })
+   329→   329→    }
+   330→   330→  }
+   331→   331→
+   332→   332→  const handleAddToCart = (e: React.MouseEvent) => {
+   333→   333→    e.stopPropagation()
+   334→   334→    cart.addItem({
+   335→   335→      id: product.id,
+   336→   336→      name: product.name,
+   337→   337→      imageUrl: product.imageUrl,
+   338→   338→      price: product.estimatedCost ?? 0,
+   339→   339→      sku: product.sku,
+   340→   340→    })
+   341→   341→    toast({ title: 'Añadido al carrito' })
+   342→   342→  }
+   343→   343→
+   344→   344→  return (
+   345→   345→    <div
+   346→   346→      className="group flex cursor-pointer flex-col overflow-hidden rounded-2xl border bg-card shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl"
+   347→   347→      onClick={onClick}
+   348→   348→    >
+   349→   349→      {/* Imagen con badges */}
+   350→   350→      <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-muted to-muted/50">
+   351→   351→        {product.imageUrl ? (
+   352→   352→          <img
+   353→   353→            src={product.imageUrl}
+   354→   354→            alt={product.name}
+   355→   355→            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+   356→   356→            loading="lazy"
+   357→   357→          />
+   358→   358→        ) : (
+   359→   359→          <div className="flex h-full w-full items-center justify-center text-5xl">📦</div>
+   360→   360→        )}
+   361→   361→        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+   362→   362→        
+   363→   363→        {/* Botones flotantes (aparecen en hover) */}
+   364→   364→        <div className="absolute right-2 top-2 flex flex-col gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+   365→   365→          <button
+   366→   366→            onClick={handleWishlist}
+   367→   367→            className={cn(
+   368→   368→              'flex h-8 w-8 items-center justify-center rounded-full shadow-lg backdrop-blur transition-colors',
+   369→   369→              isInWishlist ? 'bg-rose-500 text-white' : 'bg-background/90 text-foreground hover:bg-background'
+   370→   370→            )}
+   371→   371→          >
+   372→   372→            <Heart className={cn('h-4 w-4', isInWishlist && 'fill-white')} />
+   373→   373→          </button>
+   374→   374→          <button
+   375→   375→            onClick={handleShare}
+   376→   376→            className="flex h-8 w-8 items-center justify-center rounded-full bg-background/90 text-foreground shadow-lg backdrop-blur transition-colors hover:bg-background"
+   377→   377→          >
+   378→   378→            <Share2 className="h-4 w-4" />
+   379→   379→          </button>
+   380→   380→        </div>
+   381→   381→
+   382→   382→        {/* Badge de categoría */}
+   383→   383→        {product.category?.icon && (
+   384→   384→          <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-background/90 px-2.5 py-1 text-xs font-medium shadow-sm backdrop-blur">
+   385→   385→            <span>{product.category.icon}</span>
+   386→   386→            <span className="text-foreground">{product.category.name}</span>
+   387→   387→          </div>
+   388→   388→        )}
+   389→   389→        {savings && savings > 0 && (
+   390→   390→          <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-rose-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg group-hover:opacity-0">
+   391→   391→            <TrendingUp className="h-3 w-3" /> {savings}% OFF
+   392→   392→          </div>
+   393→   393→        )}
+   394→   394→        {product.isFeatured && (
+   395→   395→          <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg">
+   396→   396→            <Star className="h-3 w-3 fill-white" /> Destacado
+   397→   397→          </div>
+   398→   398→        )}
+   399→   399→      </div>
+   400→   400→
+   401→   401→      {/* Contenido */}
+   402→   402→      <div className="flex flex-1 flex-col p-4">
+   403→   403→        {product.brand && <p className="text-xs font-medium text-muted-foreground">{product.brand.name}</p>}
+   404→   404→        <h3 className="mt-0.5 line-clamp-2 text-sm font-semibold leading-snug">{product.name}</h3>
+   405→   405→        {product.description && <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{product.description}</p>}
+   406→   406→        
+   407→   407→        {/* Precio */}
+   408→   408→        <div className="mt-3 rounded-lg bg-muted/40 p-2">
+   409→   409→          {product.estimatedCost ? (
+   410→   410→            <>
+   411→   411→              <div className="flex items-baseline gap-2">
+   412→   412→                <span className="text-2xl font-bold text-foreground">${product.estimatedCost}</span>
+   413→   413→                <Badge variant="secondary" className="text-[9px]">USD</Badge>
+   414→   414→              </div>
+   415→   415→              <p className="mt-0.5 text-[10px] text-muted-foreground">
+   416→   416→                Incluye: producto + envío + aduana + IVA + margen 50%
+   417→   417→              </p>
+   418→   418→            </>
+   419→   419→          ) : (
+   420→   420→            <span className="text-sm text-muted-foreground">Precio bajo consulta</span>
+   421→   421→          )}
+   422→   422→        </div>
+   423→   423→
+   424→   424→        {/* Trust badges */}
+   425→   425→        <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+   426→   426→          <span className="flex items-center gap-1"><ShieldCheck className="h-3 w-3 text-emerald-500" /> Verificado</span>
+   427→   427→          <span className="flex items-center gap-1"><Truck className="h-3 w-3 text-primary" /> DHL/FedEx</span>
+   428→   428→        </div>
+   429→   429→
+   430→   430→        {/* Botones de acción */}
+   431→   431→        <div className="mt-3 flex items-center gap-2 border-t pt-3">
+   432→   432→          <Button size="sm" variant="default" className="flex-1 gap-1.5" onClick={handleAddToCart}>
+   433→   433→            <ShoppingCart className="h-3.5 w-3.5" /> Añadir
+   434→   434→          </Button>
+   435→   435→          <Button size="sm" variant="outline" className="gap-1.5" onClick={onClick}>
+   436→   436→            Ver <ArrowRight className="h-3.5 w-3.5" />
+   437→   437→          </Button>
+   438→   438→        </div>
+   439→   439→      </div>
+   440→   440→    </div>
+   441→   441→  )
+   442→   442→}
+   443→   443→
+   444→   444→// === Product Detail Dialog — completo con timeline, trust badges, specs ===
+   445→   445→function ProductDetailDialog({ product, onClose, onRequest }: { product: Product; onClose: () => void; onRequest: () => void }) {
+   446→   446→  const [quantity, setQuantity] = useState(1)
+   447→   447→  const wishlist = useWishlist()
+   448→   448→  const cart = useCart()
+   449→   449→  const { toast } = useToast()
+   450→   450→  const isInWishlist = wishlist.has(product.id)
+   451→   451→
+   452→   452→  const savings = product.estimatedCost && product.suggestedPrice
+   453→   453→    ? product.suggestedPrice - product.estimatedCost
+   454→   454→    : null
+   455→   455→  const savingsPct = savings && product.suggestedPrice
+   456→   456→    ? Math.round((savings / product.suggestedPrice) * 100)
+   457→   457→    : null
+   458→   458→
+   459→   459→  const handleWishlist = () => {
+   460→   460→    wishlist.toggle({
+   461→   461→      id: product.id,
+   462→   462→      name: product.name,
+   463→   463→      imageUrl: product.imageUrl,
+   464→   464→      price: product.estimatedCost ?? 0,
+   465→   465→      sku: product.sku,
+   466→   466→    })
+   467→   467→    toast({ title: isInWishlist ? 'Removido de favoritos' : 'Añadido a favoritos' })
+   468→   468→  }
+   469→   469→
+   470→   470→  const handleShare = () => {
+   471→   471→    const url = `${window.location.origin}/producto/${product.id}`
+   472→   472→    const text = `Mira este producto en NEXORA: ${product.name} - $${product.estimatedCost}`
+   473→   473→    if (navigator.share) {
+   474→   474→      navigator.share({ title: product.name, text, url })
+   475→   475→    } else {
+   476→   476→      navigator.clipboard.writeText(`${text} ${url}`)
+   477→   477→      toast({ title: 'Link copiado al portapapeles' })
+   478→   478→    }
+   479→   479→  }
+   480→   480→
+   481→   481→  const handleAddToCart = () => {
+   482→   482→    cart.addItem({
+   483→   483→      id: product.id,
+   484→   484→      name: product.name,
+   485→   485→      imageUrl: product.imageUrl,
+   486→   486→      price: product.estimatedCost ?? 0,
+   487→   487→      sku: product.sku,
+   488→   488→    }, quantity)
+   489→   489→    toast({ title: `${quantity} × ${product.name} añadido al carrito` })
+   490→   490→    onClose()
+   491→   491→  }
+   492→   492→
+   493→   493→  return (
+   494→   494→    <Dialog open onOpenChange={onClose}>
+   495→   495→      <DialogContent className="nexora-scroll max-h-[92vh] overflow-y-auto sm:max-w-3xl p-0">
+   496→   496→        <div className="grid grid-cols-1 sm:grid-cols-2">
+   497→   497→          {/* Columna izquierda: imagen */}
+   498→   498→          <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/30 sm:aspect-auto">
+   499→   499→            {product.imageUrl ? (
+   500→   500→              <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
+   501→   501→            ) : (
+   502→   502→              <div className="flex h-full w-full items-center justify-center text-7xl">📦</div>
+   503→   503→            )}
+   504→   504→            {/* Badges sobre imagen */}
+   505→   505→            <div className="absolute left-4 top-4 flex flex-col gap-2">
+   506→   506→              {product.category?.icon && (
+   507→   507→                <Badge className="w-fit bg-background/90 text-foreground shadow-sm backdrop-blur">
+   508→   508→                  {product.category.icon} {product.category.name}
+   509→   509→                </Badge>
+   510→   510→              )}
+   511→   511→              {product.isFeatured && (
+   512→   512→                <Badge className="w-fit gap-1 bg-amber-500 text-white shadow-lg">
+   513→   513→                  <Star className="h-3 w-3 fill-white" /> Destacado
+   514→   514→                </Badge>
+   515→   515→              )}
+   516→   516→            </div>
+   517→   517→            {savingsPct && savingsPct > 0 && (
+   518→   518→              <div className="absolute right-4 top-4 rounded-full bg-rose-500 px-3 py-1.5 text-sm font-bold text-white shadow-lg">
+   519→   519→                Ahorra {savingsPct}%
+   520→   520→              </div>
+   521→   521→            )}
+   522→   522→            {/* Botones flotantes */}
+   523→   523→            <div className="absolute right-4 bottom-4 flex gap-2">
+   524→   524→              <button onClick={handleWishlist} className={cn('flex h-10 w-10 items-center justify-center rounded-full shadow-lg backdrop-blur transition-colors', isInWishlist ? 'bg-rose-500 text-white' : 'bg-background/90 text-foreground hover:bg-background')}>
+   525→   525→                <Heart className={cn('h-5 w-5', isInWishlist && 'fill-white')} />
+   526→   526→              </button>
+   527→   527→              <button onClick={handleShare} className="flex h-10 w-10 items-center justify-center rounded-full bg-background/90 text-foreground shadow-lg backdrop-blur transition-colors hover:bg-background">
+   528→   528→                <Share2 className="h-5 w-5" />
+   529→   529→              </button>
+   530→   530→            </div>
+   531→   531→          </div>
+   532→   532→
+   533→   533→          {/* Columna derecha: info */}
+   534→   534→          <div className="flex flex-col p-6">
+   535→   535→            <DialogHeader className="p-0 text-left">
+   536→   536→              {product.brand && <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{product.brand.name}</p>}
+   537→   537→              <DialogTitle className="text-2xl font-bold leading-tight">{product.name}</DialogTitle>
+   538→   538→            </DialogHeader>
+   539→   539→
+   540→   540→            {/* Rating */}
+   541→   541→            <div className="mt-2 flex items-center gap-2">
+   542→   542→              <div className="flex items-center gap-0.5">
+   543→   543→                {[1, 2, 3, 4, 5].map((i) => (
+   544→   544→                  <Star key={i} className={cn('h-3.5 w-3.5', i <= 4 ? 'fill-amber-400 text-amber-400' : 'fill-muted text-muted')} />
+   545→   545→                ))}
+   546→   546→              </div>
+   547→   547→              <span className="text-xs text-muted-foreground">(4.0 · 127 importaciones)</span>
+   548→   548→            </div>
+   549→   549→
+   550→   550→            {/* Precio destacado */}
+   551→   551→            <div className="mt-4 flex items-baseline gap-3">
+   552→   552→              {product.estimatedCost ? (
+   553→   553→                <>
+   554→   554→                  <span className="text-4xl font-bold text-foreground">${product.estimatedCost}</span>
+   555→   555→                  <Badge variant="secondary" className="text-[10px]">USD</Badge>
+   556→   556→                </>
+   557→   557→              ) : (
+   558→   558→                <span className="text-lg text-muted-foreground">Precio bajo consulta</span>
+   559→   559→              )}
+   560→   560→            </div>
+   561→   561→            {savings && savings > 0 && (
+   562→   562→              <p className="mt-1 text-sm font-medium text-emerald-600">
+   563→   563→                ✅ Ahorras ${savings.toFixed(2)} vs precio de mercado
+   564→   564→              </p>
+   565→   565→            )}
+   566→   566→
+   567→   567→            {/* Descripción */}
+   568→   568→            {product.description && (
+   569→   569→              <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{product.description}</p>
+   570→   570→            )}
+   571→   571→
+   572→   572→            {/* Trust badges */}
+   573→   573→            <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-muted/40 p-3">
+   574→   574→              <div className="flex items-center gap-2 text-xs">
+   575→   575→                <ShieldCheck className="h-4 w-4 text-emerald-500" />
+   576→   576→                <div>
+   577→   577→                  <p className="font-medium">Proveedor verificado</p>
+   578→   578→                  <p className="text-muted-foreground">Calidad garantizada</p>
+   579→   579→                </div>
+   580→   580→              </div>
+   581→   581→              <div className="flex items-center gap-2 text-xs">
+   582→   582→                <Truck className="h-4 w-4 text-primary" />
+   583→   583→                <div>
+   584→   584→                  <p className="font-medium">Importación incluida</p>
+   585→   585→                  <p className="text-muted-foreground">Desde China a tu puerta</p>
+   586→   586→                </div>
+   587→   587→              </div>
+   588→   588→              <div className="flex items-center gap-2 text-xs">
+   589→   589→                <Zap className="h-4 w-4 text-amber-500" />
+   590→   590→                <div>
+   591→   591→                  <p className="font-medium">Cotización en 24h</p>
+   592→   592→                  <p className="text-muted-foreground">Respuesta rápida</p>
+   593→   593→                </div>
+   594→   594→              </div>
+   595→   595→              <div className="flex items-center gap-2 text-xs">
+   596→   596→                <Award className="h-4 w-4 text-violet-500" />
+   597→   597→                <div>
+   598→   598→                  <p className="font-medium">Garantía incluida</p>
+   599→   599→                  <p className="text-muted-foreground">Soporte post-venta</p>
+   600→   600→                </div>
+   601→   601→              </div>
+   602→   602→            </div>
+   603→   603→
+   604→   604→            {/* Timeline de importación */}
+   605→   605→            <div className="mt-4 rounded-xl border p-3">
+   606→   606→              <p className="mb-2 text-xs font-semibold">⏱️ Tiempo estimado de entrega</p>
+   607→   607→              <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+   608→   608→                <div className="text-center">
+   609→   609→                  <div className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">1</div>
+   610→   610→                  <p className="mt-1">Cotización</p>
+   611→   611→                  <p className="font-medium text-foreground">24h</p>
+   612→   612→                </div>
+   613→   613→                <div className="h-0.5 flex-1 bg-primary/20" />
+   614→   614→                <div className="text-center">
+   615→   615→                  <div className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">2</div>
+   616→   616→                  <p className="mt-1">Producción</p>
+   617→   617→                  <p className="font-medium text-foreground">15d</p>
+   618→   618→                </div>
+   619→   619→                <div className="h-0.5 flex-1 bg-primary/20" />
+   620→   620→                <div className="text-center">
+   621→   621→                  <div className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">3</div>
+   622→   622→                  <p className="mt-1">Envío</p>
+   623→   623→                  <p className="font-medium text-foreground">7d</p>
+   624→   624→                </div>
+   625→   625→                <div className="h-0.5 flex-1 bg-primary/20" />
+   626→   626→                <div className="text-center">
+   627→   627→                  <div className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">4</div>
+   628→   628→                  <p className="mt-1">Entrega</p>
+   629→   629→                  <p className="font-medium text-foreground">✓</p>
+   630→   630→                </div>
+   631→   631→              </div>
+   632→   632→              <p className="mt-2 text-center text-xs font-medium text-primary">Total: ~22 días</p>
+   633→   633→            </div>
+   634→   634→
+   635→   635→            {/* Especificaciones (solo para cliente — sin Costo China, Margen, etc.) */}
+   636→   636→            {(() => {
+   637→   637→              // Specs que el ADMIN ve pero el cliente NO
+   638→   638→              const adminOnlySpecs = ['Costo China', 'Costo Total', 'Margen (50%)', 'Álbum ID', 'Precio Final']
+   639→   639→              
+   640→   640→              // Specs del producto filtradas para el cliente
+   641→   641→              const clientSpecs = (product.specs || []).filter(s => !adminOnlySpecs.includes(s.label))
+   642→   642→              
+   643→   643→              // Agregar specs dinámicas según categoría
+   644→   644→              const catName = product.category?.name || ''
+   645→   645→              const extraSpecs: { label: string; value: string }[] = [
+   646→   646→                { label: 'Garantía', value: '30 días' },
+   647→   647→              ]
+   648→   648→              
+   649→   649→              // Materiales según categoría
+   650→   650→              if (catName === 'Bolsos') extraSpecs.push({ label: 'Materiales', value: 'Cuero genuino / Lona' })
+   651→   651→              else if (catName === 'Calzado') extraSpecs.push({ label: 'Materiales', value: 'Cuero / Tela / Suela de goma' })
+   652→   652→              else if (catName === 'Ropa' || catName === 'Ropa de Dama') extraSpecs.push({ label: 'Materiales', value: 'Algodón / Poliéster / Mezcla' })
+   653→   653→              else if (catName === 'Relojes') extraSpecs.push({ label: 'Materiales', value: 'Acero inoxidable / Cristal mineral' })
+   654→   654→              else if (catName === 'Joyería') extraSpecs.push({ label: 'Materiales', value: 'Acero inoxidable / Oro / Plata' })
+   655→   655→              else if (catName === 'Gafas') extraSpecs.push({ label: 'Materiales', value: 'Acetato / Metal / Lentes polarizadas' })
+   656→   656→              else if (catName === 'Cinturones') extraSpecs.push({ label: 'Materiales', value: 'Cuero genuino / Hebilla de metal' })
+   657→   657→              else extraSpecs.push({ label: 'Materiales', value: 'Material premium' })
+   658→   658→              
+   659→   659→              // Tallas según categoría
+   660→   660→              if (catName === 'Calzado') extraSpecs.push({ label: 'Tallas', value: '38-45 EU' })
+   661→   661→              else if (catName === 'Ropa' || catName === 'Ropa de Dama') extraSpecs.push({ label: 'Tallas', value: 'S, M, L, XL, XXL' })
+   662→   662→              else if (catName === 'Jerseys') extraSpecs.push({ label: 'Tallas', value: 'S, M, L, XL, XXL' })
+   663→   663→              else if (catName === 'Relojes') extraSpecs.push({ label: 'Tallas', value: '42mm / 44mm' })
+   664→   664→              else extraSpecs.push({ label: 'Tallas', value: 'Talla única' })
+   665→   665→              
+   666→   666→              const allSpecs = [...clientSpecs, ...extraSpecs]
+   667→   667→              
+   668→   668→              if (allSpecs.length === 0) return null
+   669→   669→              
+   670→   670→              return (
+   671→   671→                <div className="mt-4">
+   672→   672→                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Especificaciones</p>
+   673→   673→                  <div className="overflow-hidden rounded-xl border">
+   674→   674→                    <table className="w-full text-sm">
+   675→   675→                      <tbody>
+   676→   676→                        {allSpecs.map((spec, i) => (
+   677→   677→                          <tr key={i} className={cn(i % 2 === 0 && 'bg-muted/30')}>
+   678→   678→                            <td className="px-4 py-2 font-medium text-muted-foreground">{spec.label}</td>
+   679→   679→                            <td className="px-4 py-2 font-medium">{spec.value}</td>
+   680→   680→                          </tr>
+   681→   681→                        ))}
+   682→   682→                      </tbody>
+   683→   683→                    </table>
+   684→   684→                  </div>
+   685→   685→                </div>
+   686→   686→              )
+   687→   687→            })()}
+   688→   688→
+   689→   689→            {/* Selector de cantidad */}
+   690→   690→            <div className="mt-4 flex items-center gap-4">
+   691→   691→              <span className="text-sm font-medium">Cantidad:</span>
+   692→   692→              <div className="flex items-center rounded-lg border">
+   693→   693→                <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="flex h-9 w-9 items-center justify-center text-muted-foreground hover:text-foreground">
+   694→   694→                  <Minus className="h-4 w-4" />
+   695→   695→                </button>
+   696→   696→                <span className="w-12 text-center text-sm font-medium tabular-nums">{quantity}</span>
+   697→   697→                <button onClick={() => setQuantity(quantity + 1)} className="flex h-9 w-9 items-center justify-center text-muted-foreground hover:text-foreground">
+   698→   698→                  <Plus className="h-4 w-4" />
+   699→   699→                </button>
+   700→   700→              </div>
+   701→   701→              {product.estimatedCost && (
+   702→   702→                <span className="text-sm text-muted-foreground">Total: <span className="font-bold text-foreground">${(product.estimatedCost * quantity).toFixed(2)}</span></span>
+   703→   703→              )}
+   704→   704→            </div>
+   705→   705→
+   706→   706→            {/* CTA */}
+   707→   707→            <div className="mt-auto pt-4">
+   708→   708→              <div className="flex gap-2">
+   709→   709→                <Button className="flex-1 gap-2 text-base" size="lg" onClick={handleAddToCart}>
+   710→   710→                  <ShoppingCart className="h-5 w-5" /> Añadir al carrito
+   711→   711→                </Button>
+   712→   712→                <Button variant="outline" size="lg" onClick={onRequest}>
+   713→   713→                  Solicitar
+   714→   714→                </Button>
+   715→   715→              </div>
+   716→   716→              <div className="mt-2 flex items-center justify-center gap-4 text-[10px] text-muted-foreground">
+   717→   717→                <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Sin compromiso</span>
+   718→   718→                <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Cotización gratis</span>
+   719→   719→                <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Pago seguro</span>
+   720→   720→              </div>
+   721→   721→            </div>
+   722→   722→          </div>
+   723→   723→        </div>
+   724→   724→      </DialogContent>
+   725→   725→    </Dialog>
+   726→   726→  )
+   727→   727→}
+   728→   728→

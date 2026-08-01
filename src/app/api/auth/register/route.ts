@@ -2,8 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { AuthService } from '@/server/services/auth.service'
 import { registerSchema } from '@/lib/schemas'
 import { db } from '@/lib/db'
+import { enforceRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 
 export async function POST(req: NextRequest) {
+  // Rate limit: 10 registrations per minute per IP
+  const limited = enforceRateLimit(req, 'auth-register', RATE_LIMITS.AUTH)
+  if (limited) return limited
+
   try {
     const body = await req.json()
     const parsed = registerSchema.safeParse(body)

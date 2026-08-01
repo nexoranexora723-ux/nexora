@@ -13,6 +13,8 @@ import { ProductDetailPage } from '@/components/nexora/public/product-detail-pag
 import { AuthDialog } from '@/components/nexora/shared/auth-dialog'
 import { ClientPortal } from '@/components/nexora/client/client-portal'
 import { AdminPortal } from '@/components/nexora/admin/admin-portal'
+import { AiChatbot } from '@/components/nexora/public/ai-chatbot'
+import { LiveChat } from '@/components/nexora/public/live-chat'
 import { Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -107,6 +109,9 @@ export default function NexoraPage() {
         </motion.div>
       </AnimatePresence>
       <AuthDialog open={authOpen} onOpenChange={setAuthOpen} mode={authMode} onModeChange={setAuthMode} />
+      {/* Floating AI chatbot + live chat — visible on all public views */}
+      <AiChatbot onNavigate={(v) => setView(v as View)} />
+      <LiveChat />
     </>
   )
 }

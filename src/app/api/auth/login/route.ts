@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AuthService } from '@/server/services/auth.service'
 import { loginSchema } from '@/lib/schemas'
+import { enforceRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 
 export async function POST(req: NextRequest) {
+  // Rate limit: 10 auth attempts per minute per IP
+  const limited = enforceRateLimit(req, 'auth-login', RATE_LIMITS.AUTH)
+  if (limited) return limited
+
   try {
     const body = await req.json()
     const parsed = loginSchema.safeParse(body)

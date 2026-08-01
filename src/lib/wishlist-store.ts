@@ -13,7 +13,7 @@ export interface WishlistItem {
   addedAt: string
 }
 
-interface WishlistState {
+export interface WishlistState {
   items: WishlistItem[]
   isOpen: boolean
   setOpen: (open: boolean) => void

@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { AuthService } from '@/server/services/auth.service'
+import { enforceRateLimit, RATE_LIMITS } from '@/lib/rate-limit'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
 export async function GET(req: NextRequest) {
+  // Rate limit admin endpoints
+  const limited = enforceRateLimit(req, 'admin-products', RATE_LIMITS.WRITE)
+  if (limited) return limited
+
   // Auth check
   try {
     const t = req.cookies.get('nexora-session')?.value
@@ -74,6 +79,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  // Rate limit admin endpoints
+  const limited = enforceRateLimit(req, 'admin-products', RATE_LIMITS.WRITE)
+  if (limited) return limited
+
   try {
     const t = req.cookies.get('nexora-session')?.value
     const user = t ? await AuthService.validate(t) : null

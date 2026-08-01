@@ -27,9 +27,14 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/icons/favicon.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
       { url: "/favicon.ico", sizes: "any" },
     ],
-    apple: [{ url: "/icons/apple-touch-icon.svg", type: "image/svg+xml" }],
+    apple: [
+      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/icons/apple-touch-icon.svg", type: "image/svg+xml" },
+    ],
     shortcut: ["/icons/favicon.svg"],
   },
   manifest: "/site.webmanifest",
@@ -62,6 +67,47 @@ export const viewport = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  // Schema.org JSON-LD: Organization schema for NEXORA
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "NEXORA",
+    "legalName": "NEXORA Importaciones S.A.S.",
+    "url": SITE_URL,
+    "logo": `${SITE_URL}/icons/icon-512.png`,
+    "description": "Plataforma inteligente de importación desde China. Tú eliges el producto, nosotros nos encargamos del resto: proveedores, logística, aduana y entrega en Colombia.",
+    "foundingDate": "2024",
+    "areaServed": "CO",
+    "knowsLanguage": ["es", "en"],
+    "email": "hola@nexora.co",
+    "contactPoint": [{
+      "@type": "ContactPoint",
+      "telephone": "+57-300-000-0000",
+      "contactType": "customer service",
+      "areaServed": "CO",
+      "availableLanguage": ["Spanish", "English"],
+    }],
+    "sameAs": [
+      "https://www.instagram.com/nexora",
+      "https://www.facebook.com/nexora",
+      "https://twitter.com/nexora",
+    ],
+  };
+
+  // Schema.org JSON-LD: WebSite schema (enables sitelinks search box etc.)
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "NEXORA",
+    "url": SITE_URL,
+    "inLanguage": "es-CO",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": `${SITE_URL}/?view=catalog&q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
+
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}>
@@ -73,6 +119,15 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         </ThemeProvider>
         {/* Google Analytics 4 — solo carga si NEXT_PUBLIC_GA_ID está configurado */}
         <GoogleAnalytics />
+        {/* Schema.org structured data — Organization + WebSite */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
       </body>
     </html>
   );

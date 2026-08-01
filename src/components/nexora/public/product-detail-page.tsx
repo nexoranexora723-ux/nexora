@@ -75,8 +75,42 @@ export function ProductDetailPage({ productId, onBack, onRequest }: ProductDetai
   const allImages = product.images.length > 0 ? product.images : (product.imageUrl ? [product.imageUrl] : [])
   const youtubeId = product.videoUrl?.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1]
 
+  // Schema.org JSON-LD: Product schema for SEO / rich results
+  const productSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    'name': product.name,
+    'description': product.description ?? undefined,
+    'sku': product.sku,
+    'image': allImages,
+    'brand': product.brand ? { '@type': 'Brand', 'name': product.brand.name } : undefined,
+    'category': product.category?.name,
+    'offers': product.estimatedCost
+      ? {
+          '@type': 'Offer',
+          'price': product.estimatedCost,
+          'priceCurrency': product.currencyCode || 'USD',
+          'availability': 'https://schema.org/InStock',
+          'url': typeof window !== 'undefined' ? window.location.href : undefined,
+        }
+      : undefined,
+    'aggregateRating':
+      product.reviewCount && product.reviewCount > 0
+        ? {
+            '@type': 'AggregateRating',
+            'ratingValue': product.rating ?? 4,
+            'reviewCount': product.reviewCount,
+          }
+        : undefined,
+  }
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Schema.org structured data — Product */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
       {/* Breadcrumb */}
       <div className="border-b">
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-3 text-sm sm:px-6">
@@ -100,6 +134,7 @@ export function ProductDetailPage({ productId, onBack, onRequest }: ProductDetai
                 <iframe
                   src={`https://www.youtube.com/embed/${youtubeId}`}
                   className="h-full w-full"
+                  loading="lazy"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                   title={product.name}

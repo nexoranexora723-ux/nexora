@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,14 +9,17 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
-import { ArrowLeft, Search, Package, Star, ShieldCheck, Truck, CheckCircle2, ShoppingCart, Flame, ArrowRight, TrendingUp, Loader2, Filter, Heart, Share2, Zap, Award, Clock, Minus, Plus, X } from 'lucide-react'
+import { ArrowLeft, Search, Package, Star, ShieldCheck, Truck, CheckCircle2, ShoppingCart, Flame, ArrowRight, TrendingUp, Loader2, Filter, Heart, Share2, Zap, Award, Clock, Minus, Plus, X, ImageIcon, Sparkles } from 'lucide-react'
 import type { Product } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import { CartCounter, CartDrawer } from '@/components/nexora/public/cart-drawer'
 import { WishlistCounter, WishlistDrawer } from '@/components/nexora/public/wishlist-button'
+import { CompareToggleButton, CompareProducts } from '@/components/nexora/public/compare-products'
+import { toCompareItem } from '@/lib/compare-store'
 import { SiteFooter } from '@/components/nexora/public/site-footer'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { LanguageToggle } from '@/components/nexora/public/language-toggle'
 import { useWishlist } from '@/lib/wishlist-store'
 import { useCart } from '@/lib/cart-store'
 import { useToast } from '@/hooks/use-toast'
@@ -35,6 +38,10 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
   const [categoryId, setCategoryId] = useState<string | null>(null) // null = all categories
   const [brandFilter, setBrandFilter] = useState<string>('all')
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [imageSearching, setImageSearching] = useState(false)
+  const [imageSearchInfo, setImageSearchInfo] = useState<{ description: string; keywords: string[]; count: number } | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { toast } = useToast()
 
   // Fetch categories
   const { data: categoriesData } = useQuery<{ id: string; name: string; icon: string | null; productCount: number }[]>({
@@ -65,7 +72,6 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
 
   // Reset brand filter when category changes
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setBrandFilter('all')
   }, [categoryId])
 
@@ -144,6 +150,7 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
           <div className="flex items-center gap-1 sm:gap-2">
             <WishlistCounter />
             <CartCounter />
+            <LanguageToggle compact />
             <ThemeToggle />
             <Button size="sm" onClick={onRegister}>Registrarse</Button>
           </div>
@@ -161,12 +168,104 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
         </div>
 
         {/* Búsqueda */}
-        <div className="mb-4">
-          <div className="relative max-w-md">
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="relative max-w-md flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="Buscar productos..." value={query} onChange={(e) => setQuery(e.target.value)} className="pl-9" />
           </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0]
+              if (!file) return
+              setImageSearching(true)
+              setImageSearchInfo(null)
+              try {
+                // Convert to data URL
+                const dataUrl = await new Promise<string>((resolve, reject) => {
+                  const reader = new FileReader()
+                  reader.onload = () => resolve(reader.result as string)
+                  reader.onerror = reject
+                  reader.readAsDataURL(file)
+                })
+                const res = await fetch('/api/search-by-image', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ image: dataUrl }),
+                })
+                const data = await res.json()
+                if (!res.ok) throw new Error(data.error ?? 'Error en la búsqueda')
+                setImageSearchInfo({
+                  description: data.description ?? '',
+                  keywords: data.keywords ?? [],
+                  count: data.count ?? 0,
+                })
+                // Apply the first keyword as the live search query so results filter immediately
+                if (Array.isArray(data.keywords) && data.keywords.length > 0) {
+                  setQuery(data.keywords[0])
+                }
+                toast({
+                  title: 'Búsqueda por imagen completada',
+                  description: data.description ?? `${data.count ?? 0} productos encontrados`,
+                })
+              } catch (err) {
+                toast({
+                  title: 'Error en búsqueda por imagen',
+                  description: err instanceof Error ? err.message : 'Intenta con otra imagen',
+                  variant: 'destructive',
+                })
+              } finally {
+                setImageSearching(false)
+                if (fileInputRef.current) fileInputRef.current.value = ''
+              }
+            }}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            disabled={imageSearching}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {imageSearching ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" /> Analizando...
+              </>
+            ) : (
+              <>
+                <ImageIcon className="h-3.5 w-3.5" /> Buscar por imagen
+              </>
+            )}
+          </Button>
         </div>
+
+        {/* Result info banner after image search */}
+        {imageSearchInfo && (
+          <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="font-medium">{imageSearchInfo.description || 'Búsqueda por imagen'}</span>
+            <span className="text-muted-foreground">·</span>
+            <span className="text-muted-foreground">{imageSearchInfo.count} coincidencias</span>
+            {imageSearchInfo.keywords.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1">
+                {imageSearchInfo.keywords.slice(0, 6).map((kw) => (
+                  <Badge key={kw} variant="secondary" className="text-[10px]">{kw}</Badge>
+                ))}
+              </div>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="ml-auto h-7 gap-1 text-xs text-muted-foreground"
+              onClick={() => { setImageSearchInfo(null); setQuery('') }}
+            >
+              <X className="h-3 w-3" /> Limpiar
+            </Button>
+          </div>
+        )}
 
         {/* Filtros de categoría (cascade: al seleccionar, actualiza las marcas) */}
         <div className="mb-4 flex flex-wrap gap-1.5">
@@ -290,6 +389,9 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
       {/* Drawers */}
       <CartDrawer />
       <WishlistDrawer />
+
+      {/* Product comparator */}
+      <CompareProducts />
     </div>
   )
 }
@@ -377,6 +479,7 @@ function ProductCard({ product, onClick }: { product: Product; onClick: () => vo
           >
             <Share2 className="h-4 w-4" />
           </button>
+          <CompareToggleButton item={toCompareItem(product)} />
         </div>
 
         {/* Badge de categoría */}
