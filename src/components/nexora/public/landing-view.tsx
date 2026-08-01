@@ -70,36 +70,32 @@ export function LandingView({ onNavigate, onLogin, onRegister }: LandingViewProp
           backgroundImage: 'linear-gradient(oklch(0.5 0.01 240) 1px, transparent 1px), linear-gradient(90deg, oklch(0.5 0.01 240) 1px, transparent 1px)',
           backgroundSize: '40px 40px',
         }} />
-        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-          <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
-            {/* Left: Text */}
-            <div className="text-center lg:text-left">
-              <Badge className="mb-6 gap-1.5 bg-primary/10 text-primary hover:bg-primary/15">
-                <ShieldCheck className="h-3 w-3" /> Importación segura y transparente
-              </Badge>
-              <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-                Importa desde China
-                <span className="block bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">nunca había sido tan fácil</span>
-              </h1>
-              <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground lg:mx-0">
-                Tú eliges el producto. Nosotros nos encargamos del resto: buscar proveedores, negociar, comprar, importar y entregar.
-              </p>
-              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row lg:justify-start">
-                <Button size="lg" className="gap-2 shine-effect text-base shadow-lg shadow-primary/25" onClick={() => onNavigate('catalog')}>
-                  <Package className="h-5 w-5" /> Ver catálogo
-                </Button>
-                <Button size="lg" variant="outline" className="gap-2 text-base" onClick={onRegister}>
-                  <Sparkles className="h-5 w-5" /> Solicitar producto personalizado
-                </Button>
-              </div>
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-muted-foreground lg:justify-start">
-                <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-primary" /> Proveedores verificados</span>
-                <span className="flex items-center gap-1.5"><Ship className="h-4 w-4 text-primary" /> Logística completa</span>
-                <span className="flex items-center gap-1.5"><Users className="h-4 w-4 text-primary" /> +500 clientes</span>
-              </div>
+        <div className="relative mx-auto max-w-4xl px-4 py-20 text-center sm:px-6 lg:py-28">
+          {/* Centered content */}
+          <div className="flex flex-col items-center">
+            <Badge className="mb-6 gap-1.5 bg-primary/10 text-primary hover:bg-primary/15">
+              <ShieldCheck className="h-3 w-3" /> Importación segura y transparente
+            </Badge>
+            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+              Importa desde China
+              <span className="block bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">nunca había sido tan fácil</span>
+            </h1>
+            <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
+              Tú eliges el producto. Nosotros nos encargamos del resto: buscar proveedores, negociar, comprar, importar y entregar.
+            </p>
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Button size="lg" className="gap-2 shine-effect text-base shadow-lg shadow-primary/25" onClick={() => onNavigate('catalog')}>
+                <Package className="h-5 w-5" /> Ver catálogo
+              </Button>
+              <Button size="lg" variant="outline" className="gap-2 text-base" onClick={onRegister}>
+                <Sparkles className="h-5 w-5" /> Solicitar producto personalizado
+              </Button>
             </div>
-
-            {/* Right: Product mockup removed by user request */}
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-primary" /> Proveedores verificados</span>
+              <span className="flex items-center gap-1.5"><Ship className="h-4 w-4 text-primary" /> Logística completa</span>
+              <span className="flex items-center gap-1.5"><Users className="h-4 w-4 text-primary" /> +500 clientes</span>
+            </div>
           </div>
 
           {/* Trust badges - full width below */}
