@@ -66,7 +66,7 @@ export function AdminProducts() {
 
   const { data, isLoading } = useQuery<{ products: AdminProduct[]; total: number; page: number; totalPages: number }>({
     queryKey: ['admin-products'],
-    queryFn: async () => (await fetch('/api/admin/products?limit=50')).json(),
+    queryFn: async () => (await fetch('/api/admin/products-list?limit=20')).json(),
   })
   const products = data?.products ?? []
 
