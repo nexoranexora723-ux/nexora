@@ -11,40 +11,75 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Sin permisos' }, { status: 403 })
     }
 
-    const products = await db.product.findMany({
-      include: {
-        brand: { select: { id: true, name: true } },
-        category: { select: { id: true, name: true, icon: true } },
-        supplier: { select: { id: true, companyName: true } },
-      },
-      orderBy: { createdAt: 'desc' },
-    })
+    const { searchParams } = new URL(req.url)
+    const page = parseInt(searchParams.get('page') ?? '1')
+    const limit = Math.min(parseInt(searchParams.get('limit') ?? '50'), 200)
+    const search = searchParams.get('search') ?? ''
+    const status = searchParams.get('status') ?? ''
+
+    const where: Record<string, unknown> = {}
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { sku: { contains: search, mode: 'insensitive' } },
+      ]
+    }
+    if (status && status !== 'all') {
+      where.status = status.toUpperCase()
+    }
+
+    const [products, total] = await Promise.all([
+      db.product.findMany({
+        where,
+        select: {
+          id: true, sku: true, name: true, description: true, longDescription: true,
+          brandId: true, categoryId: true, supplierId: true,
+          imageUrl: true, images: true, videoUrl: true,
+          estimatedCost: true, suggestedPrice: true, currencyCode: true,
+          status: true, isFeatured: true, specs: true, features: true,
+          rating: true, reviewCount: true, soldCount: true,
+          createdAt: true, updatedAt: true,
+          brand: { select: { id: true, name: true } },
+          category: { select: { id: true, name: true, icon: true } },
+          supplier: { select: { id: true, companyName: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      db.product.count({ where }),
+    ])
 
     const parseJSON = (str: string | null, fallback: unknown) => {
       try { return str ? JSON.parse(str) : fallback } catch { return fallback }
     }
 
-    return NextResponse.json(products.map((p) => ({
-      id: p.id, sku: p.sku, name: p.name,
-      description: p.description,
-      longDescription: p.longDescription,
-      brand: p.brand, category: p.category, supplier: p.supplier,
-      imageUrl: p.imageUrl,
-      images: parseJSON(p.images, p.imageUrl ? [p.imageUrl] : []),
-      videoUrl: p.videoUrl,
-      estimatedCost: p.estimatedCost,
-      suggestedPrice: p.suggestedPrice,
-      currencyCode: p.currencyCode,
-      status: p.status,
-      isFeatured: p.isFeatured,
-      specs: parseJSON(p.specs, []),
-      features: parseJSON(p.features, []),
-      rating: p.rating ?? 4.0,
-      reviewCount: p.reviewCount,
-      soldCount: p.soldCount,
-      createdAt: p.createdAt.toISOString(),
-      updatedAt: p.updatedAt.toISOString(),
-    })))
+    return NextResponse.json({
+      products: products.map((p) => ({
+        id: p.id, sku: p.sku, name: p.name,
+        description: p.description,
+        longDescription: p.longDescription,
+        brand: p.brand, category: p.category, supplier: p.supplier,
+        imageUrl: p.imageUrl,
+        images: parseJSON(p.images, p.imageUrl ? [p.imageUrl] : []),
+        videoUrl: p.videoUrl,
+        estimatedCost: p.estimatedCost,
+        suggestedPrice: p.suggestedPrice,
+        currencyCode: p.currencyCode,
+        status: p.status,
+        isFeatured: p.isFeatured,
+        specs: parseJSON(p.specs, []),
+        features: parseJSON(p.features, []),
+        rating: p.rating ?? 4.0,
+        reviewCount: p.reviewCount,
+        soldCount: p.soldCount,
+        createdAt: p.createdAt.toISOString(),
+        updatedAt: p.updatedAt.toISOString(),
+      })),
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    })
   } catch (error) {
     log('error', 'GET /api/admin/products', { error })
     return NextResponse.json({ error: 'Error' }, { status: 500 })

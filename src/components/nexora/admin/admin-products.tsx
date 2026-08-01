@@ -64,10 +64,11 @@ export function AdminProducts() {
   const { toast } = useToast()
   const qc = useQueryClient()
 
-  const { data: products, isLoading } = useQuery<AdminProduct[]>({
+  const { data, isLoading } = useQuery<{ products: AdminProduct[]; total: number; page: number; totalPages: number }>({
     queryKey: ['admin-products'],
-    queryFn: async () => (await fetch('/api/admin/products')).json(),
+    queryFn: async () => (await fetch('/api/admin/products?limit=50')).json(),
   })
+  const products = data?.products ?? []
 
   const deleteMut = useMutation({
     mutationFn: (id: string) => fetch(`/api/admin/products/${id}`, { method: 'DELETE' }),
@@ -117,7 +118,7 @@ export function AdminProducts() {
   }, [products, query, statusFilter])
 
   const stats = products ? {
-    total: products.length,
+    total: data?.total ?? products.length,
     active: products.filter((p) => p.status === 'ACTIVE').length,
     featured: products.filter((p) => p.isFeatured).length,
     inactive: products.filter((p) => p.status === 'INACTIVE').length,
