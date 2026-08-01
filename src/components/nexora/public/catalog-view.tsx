@@ -27,16 +27,42 @@ const PAGE_SIZE = 24
 
 export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogViewProps) {
   const [query, setQuery] = useState('')
-  const [category, setCategory] = useState('all')
+  const [categoryId, setCategoryId] = useState<string | null>(null) // null = all categories
   const [brandFilter, setBrandFilter] = useState<string>('all')
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
 
-  // Fetch brands
-  const { data: brandsData } = useQuery<{ brands: { id: string; name: string }[] }>({
-    queryKey: ['brands-list'],
-    queryFn: async () => (await fetch('/api/brands')).json(),
+  // Fetch categories
+  const { data: categoriesData } = useQuery<{ id: string; name: string; icon: string | null; productCount: number }[]>({
+    queryKey: ['categories-list'],
+    queryFn: async () => (await fetch('/api/categories')).json(),
   })
-  const brands = brandsData?.brands ?? []
+  const categories = categoriesData ?? []
+
+  // CASCADE: Fetch brands for selected category (or all brands if no category selected)
+  const { data: brandsData } = useQuery<{ id: string; name: string; productCount?: number }[] | { brands: { id: string; name: string }[] }>({
+    queryKey: ['brands-list', categoryId],
+    queryFn: async () => {
+      if (categoryId) {
+        // Cascade: get brands for this category only
+        return await (await fetch(`/api/categories/${categoryId}/brands`)).json()
+      }
+      // No category selected: get all brands
+      return await (await fetch('/api/brands')).json()
+    },
+    enabled: true,
+  })
+  // Normalize brands array (cascade returns array, /api/brands returns {brands: [...]})
+  const brands = useMemo<{ id: string; name: string; productCount?: number }[]>(() => {
+    if (!brandsData) return []
+    if (Array.isArray(brandsData)) return brandsData
+    return (brandsData.brands ?? []).map((b) => ({ id: b.id, name: b.name }))
+  }, [brandsData])
+
+  // Reset brand filter when category changes
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setBrandFilter('all')
+  }, [categoryId])
 
   const {
     data,
@@ -50,11 +76,12 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
     page: number
     totalPages: number
   }>({
-    queryKey: ['products-public-infinite', category, brandFilter],
+    queryKey: ['products-public-infinite', categoryId, brandFilter],
     queryFn: async ({ pageParam = 1 }) => {
       const params = new URLSearchParams()
       params.set('limit', String(PAGE_SIZE))
       params.set('page', String(pageParam))
+      if (categoryId) params.set('categoryId', categoryId)
       if (brandFilter !== 'all') params.set('brandId', brandFilter)
       const res = await fetch(`/api/products?${params}`)
       return res.json()
@@ -80,15 +107,6 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
       p.description?.toLowerCase().includes(query.toLowerCase())
     )
   }, [allProducts, query])
-
-  // Extract categories from the products loaded so far
-  const categories = useMemo(() => {
-    const cats = new Set<string>()
-    allProducts.forEach((p) => {
-      if (p.category?.name) cats.add(p.category.name)
-    })
-    return Array.from(cats)
-  }, [allProducts])
 
   // Infinite scroll observer
   useEffect(() => {
@@ -137,34 +155,45 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
           <p className="mt-2 text-muted-foreground">Productos verificados desde China con precios de fabricante. Tú eliges, nosotros importamos.</p>
         </div>
 
-        {/* Búsqueda + Filtro de marca */}
+        {/* Búsqueda + Filtro de marca (cascade: brands depend on category) */}
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
           <div className="relative flex-1 max-w-md">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="Buscar productos..." value={query} onChange={(e) => setQuery(e.target.value)} className="pl-9" />
           </div>
-          {/* Filtro de marca */}
+          {/* Filtro de marca (cascade - se actualiza según categoría) */}
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
             <Select value={brandFilter} onValueChange={setBrandFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Todas las marcas" />
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder={categoryId ? "Marcas en esta categoría" : "Todas las marcas"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas las marcas</SelectItem>
+                <SelectItem value="all">{categoryId ? "Todas las marcas (categoría)" : "Todas las marcas"}</SelectItem>
                 {brands.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name}{b.productCount ? ` (${b.productCount})` : ''}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
         </div>
 
-        {/* Filtros de categoría */}
+        {/* Filtros de categoría (cascade: al seleccionar, actualiza las marcas) */}
         <div className="mb-4 flex flex-wrap gap-1.5">
-          <Button variant={category === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setCategory('all')}>📦 Todos</Button>
+          <Button 
+            variant={!categoryId ? 'default' : 'outline'} 
+            size="sm" 
+            onClick={() => setCategoryId(null)}
+          >📦 Todos</Button>
           {categories.map((c) => (
-            <Button key={c} variant={category === c ? 'default' : 'outline'} size="sm" onClick={() => setCategory(c)}>{c}</Button>
+            <Button 
+              key={c.id} 
+              variant={categoryId === c.id ? 'default' : 'outline'} 
+              size="sm" 
+              onClick={() => setCategoryId(c.id)}
+            >{c.icon} {c.name}</Button>
           ))}
         </div>
 
