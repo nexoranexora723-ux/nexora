@@ -94,16 +94,9 @@ export function LandingView({ onNavigate, onLogin, onRegister }: LandingViewProp
             <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-primary" /> Proveedores verificados</span>
               <span className="flex items-center gap-1.5"><Ship className="h-4 w-4 text-primary" /> Logística completa</span>
+              <span className="flex items-center gap-1.5"><Zap className="h-4 w-4 text-primary" /> Proceso automatizado</span>
               <span className="flex items-center gap-1.5"><Users className="h-4 w-4 text-primary" /> +500 clientes</span>
             </div>
-          </div>
-
-          {/* Trust badges - full width below */}
-          <div className="mt-16 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 border-t pt-8 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-primary" /> Proveedores verificados</span>
-            <span className="flex items-center gap-1.5"><Ship className="h-4 w-4 text-primary" /> Logística internacional</span>
-            <span className="flex items-center gap-1.5"><Zap className="h-4 w-4 text-primary" /> Proceso automatizado</span>
-            <span className="flex items-center gap-1.5"><Users className="h-4 w-4 text-primary" /> +500 clientes felices</span>
           </div>
         </div>
       </section>
