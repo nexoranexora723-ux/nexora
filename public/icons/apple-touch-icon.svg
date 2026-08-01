@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180" role="img" aria-label="NEXORA">
+  <defs>
+    <linearGradient id="nx-apple-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="180" height="180" rx="40" ry="40" fill="url(#nx-apple-bg)"/>
+  <path d="M50 130 L50 50 L74 50 L106 102 L106 50 L130 50 L130 130 L106 130 L74 78 L74 130 Z" fill="#ffffff"/>
+</svg>

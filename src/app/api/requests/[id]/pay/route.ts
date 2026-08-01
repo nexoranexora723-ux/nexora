@@ -9,7 +9,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const { id } = await params
     const body = await req.json().catch(() => ({}))
-    const { method = 'Tarjeta' } = body
+    const { method = 'Nequi' } = body
 
     // IDOR check: clients can only pay their own requests
     const request = await db.importRequest.findUnique({ where: { id } })

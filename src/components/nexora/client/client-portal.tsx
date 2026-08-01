@@ -860,7 +860,7 @@ function QuoteCard({ quote, requestId, requestStatus }: { quote: Quote; requestI
 // === Payment Section (simulated) ===
 function PaymentSection({ requestId }: { requestId: string }) {
   const qc = useQueryClient()
-  const [method, setMethod] = useState('Tarjeta')
+  const [method, setMethod] = useState('Nequi')
   const [paid, setPaid] = useState(false)
 
   const pay = useMutation({
@@ -909,10 +909,10 @@ function PaymentSection({ requestId }: { requestId: string }) {
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2">
         {[
-          { id: 'Tarjeta', label: 'Tarjeta', icon: '💳' },
           { id: 'Nequi', label: 'Nequi', icon: '📱' },
+          { id: 'Daviplata', label: 'Daviplata', icon: '💸' },
           { id: 'PayPal', label: 'PayPal', icon: '🅿️' },
-          { id: 'Contraentrega', label: 'Contraentrega', icon: '📦' },
+          { id: 'Transferencia', label: 'Transferencia bancaria', icon: '🏦' },
         ].map((m) => (
           <button key={m.id} type="button" onClick={() => setMethod(m.id)} className={cn(
             'flex items-center gap-2 rounded-lg border p-2.5 text-xs font-medium transition-all',
