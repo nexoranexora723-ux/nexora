@@ -628,6 +628,60 @@ function ProductDetailDialog({ product, onClose, onRequest }: { product: Product
               <p className="mt-2 text-center text-xs font-medium text-primary">Total: ~22 días</p>
             </div>
 
+            {/* Especificaciones (solo para cliente — sin Costo China, Margen, etc.) */}
+            {(() => {
+              // Specs que el ADMIN ve pero el cliente NO
+              const adminOnlySpecs = ['Costo China', 'Costo Total', 'Margen (50%)', 'Álbum ID', 'Precio Final']
+              
+              // Specs del producto filtradas para el cliente
+              const clientSpecs = (product.specs || []).filter(s => !adminOnlySpecs.includes(s.label))
+              
+              // Agregar specs dinámicas según categoría
+              const catName = product.category?.name || ''
+              const extraSpecs: { label: string; value: string }[] = [
+                { label: 'Garantía', value: '30 días' },
+              ]
+              
+              // Materiales según categoría
+              if (catName === 'Bolsos') extraSpecs.push({ label: 'Materiales', value: 'Cuero genuino / Lona' })
+              else if (catName === 'Calzado') extraSpecs.push({ label: 'Materiales', value: 'Cuero / Tela / Suela de goma' })
+              else if (catName === 'Ropa' || catName === 'Ropa de Dama') extraSpecs.push({ label: 'Materiales', value: 'Algodón / Poliéster / Mezcla' })
+              else if (catName === 'Relojes') extraSpecs.push({ label: 'Materiales', value: 'Acero inoxidable / Cristal mineral' })
+              else if (catName === 'Joyería') extraSpecs.push({ label: 'Materiales', value: 'Acero inoxidable / Oro / Plata' })
+              else if (catName === 'Gafas') extraSpecs.push({ label: 'Materiales', value: 'Acetato / Metal / Lentes polarizadas' })
+              else if (catName === 'Cinturones') extraSpecs.push({ label: 'Materiales', value: 'Cuero genuino / Hebilla de metal' })
+              else extraSpecs.push({ label: 'Materiales', value: 'Material premium' })
+              
+              // Tallas según categoría
+              if (catName === 'Calzado') extraSpecs.push({ label: 'Tallas', value: '38-45 EU' })
+              else if (catName === 'Ropa' || catName === 'Ropa de Dama') extraSpecs.push({ label: 'Tallas', value: 'S, M, L, XL, XXL' })
+              else if (catName === 'Jerseys') extraSpecs.push({ label: 'Tallas', value: 'S, M, L, XL, XXL' })
+              else if (catName === 'Relojes') extraSpecs.push({ label: 'Tallas', value: '42mm / 44mm' })
+              else extraSpecs.push({ label: 'Tallas', value: 'Talla única' })
+              
+              const allSpecs = [...clientSpecs, ...extraSpecs]
+              
+              if (allSpecs.length === 0) return null
+              
+              return (
+                <div className="mt-4">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">Especificaciones</p>
+                  <div className="overflow-hidden rounded-xl border">
+                    <table className="w-full text-sm">
+                      <tbody>
+                        {allSpecs.map((spec, i) => (
+                          <tr key={i} className={cn(i % 2 === 0 && 'bg-muted/30')}>
+                            <td className="px-4 py-2 font-medium text-muted-foreground">{spec.label}</td>
+                            <td className="px-4 py-2 font-medium">{spec.value}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )
+            })()}
+
             {/* Selector de cantidad */}
             <div className="mt-4 flex items-center gap-4">
               <span className="text-sm font-medium">Cantidad:</span>

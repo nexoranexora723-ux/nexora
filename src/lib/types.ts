@@ -162,6 +162,13 @@ export interface Product {
   currencyCode: string
   isFeatured: boolean
   status: string
+  specs?: { label: string; value: string }[]
+  features?: string[]
+  images?: string[]
+  videoUrl?: string | null
+  rating?: number
+  reviewCount?: number
+  soldCount?: number
 }
 
 export interface DashboardStats {
