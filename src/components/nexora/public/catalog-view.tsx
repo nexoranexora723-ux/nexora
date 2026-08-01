@@ -12,6 +12,9 @@ import { ArrowLeft, Search, Package, ArrowRight, Star, Zap, ShieldCheck, Truck, 
 import type { Product } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
+import { CartCounter, CartDrawer } from '@/components/nexora/public/cart-drawer'
+import { WishlistCounter, WishlistDrawer } from '@/components/nexora/public/wishlist-button'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 interface CatalogViewProps {
   onNavigate: (view: string) => void
@@ -50,7 +53,12 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
             </div>
             <span className="font-bold">NEXORA</span>
           </div>
-          <Button size="sm" onClick={onRegister}>Registrarse</Button>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <WishlistCounter />
+            <CartCounter />
+            <ThemeToggle />
+            <Button size="sm" onClick={onRegister}>Registrarse</Button>
+          </div>
         </div>
       </nav>
 
@@ -102,6 +110,10 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
       {selectedProduct && (
         <ProductDetailDialog product={selectedProduct} onClose={() => setSelectedProduct(null)} onRequest={onRegister} />
       )}
+
+      {/* Drawers (cart + wishlist) — accessible from any page */}
+      <CartDrawer />
+      <WishlistDrawer />
     </div>
   )
 }

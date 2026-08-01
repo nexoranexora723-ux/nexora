@@ -14,6 +14,9 @@ import {
 import { cn } from '@/lib/utils'
 import type { Product } from '@/lib/types'
 import { ImportCalculator } from '@/components/nexora/public/import-calculator'
+import { CartCounter, CartDrawer } from '@/components/nexora/public/cart-drawer'
+import { WishlistCounter, WishlistDrawer } from '@/components/nexora/public/wishlist-button'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { motion } from 'framer-motion'
 
 interface LandingViewProps {
@@ -47,10 +50,14 @@ export function LandingView({ onNavigate, onLogin, onRegister }: LandingViewProp
             <button onClick={() => onNavigate('catalog')} className="text-sm font-medium text-muted-foreground hover:text-foreground">Catálogo</button>
             <button onClick={() => onNavigate('how-it-works')} className="text-sm font-medium text-muted-foreground hover:text-foreground">Cómo Funciona</button>
             <button onClick={() => onNavigate('about')} className="text-sm font-medium text-muted-foreground hover:text-foreground">Nosotros</button>
+            <a href="/blog" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">Blog</a>
             <button onClick={() => onNavigate('contact')} className="text-sm font-medium text-muted-foreground hover:text-foreground">Contacto</button>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={onLogin}>Iniciar sesión</Button>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <WishlistCounter />
+            <CartCounter />
+            <ThemeToggle />
+            <Button variant="ghost" size="sm" onClick={onLogin} className="hidden sm:inline-flex">Iniciar sesión</Button>
             <Button size="sm" onClick={onRegister} className="gap-1.5">Registrarse <ArrowRight className="h-3.5 w-3.5" /></Button>
           </div>
         </div>
@@ -380,6 +387,10 @@ export function LandingView({ onNavigate, onLogin, onRegister }: LandingViewProp
           </div>
         </div>
       </footer>
+
+      {/* ===== DRAWERS (cart + wishlist) ===== */}
+      <CartDrawer />
+      <WishlistDrawer />
     </div>
   )
 }
