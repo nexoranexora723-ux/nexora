@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { useInfiniteQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ArrowLeft, Search, Package, Star, ShieldCheck, Truck, CheckCircle2, ShoppingCart, Flame, ArrowRight, TrendingUp, Loader2 } from 'lucide-react'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ArrowLeft, Search, Package, Star, ShieldCheck, Truck, CheckCircle2, ShoppingCart, Flame, ArrowRight, TrendingUp, Loader2, Filter } from 'lucide-react'
 import type { Product } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
@@ -27,7 +28,15 @@ const PAGE_SIZE = 24
 export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogViewProps) {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('all')
+  const [brandFilter, setBrandFilter] = useState<string>('all')
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+
+  // Fetch brands
+  const { data: brandsData } = useQuery<{ brands: { id: string; name: string }[] }>({
+    queryKey: ['brands-list'],
+    queryFn: async () => (await fetch('/api/brands')).json(),
+  })
+  const brands = brandsData?.brands ?? []
 
   const {
     data,
@@ -41,11 +50,12 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
     page: number
     totalPages: number
   }>({
-    queryKey: ['products-public-infinite', category],
+    queryKey: ['products-public-infinite', category, brandFilter],
     queryFn: async ({ pageParam = 1 }) => {
       const params = new URLSearchParams()
       params.set('limit', String(PAGE_SIZE))
       params.set('page', String(pageParam))
+      if (brandFilter !== 'all') params.set('brandId', brandFilter)
       const res = await fetch(`/api/products?${params}`)
       return res.json()
     },
@@ -62,7 +72,7 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
 
   const total = data?.pages[0]?.total ?? 0
 
-  // Client-side filter by search query
+  // Client-side filter by search query only (category and brand are handled by API)
   const filtered = useMemo(() => {
     if (!query) return allProducts
     return allProducts.filter((p) =>
@@ -71,7 +81,7 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
     )
   }, [allProducts, query])
 
-  // Extract categories from the first page
+  // Extract categories from the products loaded so far
   const categories = useMemo(() => {
     const cats = new Set<string>()
     allProducts.forEach((p) => {
@@ -127,11 +137,26 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
           <p className="mt-2 text-muted-foreground">Productos verificados desde China con precios de fabricante. Tú eliges, nosotros importamos.</p>
         </div>
 
-        {/* Búsqueda */}
-        <div className="mb-4">
-          <div className="relative max-w-md">
+        {/* Búsqueda + Filtro de marca */}
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative flex-1 max-w-md">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="Buscar productos..." value={query} onChange={(e) => setQuery(e.target.value)} className="pl-9" />
+          </div>
+          {/* Filtro de marca */}
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={brandFilter} onValueChange={setBrandFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Todas las marcas" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas las marcas</SelectItem>
+                {brands.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -146,6 +171,12 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
         {/* Contador de resultados */}
         <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
           <Badge variant="outline">{total.toLocaleString()} productos disponibles</Badge>
+          {brandFilter !== 'all' && (
+            <Badge variant="secondary" className="gap-1">
+              {brands.find((b) => b.id === brandFilter)?.name}
+              <button onClick={() => setBrandFilter('all')} className="ml-1 hover:text-foreground">✕</button>
+            </Badge>
+          )}
           {filtered.length < total && <span className="text-xs">Mostrando {filtered.length}...</span>}
         </div>
 
