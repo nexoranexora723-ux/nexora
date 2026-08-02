@@ -114,8 +114,8 @@ export function SiteFooter({ onNavigate }: SiteFooterProps) {
           {/* ===== Column 1: Brand + Socials ===== */}
           <div className="col-span-2 lg:col-span-1">
             <Link href="/" className="mb-3 inline-flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground shadow-sm">
-                <span className="text-sm font-black">N</span>
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden shadow-sm">
+                <img src="/icons/logo-official.png" alt="NEXORA" className="h-full w-full object-cover" />
               </div>
               <span className="font-bold tracking-tight">NEXORA</span>
             </Link>

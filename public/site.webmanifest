@@ -7,45 +7,27 @@
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#ffffff",
-  "theme_color": "#3b82f6",
+  "theme_color": "#0284c7",
   "lang": "es-CO",
   "dir": "ltr",
   "categories": ["business", "shopping", "productivity"],
   "icons": [
     {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-512.png",
+      "src": "/icons/logo-official.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/icons/logo-official.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/icons/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
       "src": "/icons/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png",
       "purpose": "any"
     }
   ],
@@ -57,16 +39,16 @@
       "url": "/?view=catalog"
     },
     {
-      "name": "Cómo funciona",
-      "short_name": "Cómo funciona",
-      "description": "Conoce el proceso de importación",
-      "url": "/?view=how-it-works"
+      "name": "Mis pedidos",
+      "short_name": "Pedidos",
+      "description": "Ver mis pedidos",
+      "url": "/pedidos"
     },
     {
-      "name": "Contacto",
-      "short_name": "Contacto",
-      "description": "Contáctanos para más información",
-      "url": "/?view=contact"
+      "name": "Blog",
+      "short_name": "Blog",
+      "description": "Consejos de importación",
+      "url": "/blog"
     }
   ]
 }

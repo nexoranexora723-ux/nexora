@@ -142,8 +142,8 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
             <ArrowLeft className="h-4 w-4" /> Volver
           </button>
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground">
-              <span className="text-sm font-black">N</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden">
+              <img src="/icons/logo-official.png" alt="NEXORA" className="h-full w-full object-cover" />
             </div>
             <span className="font-bold">NEXORA</span>
           </div>

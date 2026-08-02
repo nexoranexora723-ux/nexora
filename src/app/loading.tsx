@@ -12,7 +12,7 @@ export default function Loading() {
         {/* Logo con pulse */}
         <div className="relative">
           <div className="absolute inset-0 animate-ping rounded-2xl bg-primary/30" />
-          <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-blue-700 text-primary-foreground shadow-lg">
+          <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl overflow-hidden shadow-lg">
             <span className="text-2xl font-black">N</span>
           </div>
         </div>

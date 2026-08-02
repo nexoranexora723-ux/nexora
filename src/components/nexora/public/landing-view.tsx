@@ -40,8 +40,8 @@ export function LandingView({ onNavigate, onLogin, onRegister }: LandingViewProp
       <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground shadow-sm">
-              <span className="text-lg font-black">N</span>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg overflow-hidden shadow-sm">
+              <img src="/icons/logo-official.png" alt="NEXORA" className="h-full w-full object-cover" />
             </div>
             <span className="text-lg font-bold tracking-tight">NEXORA</span>
           </div>

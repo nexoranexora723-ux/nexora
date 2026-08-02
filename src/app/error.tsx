@@ -25,8 +25,8 @@ export default function GlobalError({
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-16">
       <div className="mx-auto w-full max-w-lg text-center">
         <Link href="/" className="inline-flex items-center gap-2.5">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-blue-700 text-primary-foreground shadow-lg">
-            <span className="text-xl font-black">N</span>
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl overflow-hidden shadow-lg">
+            <img src="/icons/logo-official.png" alt="NEXORA" className="h-full w-full object-cover" />
           </div>
           <span className="text-xl font-bold tracking-tight">NEXORA</span>
         </Link>
