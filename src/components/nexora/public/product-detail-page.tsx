@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { motion } from 'framer-motion'
 import { staggerContainer, staggerItem } from '@/components/nexora/shared/animations'
 import { ShippingCalculatorCompact } from '@/components/nexora/public/shipping-calculator'
+import { ReviewsSection } from '@/components/nexora/public/reviews-section'
 import {
   ArrowLeft, Star, ShieldCheck, Truck, Zap, CheckCircle2, TrendingUp,
   ShoppingCart, Award, Clock, Package, Minus, Plus, Play, ChevronRight,
@@ -399,6 +400,9 @@ export function ProductDetailPage({ productId, onBack, onRequest }: ProductDetai
           })()}
         </div>
       </div>
+
+      {/* === RESEÑAS DE CLIENTES === */}
+      <ReviewsSection productId={product.id} />
 
       {/* === PRODUCTOS RELACIONADOS === */}
       <RelatedProducts currentProductId={product.id} category={product.category?.id ?? null} onRequest={onRequest} />

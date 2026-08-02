@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Star, ThumbsUp, BadgeCheck, Loader2, MessageSquarePlus, X } from 'lucide-react'
+import { Star, ThumbsUp, BadgeCheck, Loader2, MessageSquarePlus, X, Camera, ImagePlus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -54,6 +54,7 @@ export function ReviewsSection({ productId, orderId }: ReviewsSectionProps) {
   const [title, setTitle] = React.useState('')
   const [comment, setComment] = React.useState('')
   const [submitting, setSubmitting] = React.useState(false)
+  const [reviewImages, setReviewImages] = React.useState<string[]>([])
 
   const { data, isLoading } = useQuery<{ reviews: Review[]; stats: ReviewStats }>({
     queryKey: ['reviews', productId, sort],
@@ -81,6 +82,7 @@ export function ReviewsSection({ productId, orderId }: ReviewsSectionProps) {
           userName: user ? `${user.firstName} ${user.lastName}` : 'Cliente NEXORA',
           userId: user?.id ?? null,
           orderId: orderId ?? null,
+          images: reviewImages.length > 0 ? reviewImages : undefined,
         }),
       })
       const data = await res.json()
@@ -93,6 +95,7 @@ export function ReviewsSection({ productId, orderId }: ReviewsSectionProps) {
       setTitle('')
       setComment('')
       setRating(5)
+      setReviewImages([])
       setShowForm(false)
       qc.invalidateQueries({ queryKey: ['reviews', productId] })
     },
@@ -227,6 +230,51 @@ export function ReviewsSection({ productId, orderId }: ReviewsSectionProps) {
               maxLength={2000}
               required
             />
+          </div>
+          {/* Upload de fotos */}
+          <div>
+            <Label className="mb-1.5 block text-sm font-medium">Fotos del producto (opcional)</Label>
+            <div className="flex flex-wrap items-center gap-2">
+              {reviewImages.map((img, i) => (
+                <div key={i} className="relative h-20 w-20 overflow-hidden rounded-lg border">
+                  <img src={img} alt={`Foto ${i + 1}`} className="h-full w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setReviewImages(prev => prev.filter((_, idx) => idx !== i))}
+                    className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-white shadow"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+              {reviewImages.length < 5 && (
+                <label className="flex h-20 w-20 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed text-muted-foreground transition-colors hover:border-primary hover:text-primary">
+                  <div className="flex flex-col items-center gap-1">
+                    <Camera className="h-5 w-5" />
+                    <span className="text-[10px]">Agregar</span>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0]
+                      if (!file) return
+                      if (file.size > 5 * 1024 * 1024) {
+                        toast({ title: 'Imagen muy grande', description: 'Máximo 5MB', variant: 'destructive' })
+                        return
+                      }
+                      const reader = new FileReader()
+                      reader.onload = () => {
+                        setReviewImages(prev => [...prev, reader.result as string])
+                      }
+                      reader.readAsDataURL(file)
+                    }}
+                  />
+                </label>
+              )}
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">Sube hasta 5 fotos. Máximo 5MB cada una.</p>
           </div>
           {orderId && (
             <p className="text-xs text-emerald-600">
