@@ -37,14 +37,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
           where: { requestId: id },
           select: { trackingNumber: true, carrier: true },
         })
-        await sendOrderStatusUpdate(client.email, prev.number, status, {
-          clientName: `${client.firstName} ${client.lastName}`,
-          previousStatus: prev.status,
-          notes,
-          trackingNumber: imp?.trackingNumber ?? undefined,
-          carrier: imp?.carrier ?? undefined,
-          trackingUrl: `/track-order?number=${encodeURIComponent(prev.number)}`,
-        })
+        await sendOrderStatusUpdate(
+          client.email,
+          prev.number,
+          status,
+          imp?.trackingNumber ?? undefined,
+        )
       }
     } catch (e) {
       console.error('sendOrderStatusUpdate error:', e)

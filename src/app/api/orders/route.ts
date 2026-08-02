@@ -339,22 +339,19 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      await sendOrderConfirmation(user.email, {
+      await sendOrderConfirmation({
         orderNumber: created.number,
-        clientName: `${user.firstName} ${user.lastName}`,
+        customerName: `${user.firstName} ${user.lastName}`,
+        customerEmail: user.email,
         items: items.map((i) => ({
           name: i.name,
           quantity: Number(i.quantity) || 1,
-          unitPrice: Number(i.price) || 0,
-          currencyCode: i.currencyCode || currencyCode,
+          price: Number(i.price) || 0,
         })),
-        subtotal,
         total: subtotal,
-        currencyCode,
-        paymentMethod: paymentMethod || undefined,
-        shippingAddress: shippingAddress || undefined,
-        trackingUrl: `/track-order?number=${encodeURIComponent(created.number)}`,
-        createdAt: created.createdAt,
+        paymentMethod: paymentMethod || 'No especificado',
+        shippingAddress: shippingAddress || 'No especificada',
+        city: shippingAddress || 'Colombia',
       })
     } catch (e) {
       console.error('sendOrderConfirmation error:', e)
