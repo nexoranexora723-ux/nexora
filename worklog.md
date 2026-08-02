@@ -885,3 +885,149 @@ Stage Summary:
 - Architecture: CheckoutDialog reads `checkoutOpen` from cart-store (no prop drilling); WhatsAppFloating mounted once in layout.tsx (covers all routes + views, no duplicates); ShippingCalculator exports both a full interactive variant (used in checkout step 2) and a compact read-only variant (used on product detail page).
 - The existing `/api/orders` POST endpoint wasn't modified (per "use existing API routes"). The order's stored `budget` reflects the raw item subtotal; the displayed breakdown (volume/coupon/shipping/IVA/total) is client-side informational.
 - Loop closed: browse catalog → add to cart (with volume discount) → open cart drawer (sees discount + total) → "Finalizar compra" → 4-step checkout → coupon application → payment method selection → confirm → POST /api/orders → success screen → track order link.
+
+---
+Task ID: PHASE-3-4-DESIGN-TRUST
+Agent: main (Z.ai Code)
+Task: Mejoras de diseño, sistema de reseñas, UX móvil, performance y búsqueda mejorada (Phase 3+4)
+
+Work Log:
+- Leído worklog.md para conocer el trabajo previo: arquitectura NEXORA (Next.js 16 + TypeScript + Prisma + PostgreSQL en Neon), 20+ tablas (incluyendo Product con rating/reviewCount/soldCount ya presentes), componentes públicos en src/components/nexora/public/, stores Zustand (cart, wishlist, compare, auth), API /api/products ya soporta filtros por categoryId/brandId/featured.
+- Inspeccionado catalog-view.tsx (851 líneas) y landing-view.tsx (263 líneas) antes de reescribirlos.
+
+Cambios realizados:
+
+### 1. Schema Prisma — nuevo modelo Review
+- Añadido modelo Review a prisma/schema.prisma con campos: id, productId, userId (nullable), userRole, userName, orderId (nullable), rating (1-5), title, comment, images (JSON), verified (Boolean), status (ACTIVE|HIDDEN), createdAt, updatedAt.
+- Añadida relación Product.reviews (con onDelete: Cascade).
+- `bun run db:push --accept-data-loss` ejecutado con éxito — tabla `reviews` creada en PostgreSQL Neon.
+
+### 2. API Reviews
+- src/app/api/reviews/route.ts:
+  - GET /api/reviews?productId=...&sort=recent|highest|lowest → devuelve { reviews[], stats: { average, total, distribution: {5:n,4:n,...} } }
+  - POST /api/reviews — crea review con validación (rating 1-5, title 3+ chars, comment 10+ chars). Marca `verified=true` si se provee orderId válido. Sincroniza oportunísticamente Product.rating y Product.reviewCount (best-effort, non-blocking).
+- src/app/api/reviews/[id]/route.ts:
+  - DELETE /api/reviews/[id]?hard=true → soft delete (status='HIDDEN') por defecto, o hard delete con ?hard=true.
+
+### 3. Componente ReviewsSection
+- Creado src/components/nexora/public/reviews-section.tsx:
+  - Cabecera con título + botón "Escribir una reseña"
+  - Summary card: promedio grande (5.0), estrellas visuales, distribución por estrella con barras de progreso
+  - Formulario interactivo: selector de estrellas (hover/teclado), título, comentario, validación client-side, mutation con useMutation + invalidateQueries
+  - Sort dropdown: recientes / mayor calificación / menor calificación
+  - Lista de reseñas: avatar con inicial, nombre, badge "Compra verificada" (BadgeCheck), estrellas, timeAgo, título + comentario, galería de imágenes opcional
+  - Skeleton loaders y estado vacío
+
+### 4. ProductCard premium (catalog-view.tsx)
+- Reescrito ProductCard con:
+  - Imagen aspect-[4/3] con hover zoom (scale-110, duration-500)
+  - Wishlist heart SIEMPRE visible (no solo en hover)
+  - Botón "Añadir al carrito" SIEMPRE visible (no solo en hover)
+  - Botones Share y CompareToggleButton en hover (desktop)
+  - Badge de categoría, badge % OFF, badge "N fotos" si gallery.length >= 5
+  - Overlay "Ver detalles →" en hover (pointer-events-none)
+  - Brand en mayúsculas, nombre con line-clamp-2, rating stars + count, "⏱️ 10-15 días"
+  - Precio XL bold + USD badge
+  - Badge "Envío incluido" (emerald) + stock status badge
+  - Trust badges: "Verificado" + "24h"
+  - Touch targets min 36px (h-9)
+
+### 5. ProductDetailDialog mejorado
+- Reescrito ProductDetailDialog:
+  - Galería de imágenes: combinar imageUrl + images[] (dedupe), main image + thumbnail strip horizontal debajo
+  - Click thumbnail cambia imagen principal
+  - Zoom on hover (magnifier effect): scale(2) con transform-origin siguiendo el cursor
+  - Botones prev/next con ChevronLeft/Right cuando hay múltiples imágenes
+  - Contador "1 / N" sobre imagen
+  - Hint "Pasa el cursor para ampliar" (desktop)
+  - Layout 2 columnas en md+ (imagen izq, info der)
+  - Stock status: "✅ Disponible" o "⏳ Bajo pedido" como Badge
+  - Specs table con filas alternadas (bg-muted/30)
+  - Timeline de importación de 4 pasos
+  - Trust badges grid (4 íconos)
+  - Selector de cantidad (desktop) + total calculado
+  - CTA desktop: Añadir al carrito + Favorito + Compartir + Solicitar
+  - **Sticky mobile CTA** fixed bottom (md:hidden): cantidad + botón Añadir con total dinámico + favorito
+  - **Productos relacionados** al final: fetch de /api/products?categoryId=... y muestra 4 cards (excluyendo el actual)
+  - **ReviewsSection** integrado debajo de los specs
+  - Footer agregado para completar el Dialog (DialogFooter hidden)
+
+### 6. Filtros adicionales (catalog-view.tsx)
+- **Price range filter** con RadioGroup: Todos / Hasta $50 / $50-$100 / $100-$200 / Más de $200
+- **Sort options** con Select: Relevancia / Precio menor a mayor / Precio mayor a menor / Mejor calificados / Más recientes
+- **Checkbox** "Solo con galería completa (5+ fotos)" — filtra productos con images.length >= 5
+- **Active filter chips**: badges removibles para cada filtro activo (categoría, marca, precio, galería, búsqueda)
+- **"Limpiar todo"** button que resetea todos los filtros
+- Panel de filtros colapsable en mobile (toggle con botón "Filtros")
+
+### 7. Búsqueda mejorada (catalog-view.tsx)
+- **Debounce 300ms** con useEffect + setTimeout para evitar filtrado excesivo
+- **Búsqueda multi-campo**: name, brand name, category name, description
+- **Autocomplete suggestions**: dropdown con top 5 matches de nombres de productos, click para seleccionar
+- **Highlight matching text**: componente Highlight que envuelve el match en `<mark>` con bg-amber-200/70
+- **Clear search button** (X) dentro del input
+- **"No results for 'X'"** con sugerencias de búsqueda (Jordan, Gucci, Dior, LV)
+
+### 8. Landing page premium (landing-view.tsx)
+- Reescrita con:
+  - **Navbar responsive con hamburger menu** en mobile (md:hidden), drawer deslizable con links Catálogo/Cómo Funciona/Nosotros/Blog/Contacto + botones Login/Registrarse
+  - **Hero con gradient background multi-capa**: gradient from-primary/15 via-emerald-500/5 + blobs blur-3xl + grid pattern
+  - Animación Framer Motion en hero (fade + slide up)
+  - Badge de categoría "Importación segura y transparente"
+  - Heading con gradient text (from-primary via-emerald-600 to-emerald-700)
+  - **Stats bar** debajo del hero: 64,000+ productos / 500+ clientes / 22 días entrega / 4.8/5 satisfacción (con íconos)
+  - **How it works** con 4 pasos animados (motion + whileInView)
+  - **Product showcase** (4 productos): grid 2 cols mobile / 4 cols desktop con cards premium (imagen con hover zoom, brand badge, precio bold + USD)
+  - **Features** (6 cards): icon hover cambia de bg-primary/10 a bg-primary
+  - **Trust badges section** (4 cards): Pago Seguro, Proveedores Verificados, Garantía Incluida, Precios de Fabricante
+  - **Testimonials section** (3 reviews): avatar con iniciales, estrellas, quote icon, nombre + rol
+  - **Calculadora** existente preservada
+  - **CTA final** con gradient emerald + blobs decorativos + grid pattern + micro-trust badges
+  - **MobileBottomNav** integrado al final
+  - CartDrawer + WishlistDrawer preservados
+
+### 9. Mobile UX
+- Creado src/components/nexora/public/mobile-bottom-nav.tsx:
+  - Barra inferior fija (md:hidden) con 4 items: Inicio, Catálogo, Carrito, Cuenta
+  - Respeto del iOS safe-area-inset-bottom (env())
+  - Touch targets min 56px
+  - Active state con scale-110 en ícono + text-primary
+  - Botón "Carrito" abre CartDrawer directamente
+- Integrado MobileBottomNav en landing-view.tsx y catalog-view.tsx
+- ProductCard grid: **2 columnas en mobile** (grid-cols-2), 3 en lg, 4 en xl
+- Hamburger menu en navbar de landing (mobile)
+- Sticky CTA en ProductDetailDialog (mobile)
+
+### 10. Performance
+- Todas las imágenes no críticas tienen `loading="lazy"` + `decoding="async"`
+- Imagen principal del ProductDetailDialog usa `loading="eager"` (above-the-fold)
+- **Cache-Control: public, max-age=31536000, immutable** en yupoo-img proxy (todas las rutas de respuesta: buildHeaders, 304 cached, 304 fresh-fetched) — anteriormente era max-age=86400
+- Eliminados imports no usados (useAuth de catalog-view, etc.)
+- Validado con `bun run lint` y `npx tsc --noEmit`
+
+### Verificación
+- `bun run lint`: **0 errors, 0 warnings** ✓
+- `npx tsc --noEmit`: **0 errors en src/** (solo un error en skills/stock-analysis-skill que está fuera de scope) ✓
+- `bun run db:push --accept-data-loss`: tabla `reviews` creada en PostgreSQL Neon ✓
+- API reviews probada end-to-end:
+  - POST /api/reviews → 201 Created con review object completo ✓
+  - GET /api/reviews?productId=... → 200 con reviews[] + stats{average,total,distribution} ✓
+  - DELETE /api/reviews/[id]?hard=true → 200 con {success:true} ✓
+  - Sincronización de Product.rating y Product.reviewCount verificada (UPDATE en log) ✓
+- Páginas renderizadas: GET / 200, GET /?view=catalog 200 sin errores en dev log ✓
+
+Stage Summary:
+- 8 items del Phase 3+4 completados:
+  1. ProductCard premium (hover zoom, USD badge, envío incluido, delivery time, trust badges, cart+wishlist always visible)
+  2. ProductDetailDialog mejorado (galería + thumbnails + zoom + sticky mobile CTA + stock status + productos relacionados + reviews)
+  3. Landing page premium (gradient hero, stats, testimonials, trust badges, showcase, hamburger navbar)
+  4. Filtros adicionales (price range, sort, gallery checkbox, chips removibles, limpiar todo)
+  5. Sistema de reseñas completo (model, API, componente, integración en dialog)
+  6. Mobile UX (hamburger navbar, 2-col grid, bottom nav, sticky CTA)
+  7. Performance (lazy/eager images, Cache-Control immutable en yupoo-img)
+  8. Búsqueda mejorada (debounce 300ms, autocomplete, highlight, no-results con sugerencias, clear button)
+- 5 archivos nuevos: reviews/route.ts, reviews/[id]/route.ts, reviews-section.tsx, mobile-bottom-nav.tsx, + schema.prisma Review model
+- 3 archivos modificados: catalog-view.tsx (reescrito), landing-view.tsx (reescrito), yupoo-img/[hash]/[size]/route.ts (Cache-Control)
+- 0 errores de lint, 0 errores de TypeScript en src/
+- Listo para commit + push a origin/main.
+

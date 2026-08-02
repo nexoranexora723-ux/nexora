@@ -27,7 +27,9 @@ function buildHeaders(entry: CacheEntry): HeadersInit {
   return {
     'Content-Type': entry.contentType,
     'Content-Length': String(entry.buffer.byteLength),
-    'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800',
+    // Immutable: browser/CDN caches can reuse without revalidation for 1 year.
+    // The image content at a yupoo hash+size URL never changes.
+    'Cache-Control': 'public, max-age=31536000, immutable',
     'ETag': entry.etag,
     'X-Content-Type-Options': 'nosniff',
   }
@@ -60,7 +62,7 @@ export async function GET(
           status: 304,
           headers: {
             'ETag': cached.etag,
-            'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800',
+            'Cache-Control': 'public, max-age=31536000, immutable',
           },
         })
       }
@@ -127,7 +129,7 @@ export async function GET(
         status: 304,
         headers: {
           'ETag': etag,
-          'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800',
+          'Cache-Control': 'public, max-age=31536000, immutable',
         },
       })
     }

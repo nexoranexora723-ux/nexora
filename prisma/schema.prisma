@@ -172,11 +172,40 @@ model Product {
   brand       Brand?     @relation(fields: [brandId], references: [id])
   category    Category?  @relation(fields: [categoryId], references: [id])
   supplier    Supplier?  @relation(fields: [supplierId], references: [id])
+  reviews     Review[]
 
   @@index([categoryId])
   @@index([brandId])
   @@index([supplierId])
   @@map("products")
+}
+
+// ============================================================================
+// REVIEWS — Calificaciones y reseñas de productos por usuarios
+// ============================================================================
+
+model Review {
+  id          String   @id @default(cuid())
+  productId   String   @map("product_id")
+  userId      String?  @map("user_id") // nullable: anónimos también pueden opinar
+  userRole    String?  @map("user_role") // CLIENT | RESELLER | GUEST
+  userName    String   @map("user_name") // snapshot del nombre visible
+  orderId     String?  @map("order_id") // si la reseña es de una compra verificada
+  rating      Int      // 1-5
+  title       String
+  comment     String
+  images      String?  // JSON array de URLs
+  verified    Boolean  @default(false) @map("verified") // compra verificada
+  status      String   @default("ACTIVE") // ACTIVE | HIDDEN
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([userId])
+  @@index([rating])
+  @@map("reviews")
 }
 
 // ============================================================================
