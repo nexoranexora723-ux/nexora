@@ -82,8 +82,14 @@ export default function NexoraPage() {
   }
 
   if (isAuthenticated && user) {
-    if (user.role === 'CLIENT' || user.role === 'RESELLER') return <ClientPortal />
-    return <AdminPortal />
+    // Allow authenticated users to view public catalog if they explicitly navigate to it
+    if (view === 'catalog' || view === 'product-detail') {
+      // Fall through to public views below
+    } else if (user.role === 'CLIENT' || user.role === 'RESELLER') {
+      return <ClientPortal />
+    } else {
+      return <AdminPortal />
+    }
   }
 
   if (view === 'register') return <RegisterPage onBack={() => setView('landing')} onLogin={openLogin} />
