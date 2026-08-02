@@ -1,0 +1,728 @@
+     1→'use client'
+     2→
+     3→import { useState } from 'react'
+     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+     6→import { Button } from '@/components/ui/button'
+     7→import { Input } from '@/components/ui/input'
+     8→import { Badge } from '@/components/ui/badge'
+     9→import { Skeleton } from '@/components/ui/skeleton'
+    10→import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+    11→import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+    12→import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+    13→import { useAuth } from '@/lib/auth-store'
+    14→import { formatCurrency, formatNumber, timeAgo, initials } from '@/lib/format'
+    15→import { REQUEST_STATUS_LABELS, REQUEST_STATUS_COLORS } from '@/lib/types'
+    16→import type { ImportRequest, DashboardStats, Supplier, Quote, Import } from '@/lib/types'
+    17→import {
+    18→  LayoutDashboard, Package, Truck, Users, Wallet, Sparkles, Settings,
+    19→  LogOut, Search, MoreHorizontal, ChevronRight, TrendingUp, AlertCircle,
+    20→  FileText, Bell, Globe, ShieldCheck, Plus, ArrowRight, Bot,
+    21→} from 'lucide-react'
+    22→import { cn } from '@/lib/utils'
+    23→import ReactMarkdown from 'react-markdown'
+    24→import { NotificationBell } from '@/components/nexora/shared/notification-bell'
+    25→import { AdminProducts } from '@/components/nexora/admin/admin-products'
+    26→import { AnimatedCounter, staggerContainer, staggerItem, BreathingAvatar, NaiosTyping, messageSlideIn } from '@/components/nexora/shared/animations'
+    27→import { motion, AnimatePresence } from 'framer-motion'
+    28→import { AreaChart, Area, ResponsiveContainer } from 'recharts'
+    29→import { TypewriterText } from '@/components/nexora/shared/typewriter'
+    30→
+    31→type View = 'dashboard' | 'requests' | 'products' | 'suppliers' | 'quotes' | 'imports' | 'finance' | 'naios'
+    32→
+    33→export function AdminPortal() {
+    34→  const { user, logout } = useAuth()
+    35→  const [view, setView] = useState<View>('dashboard')
+    36→  const [selectedRequest, setSelectedRequest] = useState<string | null>(null)
+    37→
+    38→  const handleLogout = async () => {
+    39→    await fetch('/api/auth/logout', { method: 'POST' })
+    40→    logout()
+    41→  }
+    42→
+    43→  return (
+    44→    <div className="flex min-h-screen bg-background">
+    45→      {/* Sidebar */}
+    46→      <aside className="hidden w-64 shrink-0 border-r bg-sidebar lg:flex lg:flex-col">
+    47→        <div className="flex h-16 items-center gap-2.5 border-b border-sidebar-border px-5">
+    48→          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground shadow-sm">
+    49→            <span className="text-lg font-black">N</span>
+    50→          </div>
+    51→          <div className="leading-tight">
+    52→            <div className="text-base font-bold text-sidebar-foreground">NEXORA</div>
+    53→            <div className="text-[10px] font-medium uppercase tracking-widest text-sidebar-foreground/50">ERP Admin</div>
+    54→          </div>
+    55→        </div>
+    56→        <nav className="flex-1 space-y-1 overflow-y-auto p-3">
+    57→          <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">Principal</p>
+    58→          {[
+    59→            { key: 'dashboard' as View, icon: LayoutDashboard, label: 'Dashboard' },
+    60→            { key: 'requests' as View, icon: Package, label: 'Solicitudes' },
+    61→            { key: 'naios' as View, icon: Sparkles, label: 'NAIOS' },
+    62→          ].map((item) => (
+    63→            <button key={item.key} onClick={() => setView(item.key)} className={cn('flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all', view === item.key ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-sm' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/60')}>
+    64→              <item.icon className={cn('h-4 w-4', view === item.key ? 'text-primary' : 'text-sidebar-foreground/50')} />
+    65→              {item.label}
+    66→            </button>
+    67→          ))}
+    68→          <p className="mb-1 mt-4 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">Operación</p>
+    69→          {[
+    70→            { key: 'products' as View, icon: Package, label: 'Productos' },
+    71→            { key: 'suppliers' as View, icon: Truck, label: 'Proveedores' },
+    72→            { key: 'quotes' as View, icon: FileText, label: 'Cotizaciones' },
+    73→            { key: 'imports' as View, icon: Globe, label: 'Importaciones' },
+    74→            { key: 'finance' as View, icon: Wallet, label: 'Finanzas' },
+    75→          ].map((item) => (
+    76→            <button key={item.key} onClick={() => setView(item.key)} className={cn('flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all', view === item.key ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-sm' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/60')}>
+    77→              <item.icon className={cn('h-4 w-4', view === item.key ? 'text-primary' : 'text-sidebar-foreground/50')} />
+    78→              {item.label}
+    79→            </button>
+    80→          ))}
+    81→        </nav>
+    82→        <div className="border-t border-sidebar-border p-3">
+    83→          <div className="flex items-center gap-2.5 rounded-lg border bg-card px-3 py-2">
+    84→            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-blue-700 text-xs font-bold text-primary-foreground">
+    85→              {initials(user?.firstName ?? '', user?.lastName)}
+    86→            </div>
+    87→            <div className="min-w-0 flex-1 leading-tight">
+    88→              <div className="truncate text-xs font-semibold">{user?.firstName} {user?.lastName}</div>
+    89→              <div className="text-[10px] text-muted-foreground">{user?.role}</div>
+    90→            </div>
+    91→            <button onClick={handleLogout} className="text-muted-foreground hover:text-foreground"><LogOut className="h-4 w-4" /></button>
+    92→          </div>
+    93→        </div>
+    94→      </aside>
+    95→
+    96→      <div className="flex flex-1 flex-col overflow-hidden">
+    97→        <header className="flex h-16 items-center justify-between border-b px-4 sm:px-6">
+    98→          <h1 className="text-lg font-semibold">
+    99→            {view === 'dashboard' && 'Dashboard'}
+   100→            {view === 'requests' && 'Solicitudes de Importación'}
+   101→            {view === 'products' && 'Productos'}
+   102→            {view === 'suppliers' && 'Proveedores'}
+   103→            {view === 'quotes' && 'Cotizaciones'}
+   104→            {view === 'imports' && 'Importaciones'}
+   105→            {view === 'finance' && 'Finanzas'}
+   106→            {view === 'naios' && 'NAIOS — Copiloto de Importaciones'}
+   107→          </h1>
+   108→          <div className="flex items-center gap-2">
+   109→            <NotificationBell />
+   110→            <Button size="sm" variant="outline" onClick={() => setView('naios')} className="gap-1.5">
+   111→              <Sparkles className="h-4 w-4 text-primary" /> NAIOS
+   112→            </Button>
+   113→          </div>
+   114→        </header>
+   115→
+   116→        <main className="nexora-scroll flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+   117→          <div className="mx-auto max-w-7xl">
+   118→            {view === 'dashboard' && <AdminDashboard onViewRequest={(id) => { setSelectedRequest(id); setView('requests') }} onNavigate={setView} />}
+   119→            {view === 'requests' && <AdminRequests selectedId={selectedRequest} onSelect={setSelectedRequest} />}
+   120→            {view === 'products' && <AdminProducts />}
+   121→            {view === 'suppliers' && <AdminSuppliers />}
+   122→            {view === 'quotes' && <AdminQuotes />}
+   123→            {view === 'imports' && <AdminImports />}
+   124→            {view === 'finance' && <AdminFinance />}
+   125→            {view === 'naios' && <AdminNaios />}
+   126→          </div>
+   127→        </main>
+   128→      </div>
+   129→    </div>
+   130→  )
+   131→}
+   132→
+   133→// === Admin Dashboard ===
+   134→// === Sparkline component for KPI cards ===
+   135→function Sparkline({ color, data }: { color: string; data: number[] }) {
+   136→  const chartData = data.map((v, i) => ({ idx: i, value: v }))
+   137→  return (
+   138→    <div className="absolute bottom-0 left-0 right-0 h-12 opacity-70">
+   139→      <ResponsiveContainer width="100%" height="100%">
+   140→        <AreaChart data={chartData} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
+   141→          <defs>
+   142→            <linearGradient id={`spark-${color}`} x1="0" y1="0" x2="0" y2="1">
+   143→              <stop offset="0%" stopColor={color} stopOpacity={0.3} />
+   144→              <stop offset="100%" stopColor={color} stopOpacity={0} />
+   145→            </linearGradient>
+   146→          </defs>
+   147→          <Area type="monotone" dataKey="value" stroke={color} strokeWidth={1.5} fill={`url(#spark-${color})`} />
+   148→        </AreaChart>
+   149→      </ResponsiveContainer>
+   150→    </div>
+   151→  )
+   152→}
+   153→
+   154→function AdminDashboard({ onViewRequest, onNavigate }: { onViewRequest: (id: string) => void; onNavigate: (v: View) => void }) {
+   155→  const { data: stats, isLoading } = useQuery<DashboardStats>({
+   156→    queryKey: ['admin-dashboard'],
+   157→    queryFn: async () => (await fetch('/api/dashboard')).json(),
+   158→  })
+   159→
+   160→  if (isLoading || !stats) {
+   161→    return <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">{Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-xl" />)}</div>
+   162→  }
+   163→
+   164→  return (
+   165→    <div className="space-y-6">
+   166→      {/* KPIs with sparklines */}
+   167→      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+   168→        <Card className="relative overflow-hidden"><CardContent className="p-5">
+   169→          <div className="flex items-center justify-between"><p className="text-xs text-muted-foreground">Solicitudes nuevas</p><Package className="h-5 w-5 text-sky-500" /></div>
+   170→          <p className="mt-2 text-2xl font-bold text-sky-600"><AnimatedCounter value={stats.newRequests} /></p>
+   171→          <p className="text-xs text-muted-foreground">{stats.activeRequests} activas</p>
+   172→          <Sparkline color="#0ea5e9" data={stats.revenueByDay?.map((d: { revenue: number }) => d.revenue > 0 ? 1 : 0) ?? [0,1,0,2,1,3,2]} />
+   173→        </CardContent></Card>
+   174→        <Card className="relative overflow-hidden"><CardContent className="p-5">
+   175→          <div className="flex items-center justify-between"><p className="text-xs text-muted-foreground">Cotizaciones pendientes</p><FileText className="h-5 w-5 text-amber-500" /></div>
+   176→          <p className="mt-2 text-2xl font-bold text-amber-600"><AnimatedCounter value={stats.pendingQuotes} /></p>
+   177→          <p className="text-xs text-muted-foreground">Por responder</p>
+   178→          <Sparkline color="#f59e0b" data={[2,1,3,2,4,3,5]} />
+   179→        </CardContent></Card>
+   180→        <Card className="relative overflow-hidden"><CardContent className="p-5">
+   181→          <div className="flex items-center justify-between"><p className="text-xs text-muted-foreground">Importaciones activas</p><Globe className="h-5 w-5 text-violet-500" /></div>
+   182→          <p className="mt-2 text-2xl font-bold text-violet-600"><AnimatedCounter value={stats.activeImports} /></p>
+   183→          <p className="text-xs text-muted-foreground">En proceso</p>
+   184→          <Sparkline color="#8b5cf6" data={[1,1,2,2,3,2,1]} />
+   185→        </CardContent></Card>
+   186→        <Card className="relative overflow-hidden"><CardContent className="p-5">
+   187→          <div className="flex items-center justify-between"><p className="text-xs text-muted-foreground">Utilidad</p><TrendingUp className="h-5 w-5 text-emerald-500" /></div>
+   188→          <p className="mt-2 text-2xl font-bold text-emerald-600">{formatCurrency(stats.profit)}</p>
+   189→          <p className="text-xs text-muted-foreground">Ing: {formatCurrency(stats.revenue)}</p>
+   190→          <Sparkline color="#3b82f6" data={stats.revenueByDay?.map((d: { revenue: number }) => d.revenue) ?? [0,0,100,0,200,150,300]} />
+   191→        </CardContent></Card>
+   192→      </div>
+   193→
+   194→      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+   195→        <button onClick={() => onNavigate('suppliers')} className="rounded-xl border bg-card p-4 text-left transition-all hover:border-primary/40 hover:shadow-sm">
+   196→          <Truck className="h-5 w-5 text-muted-foreground" /><p className="mt-2 text-xl font-bold">{stats.activeSuppliers}</p><p className="text-xs text-muted-foreground">Proveedores activos</p>
+   197→        </button>
+   198→        <div className="rounded-xl border bg-card p-4">
+   199→          <Users className="h-5 w-5 text-muted-foreground" /><p className="mt-2 text-xl font-bold">{stats.totalClients}</p><p className="text-xs text-muted-foreground">Clientes</p>
+   200→        </div>
+   201→        <div className="rounded-xl border bg-card p-4">
+   202→          <Wallet className="h-5 w-5 text-muted-foreground" /><p className="mt-2 text-xl font-bold">{formatCurrency(stats.expenses)}</p><p className="text-xs text-muted-foreground">Gastos</p>
+   203→        </div>
+   204→        <div className="rounded-xl border bg-card p-4">
+   205→          <Package className="h-5 w-5 text-muted-foreground" /><p className="mt-2 text-xl font-bold">{stats.activeRequests}</p><p className="text-xs text-muted-foreground">Solicitudes activas</p>
+   206→        </div>
+   207→      </div>
+   208→
+   209→      {/* Recent requests */}
+   210→      <Card>
+   211→        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+   212→          <CardTitle className="text-base">Solicitudes recientes</CardTitle>
+   213→          <Button variant="ghost" size="sm" className="gap-1 text-xs" onClick={() => onNavigate('requests')}>Ver todas <ChevronRight className="h-3 w-3" /></Button>
+   214→        </CardHeader>
+   215→        <CardContent className="space-y-2">
+   216→          {stats.recentRequests.length === 0 ? (
+   217→            <p className="py-8 text-center text-sm text-muted-foreground">Sin solicitudes</p>
+   218→          ) : (
+   219→            stats.recentRequests.map((r) => (
+   220→              <button key={r.id} onClick={() => onViewRequest(r.id)} className="flex w-full items-center gap-3 rounded-lg border bg-card p-3 text-left transition-colors hover:bg-muted/40">
+   221→                <div className="min-w-0 flex-1">
+   222→                  <div className="flex items-center gap-2">
+   223→                    <code className="text-xs font-medium text-primary">{r.number}</code>
+   224→                    <Badge variant="outline" className={cn('text-[10px]', REQUEST_STATUS_COLORS[r.status])}>{REQUEST_STATUS_LABELS[r.status]}</Badge>
+   225→                  </div>
+   226→                  <p className="mt-0.5 truncate text-sm font-medium">{r.productName}</p>
+   227→                  <p className="text-xs text-muted-foreground">{r.client.firstName} {r.client.lastName} · {r.quantity}u · {timeAgo(r.createdAt)}</p>
+   228→                </div>
+   229→                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+   230→              </button>
+   231→            ))
+   232→          )}
+   233→        </CardContent>
+   234→      </Card>
+   235→    </div>
+   236→  )
+   237→}
+   238→
+   239→// === Admin Requests ===
+   240→function AdminRequests({ selectedId, onSelect }: { selectedId: string | null; onSelect: (id: string) => void }) {
+   241→  const [query, setQuery] = useState('')
+   242→  const [statusFilter, setStatusFilter] = useState('all')
+   243→  const { data: requests, isLoading } = useQuery<ImportRequest[]>({
+   244→    queryKey: ['admin-requests', query, statusFilter],
+   245→    queryFn: async () => {
+   246→      const params = new URLSearchParams()
+   247→      if (query) params.set('q', query)
+   248→      if (statusFilter !== 'all') params.set('status', statusFilter)
+   249→      return (await fetch(`/api/requests?${params}`)).json()
+   250→    },
+   251→  })
+   252→
+   253→  if (selectedId) return <RequestDetail id={selectedId} onBack={() => onSelect('')} />
+   254→
+   255→  return (
+   256→    <div className="space-y-4">
+   257→      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+   258→        <div className="relative max-w-sm flex-1">
+   259→          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   260→          <Input placeholder="Buscar por número o producto..." value={query} onChange={(e) => setQuery(e.target.value)} className="pl-9" />
+   261→        </div>
+   262→        <div className="flex flex-wrap gap-1.5">
+   263→          {['all', 'NUEVA', 'BUSCANDO_PROVEEDOR', 'COTIZACION_ENVIADA', 'PAGO_RECIBIDO', 'EN_TRANSITO', 'ENTREGADO'].map((s) => (
+   264→            <Button key={s} variant={statusFilter === s ? 'default' : 'outline'} size="sm" className="h-8 text-xs" onClick={() => setStatusFilter(s)}>
+   265→              {s === 'all' ? 'Todas' : REQUEST_STATUS_LABELS[s]}
+   266→            </Button>
+   267→          ))}
+   268→        </div>
+   269→      </div>
+   270→
+   271→      {isLoading ? (
+   272→        <div className="space-y-2">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}</div>
+   273→      ) : (requests?.length ?? 0) === 0 ? (
+   274→        <Card><CardContent className="py-12 text-center text-sm text-muted-foreground">No hay solicitudes</CardContent></Card>
+   275→      ) : (
+   276→        <Card><CardContent className="p-0">
+   277→          <div className="nexora-scroll overflow-x-auto">
+   278→            <Table>
+   279→              <TableHeader><TableRow>
+   280→                <TableHead>Número</TableHead><TableHead>Producto</TableHead><TableHead>Cliente</TableHead>
+   281→                <TableHead className="text-right">Cant.</TableHead><TableHead>Estado</TableHead><TableHead>Fecha</TableHead><TableHead className="w-12"></TableHead>
+   282→              </TableRow></TableHeader>
+   283→              <TableBody>
+   284→                {requests!.map((r) => (
+   285→                  <TableRow key={r.id} className="group cursor-pointer" onClick={() => onSelect(r.id)}>
+   286→                    <TableCell><code className="text-xs font-medium text-primary">{r.number}</code></TableCell>
+   287→                    <TableCell><p className="truncate text-sm font-medium">{r.productName}</p></TableCell>
+   288→                    <TableCell className="text-sm text-muted-foreground">{r.client.firstName} {r.client.lastName}</TableCell>
+   289→                    <TableCell className="text-right text-sm tabular-nums">{r.quantity}</TableCell>
+   290→                    <TableCell><Badge variant="outline" className={cn('text-[10px]', REQUEST_STATUS_COLORS[r.status])}>{REQUEST_STATUS_LABELS[r.status]}</Badge></TableCell>
+   291→                    <TableCell className="text-xs text-muted-foreground">{timeAgo(r.createdAt)}</TableCell>
+   292→                    <TableCell><ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100" /></TableCell>
+   293→                  </TableRow>
+   294→                ))}
+   295→              </TableBody>
+   296→            </Table>
+   297→          </div>
+   298→        </CardContent></Card>
+   299→      )}
+   300→    </div>
+   301→  )
+   302→}
+   303→
+   304→// === Request Detail ===
+   305→function RequestDetail({ id, onBack }: { id: string; onBack: () => void }) {
+   306→  const qc = useQueryClient()
+   307→  const { data: req, isLoading } = useQuery<ImportRequest>({
+   308→    queryKey: ['request', id],
+   309→    queryFn: async () => (await fetch(`/api/requests/${id}`)).json(),
+   310→  })
+   311→  const [statusOpen, setStatusOpen] = useState(false)
+   312→  const [newStatus, setNewStatus] = useState('')
+   313→  const [notes, setNotes] = useState('')
+   314→
+   315→  const updateStatus = useMutation({
+   316→    mutationFn: async () => {
+   317→      await fetch(`/api/requests/${id}/status`, {
+   318→        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+   319→        body: JSON.stringify({ status: newStatus, notes }),
+   320→      })
+   321→    },
+   322→    onSuccess: () => {
+   323→      qc.invalidateQueries({ queryKey: ['request', id] })
+   324→      qc.invalidateQueries({ queryKey: ['admin-requests'] })
+   325→      setStatusOpen(false)
+   326→      setNotes('')
+   327→    },
+   328→  })
+   329→
+   330→  if (isLoading) return <Skeleton className="h-96 w-full" />
+   331→  if (!req) return <Card><CardContent className="py-12 text-center">No encontrada</CardContent></Card>
+   332→
+   333→  return (
+   334→    <div className="space-y-6">
+   335→      <button onClick={onBack} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">← Volver</button>
+   336→      <div className="flex items-start justify-between">
+   337→        <div>
+   338→          <div className="flex items-center gap-2">
+   339→            <code className="text-sm font-medium text-primary">{req.number}</code>
+   340→            <Badge variant="outline" className={REQUEST_STATUS_COLORS[req.status]}>{REQUEST_STATUS_LABELS[req.status]}</Badge>
+   341→          </div>
+   342→          <h2 className="mt-1 text-2xl font-bold">{req.productName}</h2>
+   343→          <p className="text-sm text-muted-foreground">Cliente: {req.client.firstName} {req.client.lastName} ({req.client.email})</p>
+   344→        </div>
+   345→        <Button onClick={() => { setNewStatus(req.status); setStatusOpen(true) }}>Cambiar estado</Button>
+   346→      </div>
+   347→
+   348→      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+   349→        <Card className="lg:col-span-2"><CardContent className="p-5">
+   350→          <h3 className="mb-3 text-sm font-semibold">Información de la solicitud</h3>
+   351→          <div className="grid grid-cols-2 gap-4 text-sm">
+   352→            <div><p className="text-xs text-muted-foreground">Cantidad</p><p className="font-medium">{req.quantity} unidades</p></div>
+   353→            <div><p className="text-xs text-muted-foreground">Presupuesto</p><p className="font-medium">{req.budget ? formatCurrency(req.budget) : '—'}</p></div>
+   354→            <div><p className="text-xs text-muted-foreground">Categoría</p><p className="font-medium">{req.category ?? '—'}</p></div>
+   355→            <div><p className="text-xs text-muted-foreground">Propósito</p><p className="font-medium">{req.purpose ?? '—'}</p></div>
+   356→            <div><p className="text-xs text-muted-foreground">Prioridad</p><p className="font-medium">{req.priority}</p></div>
+   357→            <div><p className="text-xs text-muted-foreground">Asignado a</p><p className="font-medium">{req.assignee ? `${req.assignee.firstName} ${req.assignee.lastName}` : 'Sin asignar'}</p></div>
+   358→          </div>
+   359→          {req.description && <div className="mt-4"><p className="text-xs text-muted-foreground">Descripción</p><p className="mt-1 text-sm">{req.description}</p></div>}
+   360→          {req.details && <div className="mt-2"><p className="text-xs text-muted-foreground">Detalles</p><p className="mt-1 text-sm">{req.details}</p></div>}
+   361→          {req.referenceUrl && <div className="mt-2"><p className="text-xs text-muted-foreground">Referencia</p><a href={req.referenceUrl} target="_blank" rel="noreferrer" className="text-sm text-primary hover:underline">{req.referenceUrl}</a></div>}
+   362→        </CardContent></Card>
+   363→
+   364→        {req.naiosSummary && (
+   365→          <Card className="border-primary/20 bg-primary/5"><CardContent className="p-5">
+   366→            <div className="flex items-center gap-2"><Sparkles className="h-4 w-4 text-primary" /><h3 className="text-sm font-semibold text-primary">Análisis NAIOS</h3></div>
+   367→            <p className="mt-3 text-sm text-muted-foreground">{req.naiosSummary}</p>
+   368→            {req.naiosCategory && <p className="mt-2 text-xs"><span className="text-muted-foreground">Categoría IA:</span> <span className="font-medium">{req.naiosCategory}</span></p>}
+   369→            {req.naiosPriority && <p className="text-xs"><span className="text-muted-foreground">Prioridad IA:</span> <span className="font-medium">{req.naiosPriority}</span></p>}
+   370→          </CardContent></Card>
+   371→        )}
+   372→      </div>
+   373→
+   374→      {(req.quotes?.length ?? 0) > 0 && (
+   375→        <Card><CardContent className="p-5">
+   376→          <h3 className="mb-3 text-sm font-semibold">Cotizaciones ({req.quotes?.length ?? 0})</h3>
+   377→          <div className="space-y-2">
+   378→            {req.quotes!.map((q) => (
+   379→              <div key={q.id} className="rounded-lg border p-3">
+   380→                <div className="flex items-center justify-between">
+   381→                  <code className="text-xs text-primary">{q.number}</code>
+   382→                  <Badge variant="outline" className="text-[10px]">{q.status}</Badge>
+   383→                </div>
+   384→                <p className="mt-1 text-sm">{q.supplier.companyName}</p>
+   385→                <p className="text-sm font-semibold">{formatCurrency(q.total)} <span className="text-xs font-normal text-muted-foreground">({q.quantity}u × {formatCurrency(q.unitPrice)})</span></p>
+   386→              </div>
+   387→            ))}
+   388→          </div>
+   389→        </CardContent></Card>
+   390→      )}
+   391→
+   392→      {/* Status change dialog */}
+   393→      <Dialog open={statusOpen} onOpenChange={setStatusOpen}>
+   394→        <DialogContent className="sm:max-w-md">
+   395→          <DialogHeader><DialogTitle>Cambiar estado de la solicitud</DialogTitle><DialogDescription>{req.number} — {req.productName}</DialogDescription></DialogHeader>
+   396→          <div className="space-y-3">
+   397→            <select value={newStatus} onChange={(e) => setNewStatus(e.target.value)} className="h-9 w-full rounded-md border bg-background px-3 text-sm">
+   398→              {Object.entries(REQUEST_STATUS_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+   399→            </select>
+   400→            <Input placeholder="Notas (opcional)" value={notes} onChange={(e) => setNotes(e.target.value)} />
+   401→          </div>
+   402→          <DialogFooter><Button variant="outline" onClick={() => setStatusOpen(false)}>Cancelar</Button><Button onClick={() => updateStatus.mutate()} disabled={updateStatus.isPending}>Guardar</Button></DialogFooter>
+   403→        </DialogContent>
+   404→      </Dialog>
+   405→    </div>
+   406→  )
+   407→}
+   408→
+   409→// === Admin Suppliers ===
+   410→function AdminSuppliers() {
+   411→  const { data: suppliers, isLoading } = useQuery<Supplier[]>({
+   412→    queryKey: ['suppliers'],
+   413→    queryFn: async () => (await fetch('/api/suppliers')).json(),
+   414→  })
+   415→
+   416→  const sorted = suppliers ? [...suppliers].sort((a, b) => (b.rating?.overallScore ?? 0) - (a.rating?.overallScore ?? 0)) : []
+   417→
+   418→  return (
+   419→    <div className="space-y-4">
+   420→      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+   421→        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Proveedores</p><p className="mt-1 text-2xl font-bold">{suppliers?.length ?? 0}</p></CardContent></Card>
+   422→        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Bajo riesgo</p><p className="mt-1 text-2xl font-bold text-emerald-600">{suppliers?.filter((s) => s.riskLevel === 'LOW').length ?? 0}</p></CardContent></Card>
+   423→        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Riesgo medio</p><p className="mt-1 text-2xl font-bold text-amber-600">{suppliers?.filter((s) => s.riskLevel === 'MEDIUM').length ?? 0}</p></CardContent></Card>
+   424→        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Alto riesgo</p><p className="mt-1 text-2xl font-bold text-rose-600">{suppliers?.filter((s) => s.riskLevel === 'HIGH').length ?? 0}</p></CardContent></Card>
+   425→      </div>
+   426→
+   427→      {isLoading ? (
+   428→        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-48 rounded-xl" />)}</div>
+   429→      ) : (
+   430→        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+   431→          {sorted.map((s) => (
+   432→            <Card key={s.id}><CardContent className="p-5">
+   433→              <div className="flex items-start justify-between">
+   434→                <div>
+   435→                  <h3 className="font-semibold">{s.companyName}</h3>
+   436→                  <p className="text-xs text-muted-foreground">{s.contactName} · {s.city}, {s.country}</p>
+   437→                </div>
+   438→                <div className="text-right">
+   439→                  <div className={cn('text-2xl font-bold', (s.rating?.overallScore ?? 0) >= 85 ? 'text-emerald-600' : (s.rating?.overallScore ?? 0) >= 70 ? 'text-amber-600' : 'text-rose-600')}>
+   440→                    {(s.rating?.overallScore ?? 0).toFixed(1)}
+   441→                  </div>
+   442→                  <Badge variant="outline" className={cn('text-[10px]', s.riskLevel === 'LOW' ? 'border-emerald-200 text-emerald-700' : s.riskLevel === 'MEDIUM' ? 'border-amber-200 text-amber-700' : 'border-rose-200 text-rose-700')}>
+   443→                    {s.riskLevel === 'LOW' ? 'Bajo riesgo' : s.riskLevel === 'MEDIUM' ? 'Riesgo medio' : 'Alto riesgo'}
+   444→                  </Badge>
+   445→                </div>
+   446→              </div>
+   447→              <div className="mt-3 flex flex-wrap gap-3 text-xs text-muted-foreground">
+   448→                {s.moq && <span>MOQ: {s.moq}</span>}
+   449→                {s.leadTime && <span>Lead: {s.leadTime}d</span>}
+   450→                {s.warranty && <span>Garantía: {s.warranty}</span>}
+   451→                {s.oem && <span>OEM</span>}
+   452→                {s.odm && <span>ODM</span>}
+   453→              </div>
+   454→              {s.rating && (
+   455→                <div className="mt-3 grid grid-cols-3 gap-2 border-t pt-3 text-xs">
+   456→                  <div><span className="text-muted-foreground">Calidad</span> <span className="font-medium">{s.rating.qualityScore}</span></div>
+   457→                  <div><span className="text-muted-foreground">Precio</span> <span className="font-medium">{s.rating.priceScore}</span></div>
+   458→                  <div><span className="text-muted-foreground">Confianza</span> <span className="font-medium">{s.rating.trustScore}</span></div>
+   459→                </div>
+   460→              )}
+   461→            </CardContent></Card>
+   462→          ))}
+   463→        </div>
+   464→      )}
+   465→    </div>
+   466→  )
+   467→}
+   468→
+   469→// === Admin Quotes ===
+   470→function AdminQuotes() {
+   471→  const { data: quotes, isLoading } = useQuery<Quote[]>({
+   472→    queryKey: ['quotes'],
+   473→    queryFn: async () => (await fetch('/api/quotes')).json(),
+   474→  })
+   475→
+   476→  return (
+   477→    <div className="space-y-4">
+   478→      {isLoading ? <Skeleton className="h-96 w-full" /> : (quotes?.length ?? 0) === 0 ? (
+   479→        <Card><CardContent className="py-12 text-center text-sm text-muted-foreground">No hay cotizaciones</CardContent></Card>
+   480→      ) : (
+   481→        <Card><CardContent className="p-0">
+   482→          <div className="nexora-scroll overflow-x-auto">
+   483→            <Table>
+   484→              <TableHeader><TableRow>
+   485→                <TableHead>Número</TableHead><TableHead>Proveedor</TableHead><TableHead>Producto</TableHead>
+   486→                <TableHead className="text-right">Total</TableHead><TableHead>Estado</TableHead><TableHead>Fecha</TableHead>
+   487→              </TableRow></TableHeader>
+   488→              <TableBody>
+   489→                {quotes!.map((q) => (
+   490→                  <TableRow key={q.id}>
+   491→                    <TableCell><code className="text-xs text-primary">{q.number}</code></TableCell>
+   492→                    <TableCell className="text-sm">{q.supplier.companyName}</TableCell>
+   493→                    <TableCell className="text-sm text-muted-foreground">{q.quantity}u × {formatCurrency(q.unitPrice)}</TableCell>
+   494→                    <TableCell className="text-right text-sm font-semibold">{formatCurrency(q.total)}</TableCell>
+   495→                    <TableCell><Badge variant="outline" className="text-[10px]">{q.status}</Badge></TableCell>
+   496→                    <TableCell className="text-xs text-muted-foreground">{timeAgo(q.createdAt)}</TableCell>
+   497→                  </TableRow>
+   498→                ))}
+   499→              </TableBody>
+   500→            </Table>
+   501→          </div>
+   502→        </CardContent></Card>
+   503→      )}
+   504→    </div>
+   505→  )
+   506→}
+   507→
+   508→// === Admin Imports ===
+   509→function AdminImports() {
+   510→  const { data: imports, isLoading } = useQuery<Import[]>({
+   511→    queryKey: ['imports'],
+   512→    queryFn: async () => (await fetch('/api/imports')).json(),
+   513→  })
+   514→
+   515→  const statusLabels: Record<string, string> = {
+   516→    COMPRA_REALIZADA: 'Compra realizada', PRODUCCION: 'En producción', ENVIADO: 'Enviado',
+   517→    EN_TRANSITO: 'En tránsito', EN_ADUANA: 'En aduana', RECIBIDO_BODEGA: 'En bodega',
+   518→    ENTREGADO: 'Entregado', CANCELADO: 'Cancelado',
+   519→  }
+   520→  const statusColors: Record<string, string> = {
+   521→    COMPRA_REALIZADA: 'border-emerald-200 text-emerald-700 bg-emerald-50',
+   522→    PRODUCCION: 'border-orange-200 text-orange-700 bg-orange-50',
+   523→    ENVIADO: 'border-blue-200 text-blue-700 bg-blue-50',
+   524→    EN_TRANSITO: 'border-blue-200 text-blue-700 bg-blue-50',
+   525→    ENTREGADO: 'border-emerald-200 text-emerald-700 bg-emerald-50',
+   526→    CANCELADO: 'border-rose-200 text-rose-700 bg-rose-50',
+   527→  }
+   528→
+   529→  return (
+   530→    <div className="space-y-4">
+   531→      {isLoading ? <Skeleton className="h-96 w-full" /> : (imports?.length ?? 0) === 0 ? (
+   532→        <Card><CardContent className="py-12 text-center text-sm text-muted-foreground">No hay importaciones</CardContent></Card>
+   533→      ) : (
+   534→        <div className="space-y-3">
+   535→          {imports!.map((imp) => (
+   536→            <Card key={imp.id}><CardContent className="p-4">
+   537→              <div className="flex items-start justify-between gap-4">
+   538→                <div className="min-w-0 flex-1">
+   539→                  <div className="flex items-center gap-2">
+   540→                    <code className="text-xs font-medium text-primary">{imp.number}</code>
+   541→                    <Badge variant="outline" className={cn('text-[10px]', statusColors[imp.status] ?? '')}>{statusLabels[imp.status] ?? imp.status}</Badge>
+   542→                  </div>
+   543→                  <p className="mt-1 text-sm">{imp.supplier.companyName}</p>
+   544→                  {imp.carrier && <p className="text-xs text-muted-foreground">{imp.carrier} · {imp.trackingNumber ?? '—'}</p>}
+   545→                </div>
+   546→                <div className="text-right">
+   547→                  <p className="text-sm font-bold text-emerald-600">{formatCurrency(imp.profit)}</p>
+   548→                  <p className="text-xs text-muted-foreground">Utilidad</p>
+   549→                  <p className="mt-1 text-xs text-muted-foreground">Venta: {formatCurrency(imp.salePrice)}</p>
+   550→                  <p className="text-xs text-muted-foreground">Costo: {formatCurrency(imp.totalCost)}</p>
+   551→                </div>
+   552→              </div>
+   553→            </CardContent></Card>
+   554→          ))}
+   555→        </div>
+   556→      )}
+   557→    </div>
+   558→  )
+   559→}
+   560→
+   561→// === Admin Finance ===
+   562→function AdminFinance() {
+   563→  const { data, isLoading } = useQuery<{ transactions: { id: string; type: string; description: string; amount: number; reference: string | null; date: string }[]; summary: { income: number; expenses: number; profit: number } }>({
+   564→    queryKey: ['finance'],
+   565→    queryFn: async () => (await fetch('/api/finance')).json(),
+   566→  })
+   567→
+   568→  if (isLoading || !data) return <Skeleton className="h-96 w-full" />
+   569→
+   570→  return (
+   571→    <div className="space-y-6">
+   572→      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+   573→        <Card><CardContent className="p-5"><p className="text-xs text-muted-foreground">Ingresos</p><p className="mt-2 text-2xl font-bold text-emerald-600">{formatCurrency(data.summary.income)}</p></CardContent></Card>
+   574→        <Card><CardContent className="p-5"><p className="text-xs text-muted-foreground">Gastos</p><p className="mt-2 text-2xl font-bold text-rose-600">{formatCurrency(data.summary.expenses)}</p></CardContent></Card>
+   575→        <Card><CardContent className="p-5"><p className="text-xs text-muted-foreground">Utilidad</p><p className="mt-2 text-2xl font-bold text-primary">{formatCurrency(data.summary.profit)}</p></CardContent></Card>
+   576→      </div>
+   577→
+   578→      <Card><CardContent className="p-0">
+   579→        <div className="nexora-scroll max-h-96 overflow-y-auto">
+   580→          <Table>
+   581→            <TableHeader><TableRow><TableHead>Descripción</TableHead><TableHead>Tipo</TableHead><TableHead className="text-right">Monto</TableHead><TableHead>Fecha</TableHead></TableRow></TableHeader>
+   582→            <TableBody>
+   583→              {data.transactions.map((t) => (
+   584→                <TableRow key={t.id}>
+   585→                  <TableCell className="text-sm">{t.description}</TableCell>
+   586→                  <TableCell><Badge variant={t.type === 'INCOME' ? 'default' : 'destructive'} className="text-[10px]">{t.type === 'INCOME' ? 'Ingreso' : 'Gasto'}</Badge></TableCell>
+   587→                  <TableCell className={cn('text-right text-sm font-semibold tabular-nums', t.type === 'INCOME' ? 'text-emerald-600' : 'text-rose-600')}>{t.type === 'INCOME' ? '+' : '-'}{formatCurrency(t.amount)}</TableCell>
+   588→                  <TableCell className="text-xs text-muted-foreground">{timeAgo(t.date)}</TableCell>
+   589→                </TableRow>
+   590→              ))}
+   591→            </TableBody>
+   592→          </Table>
+   593→        </div>
+   594→      </CardContent></Card>
+   595→    </div>
+   596→  )
+   597→}
+   598→
+   599→// === Admin NAIOS ===
+   600→function AdminNaios() {
+   601→  const [messages, setMessages] = useState<{ role: string; content: string }[]>([])
+   602→  const [input, setInput] = useState('')
+   603→  const [sending, setSending] = useState(false)
+   604→  const { data: briefing } = useQuery<{ briefing: string }>({
+   605→    queryKey: ['naios-briefing'],
+   606→    queryFn: async () => (await fetch('/api/naios/insights')).json(),
+   607→    staleTime: 5 * 60 * 1000,
+   608→  })
+   609→  const { data: recs } = useQuery({
+   610→    queryKey: ['naios-recs'],
+   611→    queryFn: async () => (await fetch('/api/naios/recommendations')).json(),
+   612→  })
+   613→  const { data: stats } = useQuery<DashboardStats>({
+   614→    queryKey: ['admin-dashboard'],
+   615→    queryFn: async () => (await fetch('/api/dashboard')).json(),
+   616→  })
+   617→
+   618→  const buildContext = () => {
+   619→    if (!stats) return 'Datos no disponibles.'
+   620→    return `- Solicitudes: ${stats.newRequests} nuevas, ${stats.activeRequests} activas
+   621→- Cotizaciones pendientes: ${stats.pendingQuotes}
+   622→- Importaciones activas: ${stats.activeImports}
+   623→- Utilidad: ${formatCurrency(stats.profit)}`
+   624→  }
+   625→
+   626→  const send = async () => {
+   627→    if (!input.trim() || sending) return
+   628→    const userMsg = { role: 'user', content: input }
+   629→    setMessages((m) => [...m, userMsg])
+   630→    setInput('')
+   631→    setSending(true)
+   632→    try {
+   633→      const res = await fetch('/api/naios/chat', {
+   634→        method: 'POST', headers: { 'Content-Type': 'application/json' },
+   635→        body: JSON.stringify({ messages: [...messages, userMsg], businessContext: buildContext() }),
+   636→      })
+   637→      const data = await res.json()
+   638→      setMessages((m) => [...m, { role: 'assistant', content: data.response }])
+   639→    } catch {
+   640→      setMessages((m) => [...m, { role: 'assistant', content: 'Error de conexión.' }])
+   641→    } finally {
+   642→      setSending(false)
+   643→    }
+   644→  }
+   645→
+   646→  return (
+   647→    <div className="space-y-6">
+   648→      {/* Briefing */}
+   649→      <Card className="border-primary/20 bg-primary/5"><CardContent className="p-5">
+   650→        <div className="flex items-center gap-2 mb-3"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground"><Sparkles className="h-4 w-4" /></div><div><h3 className="text-base font-semibold">Briefing ejecutivo</h3><p className="text-xs text-muted-foreground">Resumen generado por IA</p></div></div>
+   651→        <div className="naios-markdown rounded-lg bg-muted/40 p-4 text-sm"><ReactMarkdown skipHtml>{briefing?.briefing ?? 'Cargando...'}</ReactMarkdown></div>
+   652→      </CardContent></Card>
+   653→
+   654→      {/* Recommendations */}
+   655→      {recs && recs.length > 0 && (
+   656→        <Card><CardContent className="p-5">
+   657→          <h3 className="mb-3 text-sm font-semibold">Recomendaciones ({recs.length})</h3>
+   658→          <div className="space-y-2">
+   659→            {recs.map((r: { id: string; type: string; severity: string; title: string; description: string; action: string | null }) => (
+   660→              <div key={r.id} className="rounded-lg border p-3">
+   661→                <div className="flex items-center gap-2">
+   662→                  <Badge variant="outline" className={cn('text-[10px]', r.severity === 'CRITICAL' ? 'border-rose-200 text-rose-700' : r.severity === 'HIGH' ? 'border-orange-200 text-orange-700' : 'border-amber-200 text-amber-700')}>{r.type}</Badge>
+   663→                  <span className="text-xs text-muted-foreground">{r.severity}</span>
+   664→                </div>
+   665→                <p className="mt-1 text-sm font-medium">{r.title}</p>
+   666→                <p className="mt-0.5 text-xs text-muted-foreground">{r.description}</p>
+   667→                {r.action && <p className="mt-1 text-xs text-primary">→ {r.action}</p>}
+   668→              </div>
+   669→            ))}
+   670→          </div>
+   671→        </CardContent></Card>
+   672→      )}
+   673→
+   674→      {/* Chat */}
+   675→      <Card className="overflow-hidden"><CardContent className="p-0">
+   676→        <div className="border-b bg-gradient-to-r from-primary/5 to-transparent p-4">
+   677→          <div className="flex items-center gap-2">
+   678→            <BreathingAvatar className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground"><Bot className="h-4 w-4" /><span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card bg-emerald-500" /></BreathingAvatar>
+   679→            <div><h3 className="text-base font-semibold">Conversación con NAIOS</h3><p className="text-xs text-muted-foreground">Tu copiloto de importaciones</p></div>
+   680→          </div>
+   681→        </div>
+   682→        <div className="nexora-scroll h-80 overflow-y-auto p-4">
+   683→          {messages.length === 0 ? (
+   684→            <div className="flex h-full flex-col items-center justify-center text-center">
+   685→              <Sparkles className="mb-2 h-10 w-10 text-primary/40" />
+   686→              <p className="text-sm font-medium">Pregúntame sobre tus importaciones</p>
+   687→              <div className="mt-4 grid w-full max-w-md grid-cols-1 gap-2">
+   688→                {['¿Qué solicitudes necesitan atención?', '¿Cuál es el estado de mis importaciones?', '¿Qué proveedores tienen mejor rating?'].map((p) => (
+   689→                  <button key={p} onClick={() => { setInput(p); }} className="rounded-lg border bg-card p-2.5 text-left text-xs transition-colors hover:bg-muted/40">{p}</button>
+   690→                ))}
+   691→              </div>
+   692→            </div>
+   693→          ) : (
+   694→            <div className="space-y-3">
+   695→              {messages.map((m, i) => {
+   696→                const isLastAssistant = m.role === 'assistant' && i === messages.length - 1 && !sending
+   697→                return (
+   698→                <motion.div key={i} variants={messageSlideIn} initial="hidden" animate="visible" className={cn('flex gap-2', m.role === 'user' && 'flex-row-reverse')}>
+   699→                  <div className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-lg', m.role === 'assistant' ? 'bg-gradient-to-br from-primary to-blue-700 text-primary-foreground' : 'bg-muted')}>
+   700→                    {m.role === 'assistant' ? <Bot className="h-3.5 w-3.5" /> : <Users className="h-3.5 w-3.5" />}
+   701→                  </div>
+   702→                  <div className={cn('max-w-[80%] rounded-2xl px-3 py-2 text-sm', m.role === 'assistant' ? 'rounded-tl-sm bg-muted/60' : 'rounded-tr-sm bg-primary text-primary-foreground')}>
+   703→                    {m.role === 'assistant' ? (
+   704→                      isLastAssistant ? (
+   705→                        <div className="naios-markdown"><TypewriterText text={m.content} speed={10} /></div>
+   706→                      ) : (
+   707→                        <div className="naios-markdown"><ReactMarkdown skipHtml>{m.content}</ReactMarkdown></div>
+   708→                      )
+   709→                    ) : <p className="whitespace-pre-wrap">{m.content}</p>}
+   710→                  </div>
+   711→                </motion.div>
+   712→                )
+   713→              })}
+   714→              {sending && <div className="flex gap-2"><BreathingAvatar className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground"><Bot className="h-3.5 w-3.5" /></BreathingAvatar><NaiosTyping /></div>}
+   715→            </div>
+   716→          )}
+   717→        </div>
+   718→        <div className="border-t p-3">
+   719→          <div className="flex items-end gap-2">
+   720→            <Input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }} placeholder="Pregunta a NAIOS..." disabled={sending} />
+   721→            <Button onClick={send} disabled={!input.trim() || sending} size="icon" className="h-9 w-9 shrink-0"><Sparkles className="h-4 w-4" /></Button>
+   722→          </div>
+   723→        </div>
+   724→      </CardContent></Card>
+   725→    </div>
+   726→  )
+   727→}
+   728→

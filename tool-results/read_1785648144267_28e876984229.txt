@@ -1,0 +1,650 @@
+     1→'use client'
+     2→
+     3→import { useState, useMemo, useRef, useEffect } from 'react'
+     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→import { Card, CardContent } from '@/components/ui/card'
+     6→import { Button } from '@/components/ui/button'
+     7→import { Input } from '@/components/ui/input'
+     8→import { Label } from '@/components/ui/label'
+     9→import { Textarea } from '@/components/ui/textarea'
+    10→import { Badge } from '@/components/ui/badge'
+    11→import { Skeleton } from '@/components/ui/skeleton'
+    12→import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+    13→import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+    14→import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+    15→import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+    16→import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+    17→import { useToast } from '@/hooks/use-toast'
+    18→import { formatCurrency, formatPercent } from '@/lib/format'
+    19→import { cn } from '@/lib/utils'
+    20→import { fireConfetti, SuccessOverlay } from '@/components/nexora/shared/animations'
+    21→import {
+    22→  Package, Plus, Search, MoreHorizontal, Pencil, Trash2, Power, PowerOff,
+    23→  Copy, Star, Upload, X, GripVertical, ChevronUp, ChevronDown, Image as ImageIcon,
+    24→  Video, FileText, Settings, CheckCircle2, Loader2, AlertCircle,
+    25→} from 'lucide-react'
+    26→
+    27→interface AdminProduct {
+    28→  id: string
+    29→  sku: string
+    30→  name: string
+    31→  description: string | null
+    32→  longDescription: string | null
+    33→  brand: { id: string; name: string } | null
+    34→  category: { id: string; name: string; icon: string | null } | null
+    35→  supplier: { id: string; companyName: string } | null
+    36→  imageUrl: string | null
+    37→  images: string[]
+    38→  videoUrl: string | null
+    39→  estimatedCost: number | null
+    40→  suggestedPrice: number | null
+    41→  currencyCode: string
+    42→  status: string
+    43→  isFeatured: boolean
+    44→  specs: { label: string; value: string }[]
+    45→  features: string[]
+    46→  rating: number
+    47→  reviewCount: number
+    48→  soldCount: number
+    49→}
+    50→
+    51→interface CatalogData {
+    52→  brands: { id: string; name: string }[]
+    53→  categories: { id: string; name: string; slug: string; icon: string | null }[]
+    54→  suppliers: { id: string; companyName: string }[]
+    55→}
+    56→
+    57→export function AdminProducts() {
+    58→  const [query, setQuery] = useState('')
+    59→  const [statusFilter, setStatusFilter] = useState('all')
+    60→  const [formOpen, setFormOpen] = useState(false)
+    61→  const [editing, setEditing] = useState<AdminProduct | null>(null)
+    62→  const [deleteTarget, setDeleteTarget] = useState<AdminProduct | null>(null)
+    63→
+    64→  const { toast } = useToast()
+    65→  const qc = useQueryClient()
+    66→
+    67→  const { data, isLoading } = useQuery<{ products: AdminProduct[]; total: number; page: number; totalPages: number }>({
+    68→    queryKey: ['admin-products'],
+    69→    queryFn: async () => (await fetch('/api/admin/products-list?limit=20')).json(),
+    70→  })
+    71→  const products = data?.products ?? []
+    72→
+    73→  const deleteMut = useMutation({
+    74→    mutationFn: (id: string) => fetch(`/api/admin/products/${id}`, { method: 'DELETE' }),
+    75→    onSuccess: () => {
+    76→      qc.invalidateQueries({ queryKey: ['admin-products'] })
+    77→      qc.invalidateQueries({ queryKey: ['products-public'] })
+    78→      qc.invalidateQueries({ queryKey: ['products'] })
+    79→      toast({ title: 'Producto eliminado' })
+    80→      setDeleteTarget(null)
+    81→    },
+    82→  })
+    83→
+    84→  const toggleStatus = useMutation({
+    85→    mutationFn: ({ id, status }: { id: string; status: string }) =>
+    86→      fetch(`/api/admin/products/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) }),
+    87→    onSuccess: () => {
+    88→      qc.invalidateQueries({ queryKey: ['admin-products'] })
+    89→      qc.invalidateQueries({ queryKey: ['products-public'] })
+    90→    },
+    91→  })
+    92→
+    93→  const toggleFeatured = useMutation({
+    94→    mutationFn: ({ id, isFeatured }: { id: string; isFeatured: boolean }) =>
+    95→      fetch(`/api/admin/products/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isFeatured }) }),
+    96→    onSuccess: () => {
+    97→      qc.invalidateQueries({ queryKey: ['admin-products'] })
+    98→      qc.invalidateQueries({ queryKey: ['products-public'] })
+    99→    },
+   100→  })
+   101→
+   102→  const duplicate = useMutation({
+   103→    mutationFn: (id: string) => fetch(`/api/admin/products/${id}/duplicate`, { method: 'POST' }),
+   104→    onSuccess: () => {
+   105→      qc.invalidateQueries({ queryKey: ['admin-products'] })
+   106→      toast({ title: 'Producto duplicado', description: 'Se creó una copia inactiva' })
+   107→    },
+   108→  })
+   109→
+   110→  const filtered = useMemo(() => {
+   111→    if (!products) return []
+   112→    return products.filter((p) => {
+   113→      const q = query.toLowerCase()
+   114→      const matchesQuery = !q || p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q)
+   115→      const matchesStatus = statusFilter === 'all' || p.status === statusFilter
+   116→      return matchesQuery && matchesStatus
+   117→    })
+   118→  }, [products, query, statusFilter])
+   119→
+   120→  const stats = products ? {
+   121→    total: data?.total ?? products.length,
+   122→    active: products.filter((p) => p.status === 'ACTIVE').length,
+   123→    featured: products.filter((p) => p.isFeatured).length,
+   124→    inactive: products.filter((p) => p.status === 'INACTIVE').length,
+   125→  } : null
+   126→
+   127→  const handleEdit = (p: AdminProduct) => { setEditing(p); setFormOpen(true) }
+   128→  const handleNew = () => { setEditing(null); setFormOpen(true) }
+   129→
+   130→  return (
+   131→    <div className="space-y-6">
+   132→      {/* Stats */}
+   133→      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+   134→        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Total productos</p><p className="mt-1 text-2xl font-bold">{stats?.total ?? 0}</p></CardContent></Card>
+   135→        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Activos</p><p className="mt-1 text-2xl font-bold text-emerald-600">{stats?.active ?? 0}</p></CardContent></Card>
+   136→        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Destacados</p><p className="mt-1 text-2xl font-bold text-amber-600">{stats?.featured ?? 0}</p></CardContent></Card>
+   137→        <Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Inactivos</p><p className="mt-1 text-2xl font-bold text-zinc-500">{stats?.inactive ?? 0}</p></CardContent></Card>
+   138→      </div>
+   139→
+   140→      {/* Toolbar */}
+   141→      <Card>
+   142→        <CardContent className="p-4">
+   143→          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+   144→            <div className="relative max-w-sm flex-1">
+   145→              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   146→              <Input placeholder="Buscar por nombre o SKU..." value={query} onChange={(e) => setQuery(e.target.value)} className="pl-9" />
+   147→            </div>
+   148→            <div className="flex flex-wrap gap-1.5">
+   149→              {['all', 'ACTIVE', 'INACTIVE'].map((s) => (
+   150→                <Button key={s} variant={statusFilter === s ? 'default' : 'outline'} size="sm" className="h-8 text-xs" onClick={() => setStatusFilter(s)}>
+   151→                  {s === 'all' ? 'Todos' : s === 'ACTIVE' ? 'Activos' : 'Inactivos'}
+   152→                </Button>
+   153→              ))}
+   154→            </div>
+   155→            <Button className="ml-auto gap-1.5" onClick={handleNew}><Plus className="h-4 w-4" /> Nuevo producto</Button>
+   156→          </div>
+   157→        </CardContent>
+   158→      </Card>
+   159→
+   160→      {/* Table */}
+   161→      {isLoading ? (
+   162→        <div className="space-y-2">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}</div>
+   163→      ) : filtered.length === 0 ? (
+   164→        <Card><CardContent className="py-12 text-center"><Package className="mx-auto h-10 w-10 text-muted-foreground/40" /><p className="mt-3 text-sm font-medium">No hay productos</p><Button className="mt-4 gap-1.5" onClick={handleNew}><Plus className="h-4 w-4" /> Crear primer producto</Button></CardContent></Card>
+   165→      ) : (
+   166→        <Card><CardContent className="p-0">
+   167→          <div className="nexora-scroll overflow-x-auto">
+   168→            <Table>
+   169→              <TableHeader>
+   170→                <TableRow>
+   171→                  <TableHead>Producto</TableHead>
+   172→                  <TableHead>SKU</TableHead>
+   173→                  <TableHead>Categoría</TableHead>
+   174→                  <TableHead className="text-right">Costo</TableHead>
+   175→                  <TableHead className="text-right">Venta</TableHead>
+   176→                  <TableHead className="text-right">Margen</TableHead>
+   177→                  <TableHead>Estado</TableHead>
+   178→                  <TableHead className="w-12"></TableHead>
+   179→                </TableRow>
+   180→              </TableHeader>
+   181→              <TableBody>
+   182→                {filtered.map((p) => {
+   183→                  const margin = p.estimatedCost && p.suggestedPrice ? ((p.suggestedPrice - p.estimatedCost) / p.suggestedPrice) * 100 : 0
+   184→                  return (
+   185→                    <TableRow key={p.id} className="group">
+   186→                      <TableCell>
+   187→                        <div className="flex items-center gap-3">
+   188→                          {p.imageUrl ? (
+   189→                            <img
+   190→                              src={p.imageUrl}
+   191→                              alt={p.name}
+   192→                              className="h-10 w-10 rounded-md object-cover ring-1 ring-border"
+   193→                              loading="lazy"
+   194→                              decoding="async"
+   195→                              onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/products/placeholder.svg' }}
+   196→                            />
+   197→                          ) : (
+   198→                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-muted"><Package className="h-4 w-4 text-muted-foreground" /></div>
+   199→                          )}
+   200→                          <div className="min-w-0">
+   201→                            <p className="truncate text-sm font-medium">{p.name}</p>
+   202→                            <div className="flex items-center gap-1">
+   203→                              {p.isFeatured && <Star className="h-3 w-3 fill-amber-400 text-amber-400" />}
+   204→                              <p className="text-xs text-muted-foreground">{p.brand?.name ?? 'Sin marca'}</p>
+   205→                            </div>
+   206→                          </div>
+   207→                        </div>
+   208→                      </TableCell>
+   209→                      <TableCell><code className="text-xs">{p.sku}</code></TableCell>
+   210→                      <TableCell className="text-sm text-muted-foreground">{p.category?.name ?? '—'}</TableCell>
+   211→                      <TableCell className="text-right text-sm tabular-nums text-muted-foreground">{p.estimatedCost ? formatCurrency(p.estimatedCost) : '—'}</TableCell>
+   212→                      <TableCell className="text-right text-sm font-semibold tabular-nums">{p.suggestedPrice ? formatCurrency(p.suggestedPrice) : '—'}</TableCell>
+   213→                      <TableCell className="text-right">
+   214→                        <span className={cn('text-xs font-medium tabular-nums', margin >= 50 ? 'text-emerald-600' : margin >= 30 ? 'text-amber-600' : 'text-rose-600')}>
+   215→                          {margin > 0 ? formatPercent(margin) : '—'}
+   216→                        </span>
+   217→                      </TableCell>
+   218→                      <TableCell>
+   219→                        <Badge variant="outline" className={cn('text-[10px]', p.status === 'ACTIVE' ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300' : 'border-zinc-200 bg-zinc-50 text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400')}>
+   220→                          {p.status === 'ACTIVE' ? 'Activo' : 'Inactivo'}
+   221→                        </Badge>
+   222→                      </TableCell>
+   223→                      <TableCell>
+   224→                        <DropdownMenu>
+   225→                          <DropdownMenuTrigger asChild>
+   226→                            <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100">
+   227→                              <MoreHorizontal className="h-4 w-4" />
+   228→                            </Button>
+   229→                          </DropdownMenuTrigger>
+   230→                          <DropdownMenuContent align="end">
+   231→                            <DropdownMenuItem onClick={() => handleEdit(p)}><Pencil className="mr-2 h-3.5 w-3.5" /> Editar</DropdownMenuItem>
+   232→                            <DropdownMenuItem onClick={() => toggleFeatured.mutate({ id: p.id, isFeatured: !p.isFeatured })}>
+   233→                              <Star className={cn('mr-2 h-3.5 w-3.5', p.isFeatured && 'fill-amber-400 text-amber-400')} /> {p.isFeatured ? 'Quitar destacado' : 'Destacar'}
+   234→                            </DropdownMenuItem>
+   235→                            <DropdownMenuItem onClick={() => toggleStatus.mutate({ id: p.id, status: p.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' })}>
+   236→                              {p.status === 'ACTIVE' ? <><PowerOff className="mr-2 h-3.5 w-3.5" /> Desactivar</> : <><Power className="mr-2 h-3.5 w-3.5" /> Activar</>}
+   237→                            </DropdownMenuItem>
+   238→                            <DropdownMenuItem onClick={() => duplicate.mutate(p.id)}><Copy className="mr-2 h-3.5 w-3.5" /> Duplicar</DropdownMenuItem>
+   239→                            <DropdownMenuSeparator />
+   240→                            <DropdownMenuItem className="text-rose-600" onClick={() => setDeleteTarget(p)}><Trash2 className="mr-2 h-3.5 w-3.5" /> Eliminar</DropdownMenuItem>
+   241→                          </DropdownMenuContent>
+   242→                        </DropdownMenu>
+   243→                      </TableCell>
+   244→                    </TableRow>
+   245→                  )
+   246→                })}
+   247→              </TableBody>
+   248→            </Table>
+   249→          </div>
+   250→        </CardContent></Card>
+   251→      )}
+   252→
+   253→      {/* Form dialog */}
+   254→      <ProductFormDialog open={formOpen} onOpenChange={setFormOpen} product={editing} />
+   255→
+   256→      {/* Delete confirmation */}
+   257→      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+   258→        <AlertDialogContent>
+   259→          <AlertDialogHeader>
+   260→            <AlertDialogTitle>¿Eliminar producto?</AlertDialogTitle>
+   261→            <AlertDialogDescription>Se eliminará permanentemente <strong>{deleteTarget?.name}</strong> ({deleteTarget?.sku}). Esta acción no se puede deshacer.</AlertDialogDescription>
+   262→          </AlertDialogHeader>
+   263→          <AlertDialogFooter>
+   264→            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+   265→            <AlertDialogAction onClick={() => deleteTarget && deleteMut.mutate(deleteTarget.id)} className="bg-rose-600 hover:bg-rose-700">Eliminar</AlertDialogAction>
+   266→          </AlertDialogFooter>
+   267→        </AlertDialogContent>
+   268→      </AlertDialog>
+   269→    </div>
+   270→  )
+   271→}
+   272→
+   273→// === Product Form Dialog with tabs ===
+   274→function ProductFormDialog({ open, onOpenChange, product }: { open: boolean; onOpenChange: (o: boolean) => void; product: AdminProduct | null }) {
+   275→  const qc = useQueryClient()
+   276→  const { toast } = useToast()
+   277→  const isEdit = !!product
+   278→
+   279→  const { data: catalog } = useQuery<CatalogData>({
+   280→    queryKey: ['admin-catalog'],
+   281→    queryFn: async () => (await fetch('/api/admin/catalog')).json(),
+   282→  })
+   283→
+   284→  // Form state
+   285→  const [form, setForm] = useState({
+   286→    sku: '', name: '', description: '', longDescription: '',
+   287→    brandId: '', categoryId: '', supplierId: '',
+   288→    imageUrl: '', images: [] as string[], videoUrl: '',
+   289→    estimatedCost: '', suggestedPrice: '', currencyCode: 'USD',
+   290→    status: 'ACTIVE', isFeatured: false,
+   291→    specs: [] as { label: string; value: string }[],
+   292→    features: [] as string[],
+   293→  })
+   294→  const [error, setError] = useState('')
+   295→  const [loading, setLoading] = useState(false)
+   296→  const [showSuccess, setShowSuccess] = useState(false)
+   297→  const [activeTab, setActiveTab] = useState('basic')
+   298→  const [newFeature, setNewFeature] = useState('')
+   299→  const [newSpecLabel, setNewSpecLabel] = useState('')
+   300→  const [newSpecValue, setNewSpecValue] = useState('')
+   301→
+   302→  // Sync form when dialog opens
+   303→  useEffect(() => {
+   304→    if (open) {
+   305→      setError('')
+   306→      if (product) {
+   307→        setForm({
+   308→          sku: product.sku, name: product.name,
+   309→          description: product.description ?? '', longDescription: product.longDescription ?? '',
+   310→          brandId: product.brand?.id ?? '', categoryId: product.category?.id ?? '', supplierId: product.supplier?.id ?? '',
+   311→          imageUrl: product.imageUrl ?? '', images: product.images, videoUrl: product.videoUrl ?? '',
+   312→          estimatedCost: product.estimatedCost?.toString() ?? '', suggestedPrice: product.suggestedPrice?.toString() ?? '',
+   313→          currencyCode: product.currencyCode, status: product.status, isFeatured: product.isFeatured,
+   314→          specs: product.specs, features: product.features,
+   315→        })
+   316→      } else {
+   317→        setForm({
+   318→          sku: '', name: '', description: '', longDescription: '',
+   319→          brandId: '', categoryId: '', supplierId: '',
+   320→          imageUrl: '', images: [], videoUrl: '',
+   321→          estimatedCost: '', suggestedPrice: '', currencyCode: 'USD',
+   322→          status: 'ACTIVE', isFeatured: false, specs: [], features: [],
+   323→        })
+   324→      }
+   325→      setActiveTab('basic')
+   326→    }
+   327→  }, [open, product])
+   328→
+   329→  const save = useMutation({
+   330→    mutationFn: async () => {
+   331→      const payload = {
+   332→        ...form,
+   333→        estimatedCost: form.estimatedCost ? Number(form.estimatedCost) : null,
+   334→        suggestedPrice: form.suggestedPrice ? Number(form.suggestedPrice) : null,
+   335→        brandId: form.brandId || null,
+   336→        categoryId: form.categoryId || null,
+   337→        supplierId: form.supplierId || null,
+   338→      }
+   339→      const url = isEdit ? `/api/admin/products/${product!.id}` : '/api/admin/products'
+   340→      const method = isEdit ? 'PUT' : 'POST'
+   341→      const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+   342→      if (!res.ok) {
+   343→        const data = await res.json()
+   344→        throw new Error(data.error || 'Error')
+   345→      }
+   346→    },
+   347→    onSuccess: () => {
+   348→      qc.invalidateQueries({ queryKey: ['admin-products'] })
+   349→      qc.invalidateQueries({ queryKey: ['products-public'] })
+   350→      qc.invalidateQueries({ queryKey: ['products'] })
+   351→      if (!isEdit) fireConfetti()
+   352→      setShowSuccess(true)
+   353→    },
+   354→  })
+   355→
+   356→  const handleSubmit = async () => {
+   357→    setError('')
+   358→    if (!form.sku.trim() || !form.name.trim()) { setError('SKU y nombre son obligatorios'); setActiveTab('basic'); return }
+   359→    setLoading(true)
+   360→    try {
+   361→      await save.mutateAsync()
+   362→    } catch (err) {
+   363→      setError(err instanceof Error ? err.message : 'Error')
+   364→    } finally {
+   365→      setLoading(false)
+   366→    }
+   367→  }
+   368→
+   369→  // Upload handler
+   370→  const fileRef = useRef<HTMLInputElement>(null)
+   371→  const [uploading, setUploading] = useState(false)
+   372→
+   373→  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+   374→    const file = e.target.files?.[0]
+   375→    if (!file) return
+   376→    setUploading(true)
+   377→    try {
+   378→      const formData = new FormData()
+   379→      formData.append('file', file)
+   380→      const res = await fetch('/api/admin/upload', { method: 'POST', body: formData })
+   381→      const data = await res.json()
+   382→      if (!res.ok) throw new Error(data.error)
+   383→      setForm((f) => ({ ...f, imageUrl: data.url, images: [...f.images, data.url] }))
+   384→      toast({ title: 'Imagen subida', description: data.url })
+   385→    } catch (err) {
+   386→      toast({ title: 'Error al subir', description: err instanceof Error ? err.message : 'Error', variant: 'destructive' })
+   387→    } finally {
+   388→      setUploading(false)
+   389→    }
+   390→  }
+   391→
+   392→  const addImageUrl = (url: string) => {
+   393→    if (url.trim()) {
+   394→      setForm((f) => ({ ...f, images: [...f.images, url.trim()], imageUrl: f.imageUrl || url.trim() }))
+   395→    }
+   396→  }
+   397→
+   398→  const removeImage = (idx: number) => {
+   399→    setForm((f) => {
+   400→      const newImages = f.images.filter((_, i) => i !== idx)
+   401→      return { ...f, images: newImages, imageUrl: newImages[0] ?? '' }
+   402→    })
+   403→  }
+   404→
+   405→  const moveImage = (idx: number, dir: 'up' | 'down') => {
+   406→    setForm((f) => {
+   407→      const newImages = [...f.images]
+   408→      const target = dir === 'up' ? idx - 1 : idx + 1
+   409→      if (target < 0 || target >= newImages.length) return f
+   410→      ;[newImages[idx], newImages[target]] = [newImages[target], newImages[idx]]
+   411→      return { ...f, images: newImages, imageUrl: newImages[0] ?? '' }
+   412→    })
+   413→  }
+   414→
+   415→  const addFeature = () => {
+   416→    if (newFeature.trim()) {
+   417→      setForm((f) => ({ ...f, features: [...f.features, newFeature.trim()] }))
+   418→      setNewFeature('')
+   419→    }
+   420→  }
+   421→
+   422→  const addSpec = () => {
+   423→    if (newSpecLabel.trim() && newSpecValue.trim()) {
+   424→      setForm((f) => ({ ...f, specs: [...f.specs, { label: newSpecLabel.trim(), value: newSpecValue.trim() }] }))
+   425→      setNewSpecLabel(''); setNewSpecValue('')
+   426→    }
+   427→  }
+   428→
+   429→  return (
+   430→    <>
+   431→      <Dialog open={open && !showSuccess} onOpenChange={onOpenChange}>
+   432→        <DialogContent className="nexora-scroll max-h-[92vh] overflow-y-auto sm:max-w-2xl">
+   433→          <DialogHeader>
+   434→            <DialogTitle className="flex items-center gap-2"><Package className="h-5 w-5 text-primary" /> {isEdit ? 'Editar producto' : 'Nuevo producto'}</DialogTitle>
+   435→            <DialogDescription>{isEdit ? `Modificando ${product?.sku}` : 'Completa la información del producto'}</DialogDescription>
+   436→          </DialogHeader>
+   437→
+   438→          <Tabs value={activeTab} onValueChange={setActiveTab}>
+   439→            <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
+   440→              <TabsTrigger value="basic" className="text-xs">Info</TabsTrigger>
+   441→              <TabsTrigger value="price" className="text-xs">Precio</TabsTrigger>
+   442→              <TabsTrigger value="media" className="text-xs">Media</TabsTrigger>
+   443→              <TabsTrigger value="desc" className="text-xs">Texto</TabsTrigger>
+   444→              <TabsTrigger value="specs" className="text-xs">Specs</TabsTrigger>
+   445→              <TabsTrigger value="features" className="text-xs">Features</TabsTrigger>
+   446→            </TabsList>
+   447→
+   448→            {/* Tab: Info básica */}
+   449→            <TabsContent value="basic" className="space-y-4">
+   450→              <div className="grid grid-cols-2 gap-3">
+   451→                <div className="space-y-1.5">
+   452→                  <Label className="text-xs">SKU *</Label>
+   453→                  <Input value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} placeholder="APL-APP-PRO2" disabled={isEdit} />
+   454→                </div>
+   455→                <div className="space-y-1.5">
+   456→                  <Label className="text-xs">Estado</Label>
+   457→                  <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="h-9 w-full rounded-md border bg-background px-3 text-sm">
+   458→                    <option value="ACTIVE">Activo</option>
+   459→                    <option value="INACTIVE">Inactivo</option>
+   460→                  </select>
+   461→                </div>
+   462→              </div>
+   463→              <div className="space-y-1.5">
+   464→                <Label className="text-xs">Nombre *</Label>
+   465→                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="AirPods Pro 2 (OEM)" />
+   466→              </div>
+   467→              <div className="grid grid-cols-2 gap-3">
+   468→                <div className="space-y-1.5">
+   469→                  <Label className="text-xs">Marca</Label>
+   470→                  <select value={form.brandId} onChange={(e) => setForm({ ...form, brandId: e.target.value })} className="h-9 w-full rounded-md border bg-background px-3 text-sm">
+   471→                    <option value="">Sin marca</option>
+   472→                    {catalog?.brands.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+   473→                  </select>
+   474→                </div>
+   475→                <div className="space-y-1.5">
+   476→                  <Label className="text-xs">Categoría</Label>
+   477→                  <select value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })} className="h-9 w-full rounded-md border bg-background px-3 text-sm">
+   478→                    <option value="">Sin categoría</option>
+   479→                    {catalog?.categories.map((c) => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+   480→                  </select>
+   481→                </div>
+   482→              </div>
+   483→              <div className="space-y-1.5">
+   484→                <Label className="text-xs">Proveedor</Label>
+   485→                <select value={form.supplierId} onChange={(e) => setForm({ ...form, supplierId: e.target.value })} className="h-9 w-full rounded-md border bg-background px-3 text-sm">
+   486→                  <option value="">Sin proveedor</option>
+   487→                  {catalog?.suppliers.map((s) => <option key={s.id} value={s.id}>{s.companyName}</option>)}
+   488→                </select>
+   489→              </div>
+   490→              <div className="flex items-center gap-2">
+   491→                <input type="checkbox" id="featured" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} className="h-4 w-4 rounded border-border" />
+   492→                <Label htmlFor="featured" className="text-xs flex items-center gap-1"><Star className="h-3 w-3" /> Producto destacado (aparece con badge especial)</Label>
+   493→              </div>
+   494→            </TabsContent>
+   495→
+   496→            {/* Tab: Precio */}
+   497→            <TabsContent value="price" className="space-y-4">
+   498→              <div className="grid grid-cols-2 gap-3">
+   499→                <div className="space-y-1.5">
+   500→                  <Label className="text-xs">Precio de costo (USD)</Label>
+   501→                  <Input type="number" step="0.01" value={form.estimatedCost} onChange={(e) => setForm({ ...form, estimatedCost: e.target.value })} placeholder="68.50" />
+   502→                </div>
+   503→                <div className="space-y-1.5">
+   504→                  <Label className="text-xs">Precio sugerido (USD)</Label>
+   505→                  <Input type="number" step="0.01" value={form.suggestedPrice} onChange={(e) => setForm({ ...form, suggestedPrice: e.target.value })} placeholder="129.00" />
+   506→                </div>
+   507→              </div>
+   508→              {form.estimatedCost && form.suggestedPrice && (
+   509→                <div className="rounded-lg bg-muted/40 p-3 text-sm">
+   510→                  <p className="text-muted-foreground">Margen: <span className="font-bold text-emerald-600">{formatPercent(((Number(form.suggestedPrice) - Number(form.estimatedCost)) / Number(form.suggestedPrice)) * 100)}</span></p>
+   511→                  <p className="text-muted-foreground">Ganancia por unidad: <span className="font-bold">{formatCurrency(Number(form.suggestedPrice) - Number(form.estimatedCost))}</span></p>
+   512→                </div>
+   513→              )}
+   514→            </TabsContent>
+   515→
+   516→            {/* Tab: Media */}
+   517→            <TabsContent value="media" className="space-y-4">
+   518→              {/* Upload from computer */}
+   519→              <div className="rounded-lg border-2 border-dashed p-4 text-center">
+   520→                <input ref={fileRef} type="file" accept="image/*" onChange={handleUpload} className="hidden" />
+   521→                <Button variant="outline" size="sm" className="gap-1.5" onClick={() => fileRef.current?.click()} disabled={uploading}>
+   522→                  {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+   523→                  {uploading ? 'Subiendo...' : 'Subir desde computadora'}
+   524→                </Button>
+   525→                <p className="mt-2 text-[10px] text-muted-foreground">JPG, PNG, WebP · Máximo 5MB</p>
+   526→              </div>
+   527→
+   528→              {/* Add by URL */}
+   529→              <div className="flex gap-2">
+   530→                <Input
+   531→                  placeholder="O pega una URL de imagen..."
+   532→                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const v = (e.target as HTMLInputElement).value; if (v.trim()) { addImageUrl(v); (e.target as HTMLInputElement).value = '' } } }}
+   533→                />
+   534→                <Button variant="outline" size="sm" onClick={() => {
+   535→                  const input = document.querySelector('input[placeholder*="URL de imagen"]') as HTMLInputElement
+   536→                  if (input?.value?.trim()) { addImageUrl(input.value); input.value = '' }
+   537→                }}><Plus className="h-4 w-4" /></Button>
+   538→              </div>
+   539→
+   540→              {/* Image gallery with reorder */}
+   541→              {form.images.length > 0 && (
+   542→                <div className="space-y-2">
+   543→                  <Label className="text-xs">Galería de imágenes ({form.images.length})</Label>
+   544→                  <div className="space-y-2">
+   545→                    {form.images.map((img, i) => (
+   546→                      <div key={i} className="flex items-center gap-2 rounded-lg border p-2">
+   547→                        <div className="flex flex-col">
+   548→                          <button onClick={() => moveImage(i, 'up')} disabled={i === 0} className="text-muted-foreground hover:text-foreground disabled:opacity-30"><ChevronUp className="h-3 w-3" /></button>
+   549→                          <button onClick={() => moveImage(i, 'down')} disabled={i === form.images.length - 1} className="text-muted-foreground hover:text-foreground disabled:opacity-30"><ChevronDown className="h-3 w-3" /></button>
+   550→                        </div>
+   551→                        <img
+   552→                          src={img || '/products/placeholder.svg'}
+   553→                          alt={`Imagen del producto ${i + 1}`}
+   554→                          className="h-12 w-12 rounded-md object-cover"
+   555→                          loading="lazy"
+   556→                          decoding="async"
+   557→                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/products/placeholder.svg' }}
+   558→                        />
+   559→                        <Input value={img} onChange={(e) => { const newImgs = [...form.images]; newImgs[i] = e.target.value; setForm({ ...form, images: newImgs, imageUrl: newImgs[0] }) }} className="h-8 text-xs" />
+   560→                        {i === 0 && <Badge className="bg-primary text-[9px]">Principal</Badge>}
+   561→                        <button onClick={() => removeImage(i)} className="text-rose-500 hover:text-rose-700"><X className="h-4 w-4" /></button>
+   562→                      </div>
+   563→                    ))}
+   564→                  </div>
+   565→                </div>
+   566→              )}
+   567→
+   568→              {/* Video URL */}
+   569→              <div className="space-y-1.5">
+   570→                <Label className="text-xs flex items-center gap-1"><Video className="h-3 w-3" /> URL de video (YouTube)</Label>
+   571→                <Input value={form.videoUrl} onChange={(e) => setForm({ ...form, videoUrl: e.target.value })} placeholder="https://www.youtube.com/watch?v=..." />
+   572→              </div>
+   573→            </TabsContent>
+   574→
+   575→            {/* Tab: Descripciones */}
+   576→            <TabsContent value="desc" className="space-y-4">
+   577→              <div className="space-y-1.5">
+   578→                <Label className="text-xs">Descripción corta (catálogo)</Label>
+   579→                <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} placeholder="AirPods Pro 2 OEM con cancelación de ruido activa. Calidad premium." />
+   580→                <p className="text-[10px] text-muted-foreground">Aparece en las cards del catálogo. Máx 150 caracteres recomendado.</p>
+   581→              </div>
+   582→              <div className="space-y-1.5">
+   583→                <Label className="text-xs">Descripción larga (página de detalle)</Label>
+   584→                <Textarea value={form.longDescription} onChange={(e) => setForm({ ...form, longDescription: e.target.value })} rows={8} placeholder="Descripción detallada del producto. Separa párrafos con doble enter." />
+   585→                <p className="text-[10px] text-muted-foreground">Aparece en la página de detalle del producto. Separa párrafos con línea en blanco.</p>
+   586→              </div>
+   587→            </TabsContent>
+   588→
+   589→            {/* Tab: Specs */}
+   590→            <TabsContent value="specs" className="space-y-4">
+   591→              <Label className="text-xs">Especificaciones técnicas</Label>
+   592→              <div className="flex gap-2">
+   593→                <Input value={newSpecLabel} onChange={(e) => setNewSpecLabel(e.target.value)} placeholder="Ej: Batería" className="h-8 text-xs" />
+   594→                <Input value={newSpecValue} onChange={(e) => setNewSpecValue(e.target.value)} placeholder="Ej: 6h + 24h estuche" className="h-8 text-xs" />
+   595→                <Button variant="outline" size="sm" onClick={addSpec}><Plus className="h-4 w-4" /></Button>
+   596→              </div>
+   597→              {form.specs.length > 0 && (
+   598→                <div className="space-y-1">
+   599→                  {form.specs.map((spec, i) => (
+   600→                    <div key={i} className="flex items-center gap-2 rounded-lg border p-2">
+   601→                      <span className="flex-1 text-xs font-medium">{spec.label}</span>
+   602→                      <span className="flex-1 text-xs text-muted-foreground">{spec.value}</span>
+   603→                      <button onClick={() => setForm({ ...form, specs: form.specs.filter((_, idx) => idx !== i) })} className="text-rose-500"><X className="h-3.5 w-3.5" /></button>
+   604→                    </div>
+   605→                  ))}
+   606→                </div>
+   607→              )}
+   608→              {form.specs.length === 0 && <p className="text-xs text-muted-foreground">Sin especificaciones. Añade para mostrar tabla técnica.</p>}
+   609→            </TabsContent>
+   610→
+   611→            {/* Tab: Features */}
+   612→            <TabsContent value="features" className="space-y-4">
+   613→              <Label className="text-xs">Características destacadas</Label>
+   614→              <div className="flex gap-2">
+   615→                <Input value={newFeature} onChange={(e) => setNewFeature(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addFeature() } }} placeholder="Ej: Cancelación de ruido activa" className="h-8 text-xs" />
+   616→                <Button variant="outline" size="sm" onClick={addFeature}><Plus className="h-4 w-4" /></Button>
+   617→              </div>
+   618→              {form.features.length > 0 && (
+   619→                <div className="flex flex-wrap gap-2">
+   620→                  {form.features.map((f, i) => (
+   621→                    <div key={i} className="flex items-center gap-1.5 rounded-full border bg-muted/40 px-3 py-1 text-xs">
+   622→                      <CheckCircle2 className="h-3 w-3 text-emerald-500" /> {f}
+   623→                      <button onClick={() => setForm({ ...form, features: form.features.filter((_, idx) => idx !== i) })} className="text-rose-500 hover:text-rose-700"><X className="h-3 w-3" /></button>
+   624→                    </div>
+   625→                  ))}
+   626→                </div>
+   627→              )}
+   628→              {form.features.length === 0 && <p className="text-xs text-muted-foreground">Sin características. Añade para mostrar checkmarks en el detalle.</p>}
+   629→            </TabsContent>
+   630→          </Tabs>
+   631→
+   632→          {error && <div className="flex items-center gap-2 rounded-lg bg-rose-50 p-3 text-xs text-rose-600 dark:bg-rose-950/30 dark:text-rose-400"><AlertCircle className="h-4 w-4 shrink-0" /> {error}</div>}
+   633→
+   634→          <DialogFooter>
+   635→            <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+   636→            <Button onClick={handleSubmit} disabled={loading} className="gap-1.5">
+   637→              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+   638→              {isEdit ? 'Guardar cambios' : 'Crear producto'}
+   639→            </Button>
+   640→          </DialogFooter>
+   641→        </DialogContent>
+   642→      </Dialog>
+   643→
+   644→      {/* Success overlay */}
+   645→      <SuccessOverlay show={showSuccess} title={isEdit ? '¡Producto actualizado! ✅' : '¡Producto creado! 🎉'} subtitle={isEdit ? 'Los cambios están visibles en el catálogo' : 'Ya está disponible en el catálogo'} onDone={() => { setShowSuccess(false); onOpenChange(false) }} />
+   646→    </>
+   647→  )
+   648→}
+   649→
+   650→
