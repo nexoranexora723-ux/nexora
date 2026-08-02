@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createHash } from 'crypto'
 
 export const dynamic = 'force-dynamic'
@@ -34,7 +34,7 @@ function buildHeaders(entry: CacheEntry): HeadersInit {
 }
 
 export async function GET(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ hash: string; size: string }> },
 ) {
   try {
