@@ -353,14 +353,39 @@ export function ProductDetailPage({ productId, onBack, onRequest }: ProductDetai
             </div>
           )}
 
-          {/* Especificaciones técnicas */}
-          {product.specs.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold">Especificaciones</h3>
+          {/* Especificaciones técnicas (filtradas: solo para cliente, sin Costo China, Margen, etc.) */}
+          {(() => {
+            const adminOnlySpecs = ['Costo China', 'Costo Total', 'Margen (50%)', 'Álbum ID', 'Precio Final']
+            const clientSpecs = product.specs.filter((s) => !adminOnlySpecs.includes(s.label))
+            
+            // Agregar specs dinámicas según categoría
+            const catName = product.category?.name || ''
+            const extraSpecs: { label: string; value: string }[] = [
+              { label: 'Garantía', value: '30 días' },
+            ]
+            if (catName === 'Bolsos') extraSpecs.push({ label: 'Materiales', value: 'Cuero genuino / Lona' })
+            else if (catName === 'Calzado') extraSpecs.push({ label: 'Materiales', value: 'Cuero / Tela / Suela de goma' })
+            else if (catName === 'Ropa' || catName === 'Ropa de Dama') extraSpecs.push({ label: 'Materiales', value: 'Algodón / Poliéster / Mezcla' })
+            else if (catName === 'Relojes') extraSpecs.push({ label: 'Materiales', value: 'Acero inoxidable / Cristal mineral' })
+            else if (catName === 'Joyería') extraSpecs.push({ label: 'Materiales', value: 'Acero inoxidable / Oro / Plata' })
+            else if (catName === 'Gafas') extraSpecs.push({ label: 'Materiales', value: 'Acetato / Metal / Lentes polarizadas' })
+            else if (catName === 'Cinturones') extraSpecs.push({ label: 'Materiales', value: 'Cuero genuino / Hebilla de metal' })
+            else extraSpecs.push({ label: 'Materiales', value: 'Material premium' })
+            if (catName === 'Calzado') extraSpecs.push({ label: 'Tallas', value: '38-45 EU' })
+            else if (catName === 'Ropa' || catName === 'Ropa de Dama' || catName === 'Jerseys') extraSpecs.push({ label: 'Tallas', value: 'S, M, L, XL, XXL' })
+            else if (catName === 'Relojes') extraSpecs.push({ label: 'Tallas', value: '42mm / 44mm' })
+            else extraSpecs.push({ label: 'Tallas', value: 'Talla única' })
+            
+            const allSpecs = [...clientSpecs, ...extraSpecs]
+            if (allSpecs.length === 0) return null
+            
+            return (
+              <div>
+                <h3 className="text-lg font-semibold">Especificaciones</h3>
                 <Card className="mt-3"><CardContent className="p-0">
                   <table className="w-full text-sm">
                     <tbody>
-                      {product.specs.map((spec, i) => (
+                      {allSpecs.map((spec, i) => (
                         <tr key={i} className={cn(i % 2 === 0 ? 'bg-muted/30' : '')}>
                           <td className="px-4 py-2.5 font-medium text-muted-foreground">{spec.label}</td>
                           <td className="px-4 py-2.5 font-medium">{spec.value}</td>
@@ -370,7 +395,8 @@ export function ProductDetailPage({ productId, onBack, onRequest }: ProductDetai
                   </table>
                 </CardContent></Card>
               </div>
-            )}
+            )
+          })()}
         </div>
       </div>
 
