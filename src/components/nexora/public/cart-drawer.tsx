@@ -2,12 +2,13 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
-import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag, ArrowRight, Loader2 } from 'lucide-react'
+import { ShoppingCart, Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { useCart, selectCartCount, selectCartTotal } from '@/lib/cart-store'
+import { Badge } from '@/components/ui/badge'
+import { useCart, selectCartCount, selectCartTotal, selectVolumeDiscountPct, selectVolumeDiscountAmount, selectDiscountedSubtotal } from '@/lib/cart-store'
 import { useAuth } from '@/lib/auth-store'
 import { formatCurrency } from '@/lib/format'
 import { useToast } from '@/hooks/use-toast'
@@ -66,17 +67,20 @@ export function CartCounter() {
 export function CartDrawer() {
   const isOpen = useCart((s) => s.isOpen)
   const setOpen = useCart((s) => s.setOpen)
+  const openCheckout = useCart((s) => s.openCheckout)
   const items = useCart((s) => s.items)
   const total = useCart(selectCartTotal)
+  const volumePct = useCart(selectVolumeDiscountPct)
+  const volumeAmount = useCart(selectVolumeDiscountAmount)
+  const discountedSubtotal = useCart(selectDiscountedSubtotal)
   const updateQuantity = useCart((s) => s.updateQuantity)
   const removeItem = useCart((s) => s.removeItem)
   const clear = useCart((s) => s.clear)
   const { toast } = useToast()
   const router = useRouter()
   const { isAuthenticated } = useAuth()
-  const [submitting, setSubmitting] = React.useState(false)
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (items.length === 0) return
 
     // Si no está autenticado, redirige al login conservando el carrito.
@@ -90,42 +94,10 @@ export function CartDrawer() {
       return
     }
 
-    setSubmitting(true)
-    try {
-      const res = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: items.map((i) => ({
-            name: i.name,
-            quantity: i.quantity,
-            price: i.price,
-            currencyCode: i.currencyCode ?? 'USD',
-            sku: i.sku,
-            imageUrl: i.imageUrl,
-          })),
-        }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(data.error || 'Error al crear el pedido')
-
-      toast({
-        title: '¡Pedido confirmado!',
-        description: `Confirmación enviada a tu email. Nº ${data.number ?? ''}`.trim(),
-      })
-      clear()
-      setOpen(false)
-      // Lleva al usuario a su historial de pedidos
-      router.push('/pedidos')
-    } catch (err) {
-      toast({
-        title: 'No se pudo crear el pedido',
-        description: err instanceof Error ? err.message : 'Intenta de nuevo',
-        variant: 'destructive',
-      })
-    } finally {
-      setSubmitting(false)
-    }
+    // Abre el diálogo de checkout completo (4 pasos) — está montado globalmente
+    // en page.tsx y lee su estado abierto desde el store.
+    setOpen(false)
+    openCheckout()
   }
 
   return (
@@ -233,22 +205,29 @@ export function CartDrawer() {
                   <span>Subtotal</span>
                   <span>{formatCurrency(total)}</span>
                 </div>
+                {volumePct > 0 && (
+                  <div className="flex items-center justify-between text-emerald-600">
+                    <span className="flex items-center gap-1.5">
+                      <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
+                        −{volumePct}%
+                      </Badge>
+                      Descuento por volumen
+                    </span>
+                    <span>−{formatCurrency(volumeAmount)}</span>
+                  </div>
+                )}
                 <div className="flex items-center justify-between text-muted-foreground">
                   <span>Envío e impuestos</span>
-                  <span className="text-xs">Se calculan al cotizar</span>
+                  <span className="text-xs">Se calculan al finalizar</span>
                 </div>
                 <Separator className="my-1" />
                 <div className="flex items-center justify-between text-base font-bold">
-                  <span>Total estimado</span>
-                  <span>{formatCurrency(total)}</span>
+                  <span>Total{volumePct > 0 ? ' con descuento' : ''}</span>
+                  <span>{formatCurrency(discountedSubtotal)}</span>
                 </div>
               </div>
-              <Button onClick={handleCheckout} className="w-full gap-2" disabled={submitting}>
-                {submitting ? (
-                  <><Loader2 className="size-4 animate-spin" /> Creando pedido…</>
-                ) : (
-                  <>Solicitar importación <ArrowRight className="size-4" /></>
-                )}
+              <Button onClick={handleCheckout} className="w-full gap-2">
+                Finalizar compra <ArrowRight className="size-4" />
               </Button>
               <p className="text-center text-[10px] text-muted-foreground">
                 Sin compromiso · Cotización gratis · Pago seguro

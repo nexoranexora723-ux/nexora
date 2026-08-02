@@ -801,3 +801,87 @@ Stage Summary:
 - 3 critical issues resolved: catalog no longer crashes for authenticated users, all product images have lazy loading + fallback placeholder + descriptive alt text, dark mode toggle works instantly on all pages.
 - 10 files modified, 1 new file (placeholder.svg). No DB changes, no new dependencies.
 - Root cause of catalog crash was a type mismatch between API response shape and client expectation — a classic bug that only manifested for authenticated users (because only they reach `ClientCatalog`; unauthenticated users use the public `CatalogView` which correctly handles the wrapper shape).
+
+---
+Task ID: PHASE-2-SALES-FEATURES
+Agent: main (Z.ai Code)
+Task: Phase 2 — WhatsApp floating button, complete 4-step checkout flow, shipping calculator by city, functional coupons, volume discounts
+
+Work Log:
+- Read worklog.md to learn prior agents' work (DB schema, RBAC, products-pro, ERP modules, public store, landing/legal pages, Phase 3 nice-to-haves). Inspected: cart-store.ts, cart-drawer.tsx, page.tsx, layout.tsx, live-chat.tsx, ai-chatbot.tsx, product-detail-page.tsx, /api/orders route, format.ts. No existing coupon-store or shipping-calculator found — all 4 new files were created from scratch.
+- Created `src/lib/coupon-store.ts` — Zustand + persist store. 4 hardcoded coupons:
+  - BIENVENIDA10 (10% off, always valid)
+  - BLACKFRIDAY20 (20% off, valid in November only — `validMonth: 11`)
+  - NAVIDAD15 (15% off, valid in December only — `validMonth: 12`)
+  - VIP25 (25% off, always valid)
+  `validateCoupon(code)` returns `{ok: true, coupon} | {ok: false, reason: 'not_found' | 'expired'}`. `computeCouponDiscount(subtotal, applied)` pure helper. Store actions: `apply(code)` (validates + sets applied), `remove()`, `clear()`. Persisted to localStorage so coupon survives refresh during checkout.
+- Updated `src/lib/cart-store.ts` — Added volume discount logic + checkout dialog state:
+  - `getVolumeDiscountPct(totalQty)`: 1-4 → 0%, 5-9 → 10%, 10-19 → 15%, 20+ → 20%.
+  - `selectVolumeDiscountPct(state)`, `selectVolumeDiscountAmount(state)`, `selectDiscountedSubtotal(state)` selectors.
+  - `checkoutOpen: boolean` + `setCheckoutOpen`/`openCheckout`/`closeCheckout` actions so any component can open the global CheckoutDialog without prop drilling.
+  - Existing 18 cart-store tests still pass.
+- Created `src/components/nexora/public/shipping-calculator.tsx`:
+  - `COLOMBIAN_CITIES`: 9 entries (Bogotá $8/5-7d, Medellín $8/5-7d, Cali $10/7-9d, Barranquilla $10/7-9d, Cartagena $10/7-9d, Bucaramanga $9/6-8d, Pereira $9/6-8d, Manizales $9/6-8d, Otra ciudad $12/8-10d).
+  - `FREE_SHIPPING_THRESHOLD = 200` USD.
+  - `computeShippingQuote(cityId, subtotal)` → { city, cost, free, estimate }.
+  - `ShippingCalculator` (full): city Select + quote card with cost/estimate/free-shipping-progress-bar. Used in checkout step 2.
+  - `ShippingCalculatorCompact` (read-only): shows cheapest–most-expensive cost range + free-shipping quantity hint. Used on product detail page.
+- Created `src/components/nexora/public/whatsapp-floating.tsx`:
+  - Green WhatsApp brand color (#25D366) circular button at `fixed bottom-20 right-5 sm:bottom-24 sm:right-6` (sits ABOVE the AI chatbot at `bottom-5 right-20` and live-chat at `bottom-5 right-5`).
+  - Custom WhatsApp SVG icon (not the generic Lucide MessageCircle — matches official brand glyph).
+  - Pulse animation ring (`animate-ping`), online indicator dot, focus-visible ring for keyboard nav.
+  - Tooltip on hover: "¿Tienes dudas? Escríbenos" (left side, so it doesn't overflow viewport).
+  - Clicking opens `https://wa.me/573105550100?text=Hola%20NEXORA,%20quiero%20hacer%20una%20consulta` in a new tab.
+  - Responsive: h-12 w-12 on mobile, h-14 w-14 on sm+ screens.
+  - `motion-reduce:animate-none` and `motion-reduce:hidden` for accessibility.
+- Created `src/components/nexora/public/checkout-dialog.tsx` — 4-step checkout flow (~600 lines):
+  - **Stepper**: 4 numbered circles with icons (User/Truck/CreditCard/CheckCircle2), progress bar between them, current step highlighted in primary color, completed steps in emerald with checkmark.
+  - **Step 1 (Tus datos)**: Customer info form — firstName, lastName, email (regex validation), phone (min 7 chars), city dropdown (COLOMBIAN_CITIES), address. All required. Pre-fills from authed user info via `useAuth`. Uses `Field` helper component for consistent label + required asterisk styling.
+  - **Step 2 (Envío)**: Full `ShippingCalculator` + DHL/FedEx quote card with cost (or GRATIS badge if free), delivery estimate, insurance note. Shows amber "Vuelve al paso anterior" hint if Step 1 incomplete.
+  - **Step 3 (Pago)**: RadioGroup of 4 payment methods (NO contraentrega):
+    - Nequi 💚 (310 555 0100, NEXORA Importaciones) — pink accent
+    - Daviplata 💜 (310 555 0100) — purple accent
+    - PayPal 💙 (pagos@nexora.co, USD) — sky accent
+    - Transferencia 🏦 (Bancolombia, Cta. ahorros 001-123456-78, NIT 901.234.567-8) — amber accent
+    When selected: shows numbered step-by-step instructions + copyable contact info (Copy button via `navigator.clipboard`).
+  - **Step 4 (Confirmar)**: Full order summary — items list (with images, qty, line totals), volume discount badge, coupon section (input + Aplicar button OR applied badge with Quitar button), shipping line (with FREE badge), 19% IVA line, total. Payment method confirmation chip. "Confirmar pedido" button → POST `/api/orders` with items + paymentMethod + shippingAddress (concatenated customer info).
+  - **Success screen**: Confetti emoji + green check, order number (large mono), total + payment method, amber payment-instructions reminder (tells user to send payment + WhatsApp comprobante to 310 555 0100), "Rastrear mi pedido" button → /track-order, "Seguir comprando" button → closes dialog. Clears cart + coupon on success.
+  - **Unauthenticated screen**: Shows login icon + "Inicia sesión para continuar" with login button → `/?login=1`.
+  - Reads `checkoutOpen` from cart-store (works as `<CheckoutDialog />` with no props).
+  - Computes totals: subtotal → volumeDiscount → couponDiscount → shipping (free if ≥$200) → IVA 19% → total.
+  - Footer: Atrás button, live total display, Continuar/Confirmar button.
+- Updated `src/components/nexora/public/cart-drawer.tsx`:
+  - Replaced direct `POST /api/orders` + `router.push('/pedidos')` flow with `openCheckout()` call — opens the new global CheckoutDialog (cart sheet closes first so the dialog isn't behind it).
+  - Added volume discount line in the cart footer (shows `−{volumePct}%` badge + "Descuento por volumen" + amount in emerald, only when pct > 0).
+  - Footer total now shows `discountedSubtotal` (after volume discount) when applicable.
+  - Removed `Loader2` import and `submitting` state (no longer needed — dialog handles its own submitting state).
+  - Removed the inline `<CheckoutDialog />` render (now mounted globally in page.tsx reading from cart-store).
+- Updated `src/components/nexora/public/live-chat.tsx`:
+  - Removed the WhatsApp fallback button (was a duplicate of the new dedicated WhatsAppFloating component). When Tawk.to env vars aren't set, `LiveChat` now returns `null` instead of rendering a green WhatsApp circle.
+  - Hardcoded the WhatsApp number `573105550100` in the in-panel "Escribir por WhatsApp" link (was using the deleted `WHATSAPP_NUMBER` constant).
+- Updated `src/components/nexora/public/product-detail-page.tsx`:
+  - Imported `ShippingCalculatorCompact` from `@/components/nexora/public/shipping-calculator`.
+  - Added `<ShippingCalculatorCompact unitPrice={product.estimatedCost} />` immediately after the "Tiempo estimado de entrega" timeline section. Shows cheapest–most-expensive shipping cost range + free-shipping quantity hint ("Envío GRATIS comprando N+ unidades").
+- Updated `src/app/page.tsx`:
+  - Imported `CheckoutDialog` and mounted `<CheckoutDialog />` globally (no props — reads `checkoutOpen` from cart-store).
+  - Did NOT mount `WhatsAppFloating` here (mounted in layout.tsx instead to avoid duplicate rendering on `/`).
+- Updated `src/app/layout.tsx`:
+  - Imported `WhatsAppFloating` and mounted it inside `<QueryProvider>` (after `<Toaster />`).
+  - This ensures WhatsApp button is visible on ALL Next.js routes: `/`, `/blog`, `/blog/[slug]`, `/pedidos`, `/track-order`, `/cuenta`, `/faq`, `/terminos`, `/privacidad`, `/devoluciones`, `/garantia`, `/referidos`, `/logos`, and even authenticated AdminPortal/ClientPortal views.
+- Verification:
+  - `bun run lint` → 0 errors, 0 warnings ✓
+  - `npx tsc --noEmit` → 0 errors in `src/` (pre-existing errors only in `examples/` and `skills/` — out of scope per prior agents' notes) ✓
+  - Cart store tests (`npx tsx src/lib/__tests__/cart-store.test.ts`) → 18 passed, 0 failed ✓
+- Wrote agent-ctx record at `/home/z/my-project/agent-ctx/PHASE-2-SALES-FEATURES-main.md`.
+
+Stage Summary:
+- 5 deliverables shipped:
+  1. WhatsApp floating button (global, all routes) — `whatsapp-floating.tsx` + mounted in `layout.tsx`.
+  2. Complete 4-step checkout flow — `checkout-dialog.tsx` (customer info → shipping → payment → review) with success screen, payment instructions, and order tracking link.
+  3. Colombian shipping calculator — `shipping-calculator.tsx` (9 cities + free shipping >$200 + full + compact variants).
+  4. Functional coupon system — `coupon-store.ts` (4 valid codes, month-aware validation, Zustand+persist).
+  5. Volume discounts verified — added to cart-store (5-9=10%, 10-19=15%, 20+=20%), displayed in cart drawer footer + checkout review.
+- 4 new files created, 5 existing files modified.
+- Architecture: CheckoutDialog reads `checkoutOpen` from cart-store (no prop drilling); WhatsAppFloating mounted once in layout.tsx (covers all routes + views, no duplicates); ShippingCalculator exports both a full interactive variant (used in checkout step 2) and a compact read-only variant (used on product detail page).
+- The existing `/api/orders` POST endpoint wasn't modified (per "use existing API routes"). The order's stored `budget` reflects the raw item subtotal; the displayed breakdown (volume/coupon/shipping/IVA/total) is client-side informational.
+- Loop closed: browse catalog → add to cart (with volume discount) → open cart drawer (sees discount + total) → "Finalizar compra" → 4-step checkout → coupon application → payment method selection → confirm → POST /api/orders → success screen → track order link.

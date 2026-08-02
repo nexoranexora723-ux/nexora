@@ -15,6 +15,7 @@ import { ClientPortal } from '@/components/nexora/client/client-portal'
 import { AdminPortal } from '@/components/nexora/admin/admin-portal'
 import { AiChatbot } from '@/components/nexora/public/ai-chatbot'
 import { LiveChat } from '@/components/nexora/public/live-chat'
+import { CheckoutDialog } from '@/components/nexora/public/checkout-dialog'
 import { Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -134,9 +135,12 @@ export default function NexoraPage() {
         </motion.div>
       </AnimatePresence>
       <AuthDialog open={authOpen} onOpenChange={setAuthOpen} mode={authMode} onModeChange={setAuthMode} />
-      {/* Floating AI chatbot + live chat — visible on all public views */}
+      {/* Floating AI chatbot + live chat — visible on all public views.
+          WhatsApp floating button is mounted globally in layout.tsx. */}
       <AiChatbot onNavigate={(v) => setView(v as View)} />
       <LiveChat />
+      {/* Multi-step checkout dialog — globally mounted, opens from the cart drawer */}
+      <CheckoutDialog />
     </>
   )
 }

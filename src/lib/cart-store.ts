@@ -16,9 +16,14 @@ export interface CartItem {
 export interface CartState {
   items: CartItem[]
   isOpen: boolean
+  /** Whether the multi-step checkout dialog is open. */
+  checkoutOpen: boolean
   setOpen: (open: boolean) => void
   openCart: () => void
   closeCart: () => void
+  setCheckoutOpen: (open: boolean) => void
+  openCheckout: () => void
+  closeCheckout: () => void
   addItem: (item: Omit<CartItem, 'quantity'>, quantity?: number) => void
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
@@ -30,9 +35,13 @@ export const useCart = create<CartState>()(
     (set) => ({
       items: [],
       isOpen: false,
+      checkoutOpen: false,
       setOpen: (isOpen) => set({ isOpen }),
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),
+      setCheckoutOpen: (checkoutOpen) => set({ checkoutOpen }),
+      openCheckout: () => set({ checkoutOpen: true }),
+      closeCheckout: () => set({ checkoutOpen: false }),
       addItem: (item, quantity = 1) =>
         set((state) => {
           const existing = state.items.find((i) => i.id === item.id)
@@ -71,7 +80,38 @@ export function selectCartCount(state: CartState): number {
   return state.items.reduce((sum, i) => sum + i.quantity, 0)
 }
 
-/** Selector: total price of the cart. */
+/** Selector: raw subtotal of the cart (sum of price × quantity, before any discount). */
 export function selectCartTotal(state: CartState): number {
   return state.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+}
+
+/**
+ * Volume discount tiers based on TOTAL item quantity in the cart.
+ *  - 1-4 items:   0% off
+ *  - 5-9 items:   10% off
+ *  - 10-19 items: 15% off
+ *  - 20+ items:   20% off
+ */
+export function getVolumeDiscountPct(totalQuantity: number): number {
+  if (totalQuantity >= 20) return 20
+  if (totalQuantity >= 10) return 15
+  if (totalQuantity >= 5) return 10
+  return 0
+}
+
+/** Selector: the volume-discount percentage that applies to the current cart. */
+export function selectVolumeDiscountPct(state: CartState): number {
+  return getVolumeDiscountPct(selectCartCount(state))
+}
+
+/** Selector: the monetary amount of the volume discount. */
+export function selectVolumeDiscountAmount(state: CartState): number {
+  const subtotal = selectCartTotal(state)
+  const pct = selectVolumeDiscountPct(state)
+  return subtotal * (pct / 100)
+}
+
+/** Selector: the cart subtotal after applying the volume discount. */
+export function selectDiscountedSubtotal(state: CartState): number {
+  return selectCartTotal(state) - selectVolumeDiscountAmount(state)
 }

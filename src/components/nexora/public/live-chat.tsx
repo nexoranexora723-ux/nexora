@@ -22,7 +22,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 const TAWK_PROPERTY = process.env.NEXT_PUBLIC_TAWK_PROPERTY_ID
 const TAWK_WIDGET = process.env.NEXT_PUBLIC_TAWK_WIDGET_ID
-const WHATSAPP_NUMBER = '573100000000' // TODO: replace with real WhatsApp Business number
 
 export function LiveChat() {
   const [open, setOpen] = useState(false)
@@ -80,20 +79,10 @@ export function LiveChat() {
     }
   }, [])
 
-  // If no Tawk.to credentials, render a simple WhatsApp fallback.
+  // If no Tawk.to credentials, render nothing — a dedicated WhatsApp floating
+  // button (see `WhatsAppFloating`) is mounted globally in the root layout.
   if (!TAWK_PROPERTY || !TAWK_WIDGET) {
-    return (
-      <a
-        href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Hola NEXORA, quiero más información')}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Chatear por WhatsApp"
-        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 transition-transform hover:scale-105 sm:bottom-6 sm:right-6"
-      >
-        <MessageCircle className="h-6 w-6" />
-        <span className="absolute right-0 top-0 h-3 w-3 animate-pulse rounded-full bg-emerald-300" />
-      </a>
-    )
+    return null
   }
 
   return (
@@ -148,7 +137,7 @@ export function LiveChat() {
                 className="gap-1.5"
               >
                 <a
-                  href={`https://wa.me/${WHATSAPP_NUMBER}`}
+                  href={`https://wa.me/573105550100`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >

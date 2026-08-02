@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent } from '@/components/ui/card'
 import { motion } from 'framer-motion'
 import { staggerContainer, staggerItem } from '@/components/nexora/shared/animations'
+import { ShippingCalculatorCompact } from '@/components/nexora/public/shipping-calculator'
 import {
   ArrowLeft, Star, ShieldCheck, Truck, Zap, CheckCircle2, TrendingUp,
   ShoppingCart, Award, Clock, Package, Minus, Plus, Play, ChevronRight,
@@ -290,6 +291,11 @@ export function ProductDetailPage({ productId, onBack, onRequest }: ProductDetai
                 <div className="text-center"><div className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">4</div><p className="mt-1">Entrega</p><p className="font-medium text-foreground">✓</p></div>
               </div>
               <p className="mt-2 text-center text-xs font-medium text-primary">Total: ~22 días</p>
+            </div>
+
+            {/* Calculadora de envío compacta */}
+            <div className="mt-3">
+              <ShippingCalculatorCompact unitPrice={product.estimatedCost} />
             </div>
 
             {/* Selector de cantidad */}
