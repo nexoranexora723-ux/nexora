@@ -19,7 +19,7 @@ import { CompareToggleButton, CompareProducts } from '@/components/nexora/public
 import { toCompareItem } from '@/lib/compare-store'
 import { SiteFooter } from '@/components/nexora/public/site-footer'
 import { ThemeToggle } from '@/components/theme-toggle'
-import { LanguageToggle } from '@/components/nexora/public/language-toggle'
+// LanguageToggle removed - texts are in Spanish only
 import { useWishlist } from '@/lib/wishlist-store'
 import { useCart } from '@/lib/cart-store'
 import { useToast } from '@/hooks/use-toast'
@@ -150,7 +150,7 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
           <div className="flex items-center gap-1 sm:gap-2">
             <WishlistCounter />
             <CartCounter />
-            <LanguageToggle compact />
+            {/* Language toggle removed - texts are in Spanish only */}
             <ThemeToggle />
             <Button size="sm" onClick={onRegister}>Registrarse</Button>
           </div>
