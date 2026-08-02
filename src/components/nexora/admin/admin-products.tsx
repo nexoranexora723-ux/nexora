@@ -60,20 +60,21 @@ export function AdminProducts() {
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<AdminProduct | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<AdminProduct | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
 
   const { toast } = useToast()
   const qc = useQueryClient()
 
   const { data, isLoading } = useQuery<{ products: AdminProduct[]; total: number; page: number; totalPages: number }>({
-    queryKey: ['admin-products'],
-    queryFn: async () => (await fetch('/api/admin/products-list?limit=20')).json(),
+    queryKey: ['admin-products', currentPage],
+    queryFn: async () => (await fetch(`/api/admin/products-list?limit=50&page=${currentPage}`)).json(),
   })
   const products = data?.products ?? []
 
   const deleteMut = useMutation({
     mutationFn: (id: string) => fetch(`/api/admin/products/${id}`, { method: 'DELETE' }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-products'] })
+      qc.invalidateQueries({ queryKey: ['admin-products', currentPage] })
       qc.invalidateQueries({ queryKey: ['products-public'] })
       qc.invalidateQueries({ queryKey: ['products'] })
       toast({ title: 'Producto eliminado' })
@@ -85,7 +86,7 @@ export function AdminProducts() {
     mutationFn: ({ id, status }: { id: string; status: string }) =>
       fetch(`/api/admin/products/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-products'] })
+      qc.invalidateQueries({ queryKey: ['admin-products', currentPage] })
       qc.invalidateQueries({ queryKey: ['products-public'] })
     },
   })
@@ -94,7 +95,7 @@ export function AdminProducts() {
     mutationFn: ({ id, isFeatured }: { id: string; isFeatured: boolean }) =>
       fetch(`/api/admin/products/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isFeatured }) }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-products'] })
+      qc.invalidateQueries({ queryKey: ['admin-products', currentPage] })
       qc.invalidateQueries({ queryKey: ['products-public'] })
     },
   })
@@ -102,7 +103,7 @@ export function AdminProducts() {
   const duplicate = useMutation({
     mutationFn: (id: string) => fetch(`/api/admin/products/${id}/duplicate`, { method: 'POST' }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin-products'] })
+      qc.invalidateQueries({ queryKey: ['admin-products', currentPage] })
       toast({ title: 'Producto duplicado', description: 'Se creó una copia inactiva' })
     },
   })
@@ -247,6 +248,37 @@ export function AdminProducts() {
               </TableBody>
             </Table>
           </div>
+          {/* Pagination */}
+          {data && data.totalPages > 1 && (
+            <div className="flex items-center justify-between border-t px-4 py-3">
+              <p className="text-xs text-muted-foreground">
+                Página {data.page} de {data.totalPages.toLocaleString()} · {data.total.toLocaleString()} productos totales
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage <= 1}
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  className="gap-1"
+                >
+                  ← Anterior
+                </Button>
+                <span className="text-xs font-medium tabular-nums">
+                  {currentPage} / {data.totalPages.toLocaleString()}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentPage >= data.totalPages}
+                  onClick={() => setCurrentPage(p => p + 1)}
+                  className="gap-1"
+                >
+                  Siguiente →
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent></Card>
       )}
 
