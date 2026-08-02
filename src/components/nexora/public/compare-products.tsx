@@ -217,9 +217,22 @@ export function CompareModal({
                         </button>
                         <div className="mb-2 aspect-square overflow-hidden rounded-lg bg-muted">
                           {item.imageUrl ? (
-                            <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
+                            <img
+                              src={item.imageUrl}
+                              alt={item.name}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                              decoding="async"
+                              onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/products/placeholder.svg' }}
+                            />
                           ) : (
-                            <div className="flex h-full w-full items-center justify-center text-3xl">📦</div>
+                            <img
+                              src="/products/placeholder.svg"
+                              alt={item.name}
+                              className="h-full w-full object-cover"
+                              loading="lazy"
+                              decoding="async"
+                            />
                           )}
                         </div>
                         <p className="line-clamp-2 text-sm font-semibold leading-snug">{item.name}</p>

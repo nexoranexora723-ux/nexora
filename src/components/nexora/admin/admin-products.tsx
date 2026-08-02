@@ -186,7 +186,14 @@ export function AdminProducts() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           {p.imageUrl ? (
-                            <img src={p.imageUrl} alt={p.name} className="h-10 w-10 rounded-md object-cover ring-1 ring-border" />
+                            <img
+                              src={p.imageUrl}
+                              alt={p.name}
+                              className="h-10 w-10 rounded-md object-cover ring-1 ring-border"
+                              loading="lazy"
+                              decoding="async"
+                              onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/products/placeholder.svg' }}
+                            />
                           ) : (
                             <div className="flex h-10 w-10 items-center justify-center rounded-md bg-muted"><Package className="h-4 w-4 text-muted-foreground" /></div>
                           )}
@@ -541,7 +548,14 @@ function ProductFormDialog({ open, onOpenChange, product }: { open: boolean; onO
                           <button onClick={() => moveImage(i, 'up')} disabled={i === 0} className="text-muted-foreground hover:text-foreground disabled:opacity-30"><ChevronUp className="h-3 w-3" /></button>
                           <button onClick={() => moveImage(i, 'down')} disabled={i === form.images.length - 1} className="text-muted-foreground hover:text-foreground disabled:opacity-30"><ChevronDown className="h-3 w-3" /></button>
                         </div>
-                        <img src={img} alt="" className="h-12 w-12 rounded-md object-cover" />
+                        <img
+                          src={img || '/products/placeholder.svg'}
+                          alt={`Imagen del producto ${i + 1}`}
+                          className="h-12 w-12 rounded-md object-cover"
+                          loading="lazy"
+                          decoding="async"
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/products/placeholder.svg' }}
+                        />
                         <Input value={img} onChange={(e) => { const newImgs = [...form.images]; newImgs[i] = e.target.value; setForm({ ...form, images: newImgs, imageUrl: newImgs[0] }) }} className="h-8 text-xs" />
                         {i === 0 && <Badge className="bg-primary text-[9px]">Principal</Badge>}
                         <button onClick={() => removeImage(i)} className="text-rose-500 hover:text-rose-700"><X className="h-4 w-4" /></button>

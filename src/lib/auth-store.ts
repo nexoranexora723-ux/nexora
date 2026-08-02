@@ -43,8 +43,16 @@ export const useAuth = create<AuthState>()(
         }),
       setPortal: (portal) => set({ portal }),
       setLoading: (isLoading) => set({ isLoading }),
-      logout: () => set({ user: null, isAuthenticated: false, portal: 'public' }),
+      logout: () => set({ user: null, isAuthenticated: false, portal: 'public', isLoading: false }),
     }),
-    { name: 'nexora-auth' },
+    {
+      name: 'nexora-auth',
+      // Only persist the user object. isLoading / isAuthenticated / portal are
+      // derived/ephemeral and must NOT be hydrated — otherwise SSR renders with
+      // the defaults (isLoading:true, isAuthenticated:false) while the client
+      // hydrates with persisted (isLoading:false, isAuthenticated:true),
+      // causing a hydration mismatch that crashes the catalog for authed users.
+      partialize: (state) => ({ user: state.user }),
+    },
   ),
 )

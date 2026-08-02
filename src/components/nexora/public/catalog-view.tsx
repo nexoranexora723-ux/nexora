@@ -456,9 +456,17 @@ function ProductCard({ product, onClick }: { product: Product; onClick: () => vo
             alt={product.name}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
             loading="lazy"
+            decoding="async"
+            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/products/placeholder.svg' }}
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-5xl">📦</div>
+          <img
+            src="/products/placeholder.svg"
+            alt={product.name}
+            className="h-full w-full object-cover"
+            loading="lazy"
+            decoding="async"
+          />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
         
@@ -600,9 +608,22 @@ function ProductDetailDialog({ product, onClose, onRequest }: { product: Product
           {/* Columna izquierda: imagen */}
           <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/30 sm:aspect-auto">
             {product.imageUrl ? (
-              <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                className="h-full w-full object-cover"
+                loading="eager"
+                decoding="async"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/products/placeholder.svg' }}
+              />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-7xl">📦</div>
+              <img
+                src="/products/placeholder.svg"
+                alt={product.name}
+                className="h-full w-full object-cover"
+                loading="eager"
+                decoding="async"
+              />
             )}
             {/* Badges sobre imagen */}
             <div className="absolute left-4 top-4 flex flex-col gap-2">

@@ -27,13 +27,27 @@ export default function NexoraPage() {
   const [authOpen, setAuthOpen] = useState(false)
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
   const { user, isAuthenticated, isLoading, setUser, setLoading } = useAuth()
 
   const { data: session } = useQuery({
     queryKey: ['auth-session'],
-    queryFn: async () => (await fetch('/api/auth/session')).json(),
+    queryFn: async () => {
+      const res = await fetch('/api/auth/session')
+      if (!res.ok) return { user: null }
+      return res.json()
+    },
     staleTime: 5 * 60 * 1000,
   })
+
+  // Mark as mounted (client-only). Until mounted, render a stable loading
+  // spinner so that SSR output and client first render match exactly — this
+  // avoids hydration mismatches caused by persisted Zustand state (auth/cart/
+  // wishlist) being available on the client but not during SSR.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     if (session) {
@@ -43,11 +57,13 @@ export default function NexoraPage() {
     }
   }, [session, setUser, setLoading])
 
-  // Apply deep-link query params once on mount (only when not authenticated).
-  // Used by /cuenta and /pedidos login CTAs and the SiteFooter links:
+  // Apply deep-link query params once on mount.
+  // Used by /cuenta, /pedidos, SiteFooter links and shared URLs:
   //   ?view=catalog | ?view=about | ?login=1 | ?register=1
+  // NOTE: this runs for BOTH authenticated and unauthenticated users so that
+  // an authenticated user visiting /?view=catalog can see the public catalog
+  // (handled by the fall-through in the authed branch below).
   useEffect(() => {
-    if (isAuthenticated) return
     if (typeof window === 'undefined') return
     const params = new URLSearchParams(window.location.search)
     const v = params.get('view')
@@ -62,12 +78,14 @@ export default function NexoraPage() {
       setAuthMode('register')
       setAuthOpen(true)
     }
-  }, [isAuthenticated])
+  }, [])
 
   const openLogin = () => { setAuthMode('login'); setAuthOpen(true) }
   const openRegister = () => { setAuthMode('register'); setAuthOpen(true) }
 
-  if (isLoading) {
+  // Until mounted on the client, render the stable loading spinner so SSR and
+  // client first paint match (prevents hydration mismatch from persisted state).
+  if (!mounted || isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
@@ -82,12 +100,13 @@ export default function NexoraPage() {
   }
 
   if (isAuthenticated && user) {
-    // Allow authenticated users to view public catalog if they explicitly navigate to it
-    if (view === 'catalog' || view === 'product-detail') {
-      // Fall through to public views below
-    } else if (user.role === 'CLIENT' || user.role === 'RESELLER') {
-      return <ClientPortal />
-    } else {
+    // Allow authenticated users to view the public catalog or a product detail
+    // page when they explicitly navigate to it (via ?view=catalog or by being
+    // routed here from the portal). Falls through to the public views below.
+    if (view !== 'catalog' && view !== 'product-detail') {
+      if (user.role === 'CLIENT' || user.role === 'RESELLER') {
+        return <ClientPortal />
+      }
       return <AdminPortal />
     }
   }

@@ -41,7 +41,7 @@ interface PrefillData {
 
 export function ClientPortal() {
   const { user, logout } = useAuth()
-  const { theme, setTheme } = useTheme()
+  const { resolvedTheme, setTheme } = useTheme()
   const [view, setView] = useState<View>('dashboard')
   const [createOpen, setCreateOpen] = useState(false)
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null)
@@ -161,7 +161,7 @@ export function ClientPortal() {
               <kbd className="rounded bg-muted px-1 text-[9px]">⌘K</kbd>
             </button>
             <NotificationBell />
-            <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-muted" aria-label="Cambiar tema">
+            <button onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')} className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-muted" aria-label="Cambiar tema">
               <Sun className="hidden h-4 w-4 dark:block" />
               <Moon className="h-4 w-4 dark:hidden" />
             </button>
@@ -339,10 +339,25 @@ function ClientDashboard({ onNewRequest, onViewRequest, onNavigate }: { onNewReq
 function ClientCatalog({ onProductClick }: { onProductClick: (p: Product) => void }) {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('all')
-  const { data: products, isLoading } = useQuery<Product[]>({
+  // /api/products returns { products: Product[]; total; page; totalPages },
+  // NOT a bare Product[] — handle the wrapper shape to avoid `products.map is not a function`.
+  const { data: productsData, isLoading } = useQuery<{ products: Product[]; total: number; page: number; totalPages: number }>({
     queryKey: ['products-catalog'],
-    queryFn: async () => (await fetch('/api/products')).json(),
+    queryFn: async () => {
+      const res = await fetch('/api/products')
+      if (!res.ok) return { products: [], total: 0, page: 1, totalPages: 0 }
+      const data = await res.json()
+      // Be defensive: support both the wrapper shape and a bare array (legacy/fallback).
+      if (Array.isArray(data)) return { products: data, total: data.length, page: 1, totalPages: 1 }
+      return {
+        products: Array.isArray(data?.products) ? data.products : [],
+        total: data?.total ?? 0,
+        page: data?.page ?? 1,
+        totalPages: data?.totalPages ?? 0,
+      }
+    },
   })
+  const products = productsData?.products ?? []
 
   const categories = products ? [...new Set(products.map((p) => p.category?.name).filter(Boolean))] : []
   const filtered = (products ?? []).filter((p) => {
@@ -392,9 +407,22 @@ function ClientCatalog({ onProductClick }: { onProductClick: (p: Product) => voi
               <div key={p.id} className="group flex cursor-pointer flex-col overflow-hidden rounded-2xl border bg-card shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl" onClick={() => onProductClick(p)}>
                 <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-muted to-muted/50">
                   {p.imageUrl ? (
-                    <img src={p.imageUrl} alt={p.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                    <img
+                      src={p.imageUrl}
+                      alt={p.name}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      loading="lazy"
+                      decoding="async"
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/products/placeholder.svg' }}
+                    />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-5xl">📦</div>
+                    <img
+                      src="/products/placeholder.svg"
+                      alt={p.name}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
                   {p.category?.icon && (
@@ -461,9 +489,22 @@ function ProductDetailDialog({ product, onClose, onRequest }: { product: Product
           {/* Imagen */}
           <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/30 sm:aspect-auto">
             {product.imageUrl ? (
-              <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                className="h-full w-full object-cover"
+                loading="eager"
+                decoding="async"
+                onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/products/placeholder.svg' }}
+              />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-7xl">📦</div>
+              <img
+                src="/products/placeholder.svg"
+                alt={product.name}
+                className="h-full w-full object-cover"
+                loading="eager"
+                decoding="async"
+              />
             )}
             <div className="absolute left-4 top-4 flex flex-col gap-2">
               {product.category?.icon && (
@@ -710,7 +751,14 @@ function ClientTracking({ requestId }: { requestId: string | null }) {
               <div className="flex flex-wrap gap-2">
                 {imgs.map((url: string, i: number) => (
                   <a key={i} href={url} target="_blank" rel="noreferrer">
-                    <img src={url} alt={`Referencia ${i + 1}`} className="h-24 w-24 rounded-lg border object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                    <img
+                      src={url}
+                      alt={`Imagen de referencia ${i + 1}`}
+                      className="h-24 w-24 rounded-lg border object-cover"
+                      loading="lazy"
+                      decoding="async"
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/products/placeholder.svg' }}
+                    />
                   </a>
                 ))}
               </div>
@@ -1108,7 +1156,14 @@ function CreateRequestDialog({ open, onOpenChange, prefill }: { open: boolean; o
                 <div className="flex flex-wrap gap-2">
                   {imgs.map((url: string, i: number) => (
                     <div key={i} className="group relative h-20 w-20 overflow-hidden rounded-lg border">
-                      <img src={url} alt={`Referencia ${i + 1}`} className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                      <img
+                        src={url}
+                        alt={`Imagen de referencia ${i + 1}`}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/products/placeholder.svg' }}
+                      />
                       <button
                         type="button"
                         onClick={() => {

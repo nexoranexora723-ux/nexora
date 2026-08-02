@@ -1,0 +1,1144 @@
+     1→'use client'
+     2→
+     3→import { useState, useEffect, useRef } from 'react'
+     4→import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+     5→import { Card, CardContent } from '@/components/ui/card'
+     6→import { Button } from '@/components/ui/button'
+     7→import { Input } from '@/components/ui/input'
+     8→import { Label } from '@/components/ui/label'
+     9→import { Textarea } from '@/components/ui/textarea'
+    10→import { Badge } from '@/components/ui/badge'
+    11→import { Skeleton } from '@/components/ui/skeleton'
+    12→import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+    13→import { useAuth } from '@/lib/auth-store'
+    14→import { formatCurrency, timeAgo, initials } from '@/lib/format'
+    15→import { REQUEST_STATUS_LABELS, REQUEST_STATUS_COLORS } from '@/lib/types'
+    16→import type { ImportRequest, Product, Quote } from '@/lib/types'
+    17→import {
+    18→  LayoutDashboard, Package, Truck, User, LogOut, Plus, Sparkles,
+    19→  Search, ChevronRight, ShoppingBag, ArrowLeft, ShoppingCart,
+    20→  Check, X, CheckCircle2, CreditCard, Loader2,
+    21→  MessageCircle, Send, Star, TrendingUp, ShieldCheck,
+    22→} from 'lucide-react'
+    23→import { cn } from '@/lib/utils'
+    24→import { NotificationBell } from '@/components/nexora/shared/notification-bell'
+    25→import { WizardDialog } from '@/components/nexora/client/wizard-dialog'
+    26→import { OnboardingTour, CommandPalette } from '@/components/nexora/shared/extra-features'
+    27→import { ProductDetailPage } from '@/components/nexora/public/product-detail-page'
+    28→import { fireConfetti, SuccessOverlay, LoadingOverlay, staggerContainer, staggerItem, AnimatedCounter, PulsingBadge, BreathingAvatar, NaiosTyping, messageSlideIn } from '@/components/nexora/shared/animations'
+    29→import { motion, AnimatePresence } from 'framer-motion'
+    30→import { useTheme } from 'next-themes'
+    31→import { Sun, Moon, Command as CommandIcon } from 'lucide-react'
+    32→
+    33→type View = 'dashboard' | 'catalog' | 'requests' | 'tracking' | 'profile'
+    34→
+    35→interface PrefillData {
+    36→  name?: string
+    37→  category?: string
+    38→  description?: string
+    39→  referenceUrl?: string
+    40→}
+    41→
+    42→export function ClientPortal() {
+    43→  const { user, logout } = useAuth()
+    44→  const { theme, setTheme } = useTheme()
+    45→  const [view, setView] = useState<View>('dashboard')
+    46→  const [createOpen, setCreateOpen] = useState(false)
+    47→  const [selectedRequest, setSelectedRequest] = useState<string | null>(null)
+    48→  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+    49→  const [prefillProduct, setPrefillProduct] = useState<PrefillData | null>(null)
+    50→  const [wizardOpen, setWizardOpen] = useState(false)
+    51→  const [showOnboarding, setShowOnboarding] = useState(false)
+    52→  const [cmdOpen, setCmdOpen] = useState(false)
+    53→  const [detailProductId, setDetailProductId] = useState<string | null>(null)
+    54→
+    55→  // Onboarding on first visit
+    56→  useEffect(() => {
+    57→    const seen = localStorage.getItem('nexora-onboarding-seen')
+    58→    if (!seen) {
+    59→      // eslint-disable-next-line react-hooks/set-state-in-effect
+    60→      setShowOnboarding(true)
+    61→      localStorage.setItem('nexora-onboarding-seen', '1')
+    62→    }
+    63→  }, [])
+    64→
+    65→  // Command palette shortcut (Cmd+K / Ctrl+K)
+    66→  useEffect(() => {
+    67→    const handler = (e: KeyboardEvent) => {
+    68→      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    69→        e.preventDefault()
+    70→        setCmdOpen((o) => !o)
+    71→      }
+    72→    }
+    73→    window.addEventListener('keydown', handler)
+    74→    return () => window.removeEventListener('keydown', handler)
+    75→  }, [])
+    76→
+    77→  const handleLogout = async () => {
+    78→    await fetch('/api/auth/logout', { method: 'POST' })
+    79→    logout()
+    80→  }
+    81→
+    82→  const openCreateWithProduct = (p: Product) => {
+    83→    setPrefillProduct({
+    84→      name: p.name,
+    85→      category: p.category?.name ?? '',
+    86→      description: p.description ?? '',
+    87→      referenceUrl: p.referenceUrl ?? '',
+    88→    })
+    89→    setCreateOpen(true)
+    90→  }
+    91→
+    92→  const openCreateBlank = () => {
+    93→    setPrefillProduct(null)
+    94→    setCreateOpen(true)
+    95→  }
+    96→
+    97→  return (
+    98→    <div className="flex min-h-screen bg-background">
+    99→      {/* Sidebar */}
+   100→      <aside className="hidden w-64 shrink-0 border-r bg-sidebar lg:flex lg:flex-col">
+   101→        <div className="flex h-16 items-center gap-2.5 border-b border-sidebar-border px-5">
+   102→          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-blue-700 text-primary-foreground shadow-sm">
+   103→            <span className="text-lg font-black">N</span>
+   104→          </div>
+   105→          <div className="leading-tight">
+   106→            <div className="text-base font-bold text-sidebar-foreground">NEXORA</div>
+   107→            <div className="text-[10px] font-medium uppercase tracking-widest text-sidebar-foreground/50">Portal Cliente</div>
+   108→          </div>
+   109→        </div>
+   110→        <nav className="flex-1 space-y-1 p-3">
+   111→          {[
+   112→            { key: 'dashboard' as View, icon: LayoutDashboard, label: 'Dashboard' },
+   113→            { key: 'catalog' as View, icon: ShoppingBag, label: 'Catálogo', badge: 'Explora' },
+   114→            { key: 'requests' as View, icon: Package, label: 'Mis solicitudes' },
+   115→            { key: 'tracking' as View, icon: Truck, label: 'Seguimiento' },
+   116→            { key: 'profile' as View, icon: User, label: 'Mi perfil' },
+   117→          ].map((item) => (
+   118→            <button key={item.key} onClick={() => setView(item.key)} className={cn(
+   119→              'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all',
+   120→              view === item.key ? 'bg-sidebar-accent text-sidebar-accent-foreground shadow-sm' : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/60',
+   121→            )}>
+   122→              <item.icon className={cn('h-4 w-4', view === item.key ? 'text-primary' : 'text-sidebar-foreground/50')} />
+   123→              <span className="flex-1 text-left">{item.label}</span>
+   124→              {item.badge && <Badge className="bg-primary/20 text-primary text-[9px]">{item.badge}</Badge>}
+   125→            </button>
+   126→          ))}
+   127→        </nav>
+   128→        <div className="border-t border-sidebar-border p-3">
+   129→          <div className="flex items-center gap-2.5 rounded-lg border bg-card px-3 py-2">
+   130→            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-primary to-blue-700 text-xs font-bold text-primary-foreground">
+   131→              {initials(user?.firstName ?? '', user?.lastName)}
+   132→            </div>
+   133→            <div className="min-w-0 flex-1 leading-tight">
+   134→              <div className="truncate text-xs font-semibold">{user?.firstName} {user?.lastName}</div>
+   135→              <div className="text-[10px] text-muted-foreground">Cliente</div>
+   136→            </div>
+   137→            <button onClick={handleLogout} className="text-muted-foreground hover:text-foreground"><LogOut className="h-4 w-4" /></button>
+   138→          </div>
+   139→        </div>
+   140→      </aside>
+   141→
+   142→      {/* Mobile header */}
+   143→      <div className="flex flex-1 flex-col overflow-hidden">
+   144→        <header className="flex h-16 items-center justify-between border-b px-4 sm:px-6">
+   145→          <div className="flex items-center gap-2 lg:hidden">
+   146→            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-primary to-blue-700 text-primary-foreground">
+   147→              <span className="text-xs font-black">N</span>
+   148→            </div>
+   149→            <span className="font-bold">NEXORA</span>
+   150→          </div>
+   151→          <h1 className="hidden text-lg font-semibold lg:block">
+   152→            {view === 'dashboard' && 'Dashboard'}
+   153→            {view === 'catalog' && 'Catálogo de productos'}
+   154→            {view === 'requests' && 'Mis solicitudes'}
+   155→            {view === 'tracking' && 'Seguimiento'}
+   156→            {view === 'profile' && 'Mi perfil'}
+   157→          </h1>
+   158→          <div className="flex items-center gap-1.5">
+   159→            <button onClick={() => setCmdOpen(true)} className="hidden items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted sm:flex">
+   160→              <CommandIcon className="h-3 w-3" /> Buscar...
+   161→              <kbd className="rounded bg-muted px-1 text-[9px]">⌘K</kbd>
+   162→            </button>
+   163→            <NotificationBell />
+   164→            <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-muted" aria-label="Cambiar tema">
+   165→              <Sun className="hidden h-4 w-4 dark:block" />
+   166→              <Moon className="h-4 w-4 dark:hidden" />
+   167→            </button>
+   168→            <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setWizardOpen(true)}>
+   169→              <Sparkles className="h-4 w-4 text-primary" /> <span className="hidden sm:inline">Asistente</span>
+   170→            </Button>
+   171→            <Button size="sm" className="gap-1.5" onClick={openCreateBlank}>
+   172→              <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Nueva solicitud</span>
+   173→            </Button>
+   174→          </div>
+   175→        </header>
+   176→
+   177→        {/* Mobile bottom navigation */}
+   178→        <div className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t bg-background/95 px-2 py-2 backdrop-blur-md lg:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0.5rem)' }}>
+   179→          {[
+   180→            { key: 'dashboard' as View, icon: LayoutDashboard, label: 'Inicio' },
+   181→            { key: 'catalog' as View, icon: ShoppingBag, label: 'Catálogo' },
+   182→            { key: 'requests' as View, icon: Package, label: 'Pedidos' },
+   183→            { key: 'tracking' as View, icon: Truck, label: 'Tracking' },
+   184→            { key: 'profile' as View, icon: User, label: 'Perfil' },
+   185→          ].map((item) => {
+   186→            const isActive = view === item.key
+   187→            return (
+   188→              <button key={item.key} onClick={() => setView(item.key)} className={cn(
+   189→                'flex flex-col items-center gap-0.5 rounded-lg px-3 py-1.5 transition-colors',
+   190→                isActive ? 'text-primary' : 'text-muted-foreground',
+   191→              )}>
+   192→                <item.icon className={cn('h-5 w-5', isActive && 'fill-primary/10')} />
+   193→                <span className={cn('text-[10px] font-medium', isActive && 'font-semibold')}>{item.label}</span>
+   194→                {isActive && <div className="absolute -mt-1 h-1 w-1 rounded-full bg-primary" />}
+   195→              </button>
+   196→            )
+   197→          })}
+   198→        </div>
+   199→
+   200→        <main className="nexora-scroll flex-1 overflow-y-auto p-4 pb-20 sm:p-6 lg:p-8 lg:pb-8">
+   201→          <div className="mx-auto max-w-5xl">
+   202→            {view === 'dashboard' && <ClientDashboard onNewRequest={openCreateBlank} onViewRequest={(id) => { setSelectedRequest(id); setView('tracking') }} onNavigate={setView} />}
+   203→            {view === 'catalog' && <ClientCatalog onProductClick={(p) => setDetailProductId(p.id)} />}
+   204→            {view === 'requests' && <ClientRequests onViewRequest={(id) => { setSelectedRequest(id); setView('tracking') }} />}
+   205→            {view === 'tracking' && <ClientTracking requestId={selectedRequest} />}
+   206→            {view === 'profile' && <ClientProfile />}
+   207→          </div>
+   208→        </main>
+   209→      </div>
+   210→
+   211→      {/* Product detail dialog */}
+   212→      {selectedProduct && (
+   213→        <ProductDetailDialog product={selectedProduct} onClose={() => setSelectedProduct(null)} onRequest={(p) => { setSelectedProduct(null); openCreateWithProduct(p) }} />
+   214→      )}
+   215→
+   216→      {/* Product detail page (full page, not dialog) */}
+   217→      {detailProductId && (
+   218→        <ProductDetailPage
+   219→          productId={detailProductId}
+   220→          onBack={() => setDetailProductId(null)}
+   221→          onRequest={async () => {
+   222→            // Fetch product data and prefill the request form
+   223→            try {
+   224→              const res = await fetch(`/api/products/${detailProductId}`)
+   225→              const p = await res.json()
+   226→              setDetailProductId(null)
+   227→              openCreateWithProduct({
+   228→                name: p.name,
+   229→                category: p.category?.name ?? '',
+   230→                description: p.description ?? '',
+   231→                referenceUrl: p.referenceUrl ?? '',
+   232→              } as unknown as Product)
+   233→            } catch {
+   234→              setDetailProductId(null)
+   235→              openCreateBlank()
+   236→            }
+   237→          }}
+   238→        />
+   239→      )}
+   240→
+   241→      {/* Wizard dialog */}
+   242→      <WizardDialog open={wizardOpen} onOpenChange={setWizardOpen} />
+   243→
+   244→      {/* Onboarding tour (#27) */}
+   245→      {showOnboarding && <OnboardingTour onClose={() => setShowOnboarding(false)} />}
+   246→
+   247→      {/* Command palette (#29) */}
+   248→      <CommandPalette open={cmdOpen} onOpenChange={setCmdOpen} onNavigate={(action) => {
+   249→        if (action === 'new') { openCreateBlank() }
+   250→        else if (action === 'wizard') { setWizardOpen(true) }
+   251→        else if (action === 'catalog' || action === 'dashboard' || action === 'requests' || action === 'tracking' || action === 'profile') { setView(action as View) }
+   252→      }} />
+   253→
+   254→      {/* Create request dialog */}
+   255→      <CreateRequestDialog open={createOpen} onOpenChange={setCreateOpen} prefill={prefillProduct} />
+   256→    </div>
+   257→  )
+   258→}
+   259→
+   260→// === Client Dashboard ===
+   261→function ClientDashboard({ onNewRequest, onViewRequest, onNavigate }: { onNewRequest: () => void; onViewRequest: (id: string) => void; onNavigate: (v: View) => void }) {
+   262→  const { user } = useAuth()
+   263→  const { data: requests, isLoading } = useQuery<ImportRequest[]>({
+   264→    queryKey: ['client-requests'],
+   265→    queryFn: async () => {
+   266→      const res = await fetch('/api/requests')
+   267→      if (!res.ok) return []
+   268→      const data = await res.json()
+   269→      return Array.isArray(data) ? data : []
+   270→    },
+   271→  })
+   272→
+   273→  const reqList = requests ?? []
+   274→  const stats = {
+   275→    total: reqList.length,
+   276→    active: reqList.filter((r) => !['ENTREGADO', 'CERRADO'].includes(r.status)).length,
+   277→    delivered: reqList.filter((r) => r.status === 'ENTREGADO').length,
+   278→    new: reqList.filter((r) => r.status === 'NUEVA').length,
+   279→  }
+   280→
+   281→  return (
+   282→    <div className="space-y-6">
+   283→      <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-emerald-500/5 to-transparent p-6">
+   284→        <h2 className="text-2xl font-bold">¡Hola, {user?.firstName}! 👋</h2>
+   285→        <p className="mt-1 text-muted-foreground">Importa cualquier producto desde China. Explora nuestro catálogo o solicita algo personalizado.</p>
+   286→        <div className="mt-4 flex gap-2">
+   287→          <Button onClick={() => onNavigate('catalog')} className="gap-1.5"><ShoppingBag className="h-4 w-4" /> Explorar catálogo</Button>
+   288→          <Button variant="outline" onClick={onNewRequest} className="gap-1.5"><Plus className="h-4 w-4" /> Solicitar producto personalizado</Button>
+   289→        </div>
+   290→      </div>
+   291→
+   292→      <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+   293→        <motion.div variants={staggerItem}><Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Total solicitudes</p><p className="mt-1 text-2xl font-bold"><AnimatedCounter value={stats.total} /></p></CardContent></Card></motion.div>
+   294→        <motion.div variants={staggerItem}><Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">En proceso</p><p className="mt-1 text-2xl font-bold text-amber-600"><AnimatedCounter value={stats.active} /></p></CardContent></Card></motion.div>
+   295→        <motion.div variants={staggerItem}><Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Entregados</p><p className="mt-1 text-2xl font-bold text-emerald-600"><AnimatedCounter value={stats.delivered} /></p></CardContent></Card></motion.div>
+   296→        <motion.div variants={staggerItem}><Card><CardContent className="p-4"><p className="text-xs text-muted-foreground">Nuevos</p><p className="mt-1 text-2xl font-bold text-sky-600"><AnimatedCounter value={stats.new} /></p></CardContent></Card></motion.div>
+   297→      </motion.div>
+   298→
+   299→      <div>
+   300→        <div className="mb-3 flex items-center justify-between">
+   301→          <h3 className="text-lg font-semibold">Solicitudes recientes</h3>
+   302→          <Button variant="ghost" size="sm" onClick={onNewRequest} className="gap-1 text-xs"><Plus className="h-3 w-3" /> Nueva</Button>
+   303→        </div>
+   304→        {isLoading ? (
+   305→          <div className="space-y-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}</div>
+   306→        ) : reqList.length === 0 ? (
+   307→          <Card><CardContent className="flex flex-col items-center justify-center py-12 text-center">
+   308→            <Package className="h-10 w-10 text-muted-foreground/40" />
+   309→            <p className="mt-3 text-sm font-medium">Aún no tienes solicitudes</p>
+   310→            <p className="text-xs text-muted-foreground">Explora el catálogo o solicita un producto personalizado</p>
+   311→            <div className="mt-4 flex gap-2">
+   312→              <Button variant="outline" size="sm" onClick={() => onNavigate('catalog')} className="gap-1.5"><ShoppingBag className="h-4 w-4" /> Ver catálogo</Button>
+   313→              <Button size="sm" onClick={onNewRequest} className="gap-1.5"><Plus className="h-4 w-4" /> Nueva solicitud</Button>
+   314→            </div>
+   315→          </CardContent></Card>
+   316→        ) : (
+   317→          <div className="space-y-2">
+   318→            {reqList.slice(0, 5).map((r) => (
+   319→              <button key={r.id} onClick={() => onViewRequest(r.id)} className="flex w-full items-center gap-3 rounded-xl border bg-card p-4 text-left transition-colors hover:bg-muted/40">
+   320→                <div className="min-w-0 flex-1">
+   321→                  <div className="flex items-center gap-2">
+   322→                    <code className="text-xs font-medium text-primary">{r.number}</code>
+   323→                    <Badge variant="outline" className={cn('text-[10px]', REQUEST_STATUS_COLORS[r.status])}>{REQUEST_STATUS_LABELS[r.status]}</Badge>
+   324→                  </div>
+   325→                  <p className="mt-1 truncate text-sm font-medium">{r.productName}</p>
+   326→                  <p className="text-xs text-muted-foreground">{r.quantity} unidades · {timeAgo(r.createdAt)}</p>
+   327→                </div>
+   328→                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+   329→              </button>
+   330→            ))}
+   331→          </div>
+   332→        )}
+   333→      </div>
+   334→    </div>
+   335→  )
+   336→}
+   337→
+   338→// === Client Catalog ===
+   339→function ClientCatalog({ onProductClick }: { onProductClick: (p: Product) => void }) {
+   340→  const [query, setQuery] = useState('')
+   341→  const [category, setCategory] = useState('all')
+   342→  const { data: products, isLoading } = useQuery<Product[]>({
+   343→    queryKey: ['products-catalog'],
+   344→    queryFn: async () => (await fetch('/api/products')).json(),
+   345→  })
+   346→
+   347→  const categories = products ? [...new Set(products.map((p) => p.category?.name).filter(Boolean))] : []
+   348→  const filtered = (products ?? []).filter((p) => {
+   349→    const matchesQuery = !query || p.name.toLowerCase().includes(query.toLowerCase()) || p.description?.toLowerCase().includes(query.toLowerCase())
+   350→    const matchesCat = category === 'all' || p.category?.name === category
+   351→    return matchesQuery && matchesCat
+   352→  })
+   353→
+   354→  return (
+   355→    <div className="space-y-6">
+   356→      {/* Hero banner */}
+   357→      <div className="rounded-2xl bg-gradient-to-br from-primary/10 via-emerald-500/5 to-transparent p-6">
+   358→        <h2 className="text-xl font-bold">Catálogo de productos importables 🛍️</h2>
+   359→        <p className="mt-1 text-sm text-muted-foreground">Explora los productos que podemos importar para ti desde China. Click en cualquier producto para solicitar una importación.</p>
+   360→      </div>
+   361→
+   362→      {/* Search + filters */}
+   363→      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+   364→        <div className="relative max-w-sm flex-1">
+   365→          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   366→          <Input placeholder="Buscar productos..." value={query} onChange={(e) => setQuery(e.target.value)} className="pl-9" />
+   367→        </div>
+   368→        <div className="flex flex-wrap gap-1.5">
+   369→          <Button variant={category === 'all' ? 'default' : 'outline'} size="sm" onClick={() => setCategory('all')}>Todos</Button>
+   370→          {categories.map((c) => (
+   371→            <Button key={c} variant={category === c ? 'default' : 'outline'} size="sm" onClick={() => setCategory(c as string)}>{c}</Button>
+   372→          ))}
+   373→        </div>
+   374→      </div>
+   375→
+   376→      {/* Products grid */}
+   377→      {isLoading ? (
+   378→        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+   379→          {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-72 rounded-xl" />)}
+   380→        </div>
+   381→      ) : filtered.length === 0 ? (
+   382→        <Card><CardContent className="flex flex-col items-center justify-center py-16 text-center">
+   383→          <Package className="h-12 w-12 text-muted-foreground/40" />
+   384→          <p className="mt-3 text-sm font-medium">No se encontraron productos</p>
+   385→          <p className="text-xs text-muted-foreground">Prueba con otra búsqueda o solicita un producto personalizado</p>
+   386→        </CardContent></Card>
+   387→      ) : (
+   388→        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+   389→          {filtered.map((p) => {
+   390→            const savings = p.estimatedCost && p.suggestedPrice ? Math.round(((p.suggestedPrice - p.estimatedCost) / p.suggestedPrice) * 100) : null
+   391→            return (
+   392→              <div key={p.id} className="group flex cursor-pointer flex-col overflow-hidden rounded-2xl border bg-card shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl" onClick={() => onProductClick(p)}>
+   393→                <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-muted to-muted/50">
+   394→                  {p.imageUrl ? (
+   395→                    <img src={p.imageUrl} alt={p.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+   396→                  ) : (
+   397→                    <div className="flex h-full w-full items-center justify-center text-5xl">📦</div>
+   398→                  )}
+   399→                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+   400→                  {p.category?.icon && (
+   401→                    <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-background/90 px-2.5 py-1 text-xs font-medium shadow-sm backdrop-blur">
+   402→                      <span>{p.category.icon}</span><span className="text-foreground">{p.category.name}</span>
+   403→                    </div>
+   404→                  )}
+   405→                  {savings && savings > 0 && (
+   406→                    <motion.div
+   407→                      animate={{ scale: [1, 1.08, 1] }}
+   408→                      transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+   409→                      className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-rose-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg"
+   410→                    >
+   411→                      <TrendingUp className="h-3 w-3" /> {savings}% OFF
+   412→                    </motion.div>
+   413→                  )}
+   414→                  {p.isFeatured && (
+   415→                    <div className="absolute bottom-3 left-3 flex items-center gap-1 rounded-full bg-amber-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg">
+   416→                      <Star className="h-3 w-3 fill-white" /> Destacado
+   417→                    </div>
+   418→                  )}
+   419→                </div>
+   420→                <CardContent className="flex flex-1 flex-col p-4">
+   421→                  {p.brand && <p className="text-xs font-medium text-muted-foreground">{p.brand.name}</p>}
+   422→                  <h3 className="mt-0.5 line-clamp-2 text-sm font-semibold leading-snug">{p.name}</h3>
+   423→                  {p.description && <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{p.description}</p>}
+   424→                  <div className="mt-3 flex items-baseline gap-2">
+   425→                    {p.estimatedCost ? (
+   426→                      <>
+   427→                        <span className="text-2xl font-bold">${p.estimatedCost}</span>
+   428→                        {p.suggestedPrice && <span className="text-sm text-muted-foreground line-through">${p.suggestedPrice}</span>}
+   429→                      </>
+   430→                    ) : <span className="text-sm text-muted-foreground">Precio bajo consulta</span>}
+   431→                  </div>
+   432→                  <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+   433→                    <span className="flex items-center gap-1"><ShieldCheck className="h-3 w-3 text-emerald-500" /> Verificado</span>
+   434→                    <span className="flex items-center gap-1"><Truck className="h-3 w-3 text-primary" /> Importación incluida</span>
+   435→                  </div>
+   436→                  <div className="mt-3 flex items-center justify-between gap-2 border-t pt-3">
+   437→                    <span className="text-xs font-medium text-primary">Ver detalles</span>
+   438→                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+   439→                      <ChevronRight className="h-4 w-4" />
+   440→                    </div>
+   441→                  </div>
+   442→                </CardContent>
+   443→              </div>
+   444→            )
+   445→          })}
+   446→        </div>
+   447→      )}
+   448→    </div>
+   449→  )
+   450→}
+   451→
+   452→// === Product Detail Dialog ===
+   453→function ProductDetailDialog({ product, onClose, onRequest }: { product: Product; onClose: () => void; onRequest: (p: Product) => void }) {
+   454→  const savings = product.estimatedCost && product.suggestedPrice ? product.suggestedPrice - product.estimatedCost : null
+   455→  const savingsPct = savings && product.suggestedPrice ? Math.round((savings / product.suggestedPrice) * 100) : null
+   456→
+   457→  return (
+   458→    <Dialog open onOpenChange={onClose}>
+   459→      <DialogContent className="nexora-scroll max-h-[92vh] overflow-y-auto sm:max-w-3xl p-0">
+   460→        <div className="grid grid-cols-1 sm:grid-cols-2">
+   461→          {/* Imagen */}
+   462→          <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-muted to-muted/30 sm:aspect-auto">
+   463→            {product.imageUrl ? (
+   464→              <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover" />
+   465→            ) : (
+   466→              <div className="flex h-full w-full items-center justify-center text-7xl">📦</div>
+   467→            )}
+   468→            <div className="absolute left-4 top-4 flex flex-col gap-2">
+   469→              {product.category?.icon && (
+   470→                <Badge className="w-fit bg-background/90 text-foreground shadow-sm backdrop-blur">{product.category.icon} {product.category.name}</Badge>
+   471→              )}
+   472→              {product.isFeatured && (
+   473→                <Badge className="w-fit gap-1 bg-amber-500 text-white shadow-lg"><Star className="h-3 w-3 fill-white" /> Destacado</Badge>
+   474→              )}
+   475→            </div>
+   476→            {savingsPct && savingsPct > 0 && (
+   477→              <div className="absolute right-4 top-4 rounded-full bg-rose-500 px-3 py-1.5 text-sm font-bold text-white shadow-lg">Ahorra {savingsPct}%</div>
+   478→            )}
+   479→          </div>
+   480→
+   481→          {/* Info */}
+   482→          <div className="flex flex-col p-6">
+   483→            <DialogHeader className="p-0 text-left">
+   484→              {product.brand && <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{product.brand.name}</p>}
+   485→              <DialogTitle className="text-2xl font-bold leading-tight">{product.name}</DialogTitle>
+   486→            </DialogHeader>
+   487→
+   488→            {/* Rating */}
+   489→            <div className="mt-2 flex items-center gap-2">
+   490→              <div className="flex items-center gap-0.5">
+   491→                {[1, 2, 3, 4, 5].map((i) => (
+   492→                  <Star key={i} className={cn('h-3.5 w-3.5', i <= 4 ? 'fill-amber-400 text-amber-400' : 'fill-muted text-muted')} />
+   493→                ))}
+   494→              </div>
+   495→              <span className="text-xs text-muted-foreground">(4.0 · 127 importaciones)</span>
+   496→            </div>
+   497→
+   498→            {/* Precio */}
+   499→            <div className="mt-4 flex items-baseline gap-3">
+   500→              {product.estimatedCost ? (
+   501→                <>
+   502→                  <span className="text-4xl font-bold">${product.estimatedCost}</span>
+   503→                  {product.suggestedPrice && <span className="text-lg text-muted-foreground line-through">${product.suggestedPrice}</span>}
+   504→                </>
+   505→              ) : <span className="text-lg text-muted-foreground">Precio bajo consulta</span>}
+   506→            </div>
+   507→            {savings && savings > 0 && <p className="mt-1 text-sm font-medium text-emerald-600">✅ Ahorras ${savings.toFixed(2)} vs precio de mercado</p>}
+   508→
+   509→            {/* Descripción */}
+   510→            {product.description && <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{product.description}</p>}
+   511→
+   512→            {/* Trust badges */}
+   513→            <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-muted/40 p-3">
+   514→              <div className="flex items-center gap-2 text-xs"><ShieldCheck className="h-4 w-4 text-emerald-500" /><div><p className="font-medium">Proveedor verificado</p><p className="text-muted-foreground">Calidad garantizada</p></div></div>
+   515→              <div className="flex items-center gap-2 text-xs"><Truck className="h-4 w-4 text-primary" /><div><p className="font-medium">Importación incluida</p><p className="text-muted-foreground">Desde China a tu puerta</p></div></div>
+   516→              <div className="flex items-center gap-2 text-xs"><Sparkles className="h-4 w-4 text-amber-500" /><div><p className="font-medium">Cotización en 24h</p><p className="text-muted-foreground">Respuesta rápida</p></div></div>
+   517→              <div className="flex items-center gap-2 text-xs"><CheckCircle2 className="h-4 w-4 text-violet-500" /><div><p className="font-medium">Garantía incluida</p><p className="text-muted-foreground">Soporte post-venta</p></div></div>
+   518→            </div>
+   519→
+   520→            {/* Timeline */}
+   521→            <div className="mt-4 rounded-xl border p-3">
+   522→              <p className="mb-2 text-xs font-semibold">⏱️ Tiempo estimado de entrega</p>
+   523→              <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+   524→                <div className="text-center"><div className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">1</div><p className="mt-1">Cotización</p><p className="font-medium text-foreground">24h</p></div>
+   525→                <div className="h-0.5 flex-1 bg-primary/20" />
+   526→                <div className="text-center"><div className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">2</div><p className="mt-1">Producción</p><p className="font-medium text-foreground">15d</p></div>
+   527→                <div className="h-0.5 flex-1 bg-primary/20" />
+   528→                <div className="text-center"><div className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">3</div><p className="mt-1">Envío</p><p className="font-medium text-foreground">7d</p></div>
+   529→                <div className="h-0.5 flex-1 bg-primary/20" />
+   530→                <div className="text-center"><div className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">4</div><p className="mt-1">Entrega</p><p className="font-medium text-foreground">✓</p></div>
+   531→              </div>
+   532→              <p className="mt-2 text-center text-xs font-medium text-primary">Total: ~22 días</p>
+   533→            </div>
+   534→
+   535→            {/* CTA */}
+   536→            <div className="mt-auto pt-4">
+   537→              <Button className="w-full gap-2 text-base" size="lg" onClick={() => onRequest(product)}>
+   538→                <ShoppingCart className="h-5 w-5" /> Lo quiero — Solicitar importación
+   539→              </Button>
+   540→              <div className="mt-2 flex items-center justify-center gap-4 text-[10px] text-muted-foreground">
+   541→                <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Sin compromiso</span>
+   542→                <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Cotización gratis</span>
+   543→                <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Pago seguro</span>
+   544→              </div>
+   545→            </div>
+   546→          </div>
+   547→        </div>
+   548→      </DialogContent>
+   549→    </Dialog>
+   550→  )
+   551→}
+   552→
+   553→// === Client Requests List ===
+   554→function ClientRequests({ onViewRequest }: { onViewRequest: (id: string) => void }) {
+   555→  const [query, setQuery] = useState('')
+   556→  const { data: requests, isLoading } = useQuery<ImportRequest[]>({
+   557→    queryKey: ['client-requests'],
+   558→    queryFn: async () => {
+   559→      const res = await fetch('/api/requests')
+   560→      if (!res.ok) return []
+   561→      const data = await res.json()
+   562→      return Array.isArray(data) ? data : []
+   563→    },
+   564→  })
+   565→
+   566→  const filtered = (requests ?? []).filter((r) => !query || r.number.toLowerCase().includes(query.toLowerCase()) || r.productName.toLowerCase().includes(query.toLowerCase()))
+   567→
+   568→  return (
+   569→    <div className="space-y-4">
+   570→      <div className="relative max-w-sm">
+   571→        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+   572→        <Input placeholder="Buscar solicitud..." value={query} onChange={(e) => setQuery(e.target.value)} className="pl-9" />
+   573→      </div>
+   574→
+   575→      {isLoading ? (
+   576→        <div className="space-y-2">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}</div>
+   577→      ) : filtered.length === 0 ? (
+   578→        <Card><CardContent className="py-12 text-center text-sm text-muted-foreground">No se encontraron solicitudes</CardContent></Card>
+   579→      ) : (
+   580→        <div className="space-y-2">
+   581→          {filtered.map((r) => (
+   582→            <button key={r.id} onClick={() => onViewRequest(r.id)} className="flex w-full items-center gap-3 rounded-xl border bg-card p-4 text-left transition-colors hover:bg-muted/40">
+   583→              <div className="min-w-0 flex-1">
+   584→                <div className="flex items-center gap-2">
+   585→                  <code className="text-xs font-medium text-primary">{r.number}</code>
+   586→                  <Badge variant="outline" className={cn('text-[10px]', REQUEST_STATUS_COLORS[r.status])}>{REQUEST_STATUS_LABELS[r.status]}</Badge>
+   587→                </div>
+   588→                <p className="mt-1 truncate text-sm font-medium">{r.productName}</p>
+   589→                <p className="text-xs text-muted-foreground">{r.quantity} unidades · {r.budget ? formatCurrency(r.budget) : 'Sin presupuesto'} · {timeAgo(r.createdAt)}</p>
+   590→              </div>
+   591→              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+   592→            </button>
+   593→          ))}
+   594→        </div>
+   595→      )}
+   596→    </div>
+   597→  )
+   598→}
+   599→
+   600→// === Client Tracking ===
+   601→function ClientTracking({ requestId }: { requestId: string | null }) {
+   602→  const { data: req, isLoading } = useQuery<ImportRequest>({
+   603→    queryKey: ['request', requestId],
+   604→    queryFn: async () => {
+   605→      const res = await fetch(`/api/requests/${requestId}`)
+   606→      if (!res.ok) return null
+   607→      return res.json()
+   608→    },
+   609→    enabled: !!requestId,
+   610→  })
+   611→
+   612→  if (!requestId) return <Card><CardContent className="py-12 text-center text-sm text-muted-foreground">Selecciona una solicitud para ver el seguimiento</CardContent></Card>
+   613→  if (isLoading) return <Skeleton className="h-96 w-full" />
+   614→  if (!req || !req.id) return <Card><CardContent className="py-12 text-center text-sm text-muted-foreground">No encontrada</CardContent></Card>
+   615→
+   616→  const statuses = ['NUEVA', 'BUSCANDO_PROVEEDOR', 'COTIZACION_ENVIADA', 'PAGO_RECIBIDO', 'COMPRA_REALIZADA', 'PRODUCCION', 'EN_TRANSITO', 'ENTREGADO']
+   617→  const currentIdx = statuses.indexOf(req.status)
+   618→
+   619→  return (
+   620→    <div className="space-y-6">
+   621→      <div>
+   622→        <div className="flex items-center gap-2">
+   623→          <code className="text-sm font-medium text-primary">{req.number}</code>
+   624→          <Badge variant="outline" className={REQUEST_STATUS_COLORS[req.status]}>{REQUEST_STATUS_LABELS[req.status]}</Badge>
+   625→        </div>
+   626→        <h2 className="mt-1 text-2xl font-bold">{req.productName}</h2>
+   627→        <p className="mt-1 text-sm text-muted-foreground">{req.quantity} unidades · {req.budget ? `Presupuesto: ${formatCurrency(req.budget)}` : 'Sin presupuesto'}</p>
+   628→      </div>
+   629→
+   630→      {req.description && <Card><CardContent className="p-4"><p className="text-xs font-medium text-muted-foreground">Descripción</p><p className="mt-1 text-sm">{req.description}</p></CardContent></Card>}
+   631→
+   632→      {/* NAIOS analysis is INTERNAL — only shown in admin portal, NOT to clients */}
+   633→
+   634→      <Card><CardContent className="p-6">
+   635→        <h3 className="mb-6 text-sm font-semibold">Progreso de tu importación</h3>
+   636→        {/* Horizontal timeline */}
+   637→        <div className="relative flex justify-between">
+   638→          {statuses.map((status, idx) => (
+   639→            <div key={status} className="flex flex-1 flex-col items-center">
+   640→              {/* Line */}
+   641→              {idx < statuses.length - 1 && (
+   642→                <motion.div
+   643→                  initial={{ scaleX: 0 }}
+   644→                  animate={{ scaleX: 1 }}
+   645→                  transition={{ duration: 0.5, delay: idx * 0.1, ease: 'easeOut' }}
+   646→                  className={cn('absolute h-0.5 top-4 origin-left', idx < currentIdx ? 'bg-primary' : 'bg-muted')}
+   647→                  style={{ left: `${(idx / (statuses.length - 1)) * 100}%`, width: `${100 / (statuses.length - 1)}%` }}
+   648→                />
+   649→              )}
+   650→              {/* Dot */}
+   651→              <motion.div
+   652→                initial={{ scale: 0 }}
+   653→                animate={{ scale: 1 }}
+   654→                transition={{ type: 'spring', stiffness: 400, damping: 15, delay: idx * 0.1 }}
+   655→                className={cn('relative z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 text-[10px] font-bold transition-all',
+   656→                idx < currentIdx ? 'border-primary bg-primary text-primary-foreground' :
+   657→                idx === currentIdx ? 'border-primary bg-primary text-primary-foreground ring-4 ring-primary/20' :
+   658→                'border-muted bg-background text-muted-foreground')}>
+   659→                {idx < currentIdx ? <Check className="h-3.5 w-3.5" /> : idx + 1}
+   660→              </motion.div>
+   661→              {/* Label */}
+   662→              <span className={cn('mt-1.5 max-w-[80px] text-center text-[9px] leading-tight', idx <= currentIdx ? 'font-medium text-foreground' : 'text-muted-foreground')}>
+   663→                {REQUEST_STATUS_LABELS[status]}
+   664→              </span>
+   665→            </div>
+   666→          ))}
+   667→        </div>
+   668→        {/* Current status detail */}
+   669→        <div className="mt-6 rounded-lg bg-primary/5 p-3 text-center">
+   670→          <p className="text-xs text-muted-foreground">Estado actual</p>
+   671→          <p className="mt-0.5 text-sm font-semibold text-primary">{REQUEST_STATUS_LABELS[req.status]}</p>
+   672→          {req.status === 'ENTREGADO' ? (
+   673→            <p className="mt-1 text-xs text-emerald-600">✓ Tu producto ha sido entregado</p>
+   674→          ) : req.status === 'EN_TRANSITO' ? (
+   675→            <p className="mt-1 text-xs text-muted-foreground">📦 Tu producto está en camino desde China</p>
+   676→          ) : (
+   677→            <p className="mt-1 text-xs text-muted-foreground">Procesando tu solicitud...</p>
+   678→          )}
+   679→        </div>
+   680→      </CardContent></Card>
+   681→
+   682→      {req.quotes && req.quotes.length > 0 && (
+   683→        <Card><CardContent className="p-4">
+   684→          <h3 className="mb-3 text-sm font-semibold">Cotizaciones ({req.quotes.length})</h3>
+   685→          <div className="space-y-3">
+   686→            {req.quotes.map((q) => (
+   687→              <QuoteCard key={q.id} quote={q} requestId={req.id} requestStatus={req.status} />
+   688→            ))}
+   689→          </div>
+   690→        </CardContent></Card>
+   691→      )}
+   692→
+   693→      {/* Payment section */}
+   694→      {req.status === 'ESPERANDO_APROBACION' && (
+   695→        <Card className="border-primary/20 bg-primary/5"><CardContent className="p-5">
+   696→          <h3 className="mb-2 text-sm font-semibold">Pago pendiente</h3>
+   697→          <p className="mb-4 text-xs text-muted-foreground">Has aprobado la cotización. Para continuar con la importación, realiza el pago.</p>
+   698→          <PaymentSection requestId={req.id} />
+   699→        </CardContent></Card>
+   700→      )}
+   701→
+   702→      {/* Reference images */}
+   703→      {req.referenceImages && (() => {
+   704→        try {
+   705→          const imgs = JSON.parse(req.referenceImages)
+   706→          if (!Array.isArray(imgs) || imgs.length === 0) return null
+   707→          return (
+   708→            <Card><CardContent className="p-4">
+   709→              <h3 className="mb-3 text-sm font-semibold">Imágenes de referencia</h3>
+   710→              <div className="flex flex-wrap gap-2">
+   711→                {imgs.map((url: string, i: number) => (
+   712→                  <a key={i} href={url} target="_blank" rel="noreferrer">
+   713→                    <img src={url} alt={`Referencia ${i + 1}`} className="h-24 w-24 rounded-lg border object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+   714→                  </a>
+   715→                ))}
+   716→              </div>
+   717→            </CardContent></Card>
+   718→          )
+   719→        } catch { return null }
+   720→      })()}
+   721→
+   722→      {/* Chat */}
+   723→      <RequestChat requestId={req.id} />
+   724→    </div>
+   725→  )
+   726→}
+   727→
+   728→// === Request Chat ===
+   729→function RequestChat({ requestId }: { requestId: string }) {
+   730→  const qc = useQueryClient()
+   731→  const [input, setInput] = useState('')
+   732→  const scrollRef = useRef<HTMLDivElement>(null)
+   733→
+   734→  const { data: messages = [] } = useQuery({
+   735→    queryKey: ['request-messages', requestId],
+   736→    queryFn: async () => {
+   737→      const res = await fetch(`/api/requests/${requestId}/messages`)
+   738→      if (!res.ok) return []
+   739→      const d = await res.json()
+   740→      return Array.isArray(d) ? d : []
+   741→    },
+   742→    refetchInterval: 10000,
+   743→  })
+   744→
+   745→  useEffect(() => {
+   746→    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
+   747→  }, [messages])
+   748→
+   749→  const send = useMutation({
+   750→    mutationFn: async (content: string) => {
+   751→      await fetch(`/api/requests/${requestId}/messages`, {
+   752→        method: 'POST', headers: { 'Content-Type': 'application/json' },
+   753→        body: JSON.stringify({ content }),
+   754→      })
+   755→    },
+   756→    onSuccess: () => {
+   757→      qc.invalidateQueries({ queryKey: ['request-messages', requestId] })
+   758→      setInput('')
+   759→    },
+   760→  })
+   761→
+   762→  return (
+   763→    <Card><CardContent className="p-0">
+   764→      <div className="border-b p-3"><h3 className="flex items-center gap-2 text-sm font-semibold"><MessageCircle className="h-4 w-4 text-primary" /> Conversación</h3></div>
+   765→      <div ref={scrollRef} className="nexora-scroll h-64 space-y-2 overflow-y-auto p-3">
+   766→        {messages.length === 0 ? (
+   767→          <div className="flex h-full items-center justify-center text-center text-xs text-muted-foreground">
+   768→            <div><MessageCircle className="mx-auto mb-2 h-6 w-6 text-muted-foreground/40" /><p>¿Tienes preguntas sobre tu solicitud?</p><p>Escribe un mensaje aquí.</p></div>
+   769→          </div>
+   770→        ) : (
+   771→          messages.map((m: { id: string; role: string; content: string; createdAt: string }) => (
+   772→            <div key={m.id} className={cn('flex', m.role === 'client' ? 'justify-end' : 'justify-start')}>
+   773→              <div className={cn('max-w-[75%] rounded-2xl px-3 py-2 text-sm',
+   774→                m.role === 'client' ? 'rounded-tr-sm bg-primary text-primary-foreground' :
+   775→                m.role === 'naios' ? 'rounded-tl-sm bg-violet-100 text-violet-900 dark:bg-violet-950 dark:text-violet-200' :
+   776→                'rounded-tl-sm bg-muted')}>
+   777→                {m.role === 'naios' && <p className="mb-0.5 text-[10px] font-semibold text-violet-500">NAIOS</p>}
+   778→                <p>{m.content}</p>
+   779→                <p className="mt-0.5 text-[9px] opacity-60">{timeAgo(m.createdAt)}</p>
+   780→              </div>
+   781→            </div>
+   782→          ))
+   783→        )}
+   784→      </div>
+   785→      <div className="flex items-center gap-2 border-t p-2">
+   786→        <Input value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && input.trim()) { send.mutate(input.trim()) } }} placeholder="Escribe un mensaje..." className="h-9" />
+   787→        <Button size="icon" className="h-9 w-9 shrink-0" onClick={() => input.trim() && send.mutate(input.trim())} disabled={!input.trim() || send.isPending}>
+   788→          <Send className="h-4 w-4" />
+   789→        </Button>
+   790→      </div>
+   791→    </CardContent></Card>
+   792→  )
+   793→}
+   794→
+   795→// === Quote Card (with approve/reject for client) ===
+   796→function QuoteCard({ quote, requestId, requestStatus }: { quote: Quote; requestId: string; requestStatus: string }) {
+   797→  const qc = useQueryClient()
+   798→
+   799→  const approve = useMutation({
+   800→    mutationFn: async () => {
+   801→      const res = await fetch(`/api/quotes/${quote.id}/approve`, { method: 'POST' })
+   802→      if (!res.ok) throw new Error('Error')
+   803→    },
+   804→    onSuccess: () => {
+   805→      qc.invalidateQueries({ queryKey: ['request', requestId] })
+   806→      qc.invalidateQueries({ queryKey: ['client-requests'] })
+   807→    },
+   808→  })
+   809→
+   810→  const reject = useMutation({
+   811→    mutationFn: async () => {
+   812→      const res = await fetch(`/api/quotes/${quote.id}/reject`, { method: 'POST' })
+   813→      if (!res.ok) throw new Error('Error')
+   814→    },
+   815→    onSuccess: () => qc.invalidateQueries({ queryKey: ['request', requestId] }),
+   816→  })
+   817→
+   818→  const statusLabels: Record<string, string> = {
+   819→    RECIBIDA: 'Recibida', ENVIADA_AL_CLIENTE: 'Enviada', APROBADA: 'Aprobada', RECHAZADA: 'Rechazada', EXPIRADA: 'Expirada',
+   820→  }
+   821→  const statusColors: Record<string, string> = {
+   822→    APROBADA: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+   823→    RECHAZADA: 'border-rose-200 bg-rose-50 text-rose-700',
+   824→    ENVIADA_AL_CLIENTE: 'border-amber-200 bg-amber-50 text-amber-700',
+   825→  }
+   826→
+   827→  const canAct = quote.status === 'ENVIADA_AL_CLIENTE' && requestStatus === 'COTIZACION_ENVIADA'
+   828→
+   829→  return (
+   830→    <div className={cn('rounded-lg border-2 p-4', quote.status === 'APROBADA' ? 'border-emerald-300 bg-emerald-50/50' : '')}>
+   831→      <div className="flex items-start justify-between">
+   832→        <div>
+   833→          <code className="text-xs font-medium text-primary">{quote.number}</code>
+   834→          <p className="mt-1 text-lg font-bold">{formatCurrency(quote.total)}</p>
+   835→          <p className="text-xs text-muted-foreground">{quote.supplier.companyName}</p>
+   836→        </div>
+   837→        <Badge variant="outline" className={cn('text-[10px]', statusColors[quote.status] ?? '')}>{statusLabels[quote.status] ?? quote.status}</Badge>
+   838→      </div>
+   839→      <div className="mt-3 grid grid-cols-2 gap-2 border-t pt-3 text-xs">
+   840→        <div><span className="text-muted-foreground">Cantidad:</span> <span className="font-medium">{quote.quantity}u</span></div>
+   841→        <div><span className="text-muted-foreground">Precio unit:</span> <span className="font-medium">{formatCurrency(quote.unitPrice)}</span></div>
+   842→        <div><span className="text-muted-foreground">Envío:</span> <span className="font-medium">{formatCurrency(quote.shippingCost)}</span></div>
+   843→        {quote.leadTime && <div><span className="text-muted-foreground">Tiempo:</span> <span className="font-medium">{quote.leadTime} días</span></div>}
+   844→        {quote.warranty && <div><span className="text-muted-foreground">Garantía:</span> <span className="font-medium">{quote.warranty}</span></div>}
+   845→      </div>
+   846→      {canAct && (
+   847→        <div className="mt-3 flex gap-2">
+   848→          <Button size="sm" className="flex-1 gap-1" onClick={() => approve.mutate()} disabled={approve.isPending}>
+   849→            <Check className="h-3.5 w-3.5" /> Aprobar
+   850→          </Button>
+   851→          <Button size="sm" variant="outline" className="flex-1 gap-1 text-rose-600" onClick={() => reject.mutate()} disabled={reject.isPending}>
+   852→            <X className="h-3.5 w-3.5" /> Rechazar
+   853→          </Button>
+   854→        </div>
+   855→      )}
+   856→    </div>
+   857→  )
+   858→}
+   859→
+   860→// === Payment Section (simulated) ===
+   861→function PaymentSection({ requestId }: { requestId: string }) {
+   862→  const qc = useQueryClient()
+   863→  const [method, setMethod] = useState('Nequi')
+   864→  const [paid, setPaid] = useState(false)
+   865→
+   866→  const pay = useMutation({
+   867→    mutationFn: async () => {
+   868→      const res = await fetch(`/api/requests/${requestId}/pay`, {
+   869→        method: 'POST', headers: { 'Content-Type': 'application/json' },
+   870→        body: JSON.stringify({ method }),
+   871→      })
+   872→      if (!res.ok) throw new Error('Error')
+   873→    },
+   874→    onSuccess: () => {
+   875→      setPaid(true)
+   876→      fireConfetti()
+   877→      qc.invalidateQueries({ queryKey: ['request', requestId] })
+   878→      qc.invalidateQueries({ queryKey: ['client-requests'] })
+   879→    },
+   880→  })
+   881→
+   882→  if (paid) {
+   883→    return (
+   884→      <motion.div
+   885→        initial={{ scale: 0.8, opacity: 0 }}
+   886→        animate={{ scale: 1, opacity: 1 }}
+   887→        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+   888→        className="flex flex-col items-center gap-2 py-4 text-center"
+   889→      >
+   890→        <motion.div
+   891→          initial={{ scale: 0 }}
+   892→          animate={{ scale: 1 }}
+   893→          transition={{ type: 'spring', stiffness: 400, damping: 15, delay: 0.2 }}
+   894→          className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950"
+   895→        >
+   896→          <motion.svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+   897→            <motion.path d="M9 16 L14 21 L23 10" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+   898→              initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5, delay: 0.4, ease: 'easeInOut' }}
+   899→            />
+   900→          </motion.svg>
+   901→        </motion.div>
+   902→        <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="text-sm font-semibold">¡Pago confirmado! ✅</motion.p>
+   903→        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} className="text-xs text-muted-foreground">Nuestro equipo iniciará la compra al proveedor.</motion.p>
+   904→      </motion.div>
+   905→    )
+   906→  }
+   907→
+   908→  return (
+   909→    <div className="space-y-3">
+   910→      <div className="grid grid-cols-2 gap-2">
+   911→        {[
+   912→          { id: 'Nequi', label: 'Nequi', icon: '📱' },
+   913→          { id: 'Daviplata', label: 'Daviplata', icon: '💸' },
+   914→          { id: 'PayPal', label: 'PayPal', icon: '🅿️' },
+   915→          { id: 'Transferencia', label: 'Transferencia bancaria', icon: '🏦' },
+   916→        ].map((m) => (
+   917→          <button key={m.id} type="button" onClick={() => setMethod(m.id)} className={cn(
+   918→            'flex items-center gap-2 rounded-lg border p-2.5 text-xs font-medium transition-all',
+   919→            method === m.id ? 'border-primary bg-primary/5 text-primary' : 'text-muted-foreground hover:border-primary/40',
+   920→          )}>
+   921→            <span className="text-base">{m.icon}</span> {m.label}
+   922→          </button>
+   923→        ))}
+   924→      </div>
+   925→      <Button className="w-full gap-1.5" onClick={() => pay.mutate()} disabled={pay.isPending}>
+   926→        {pay.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />}
+   927→        Pagar con {method}
+   928→      </Button>
+   929→      <p className="text-center text-[10px] text-muted-foreground">Pago simulado para demostración. En producción se integrará con Wompi/Bold.</p>
+   930→    </div>
+   931→  )
+   932→}
+   933→
+   934→// === Client Profile ===
+   935→function ClientProfile() {
+   936→  const { user } = useAuth()
+   937→  return (
+   938→    <Card><CardContent className="p-6">
+   939→      <div className="flex items-center gap-4">
+   940→        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary to-blue-700 text-xl font-bold text-primary-foreground">
+   941→          {initials(user?.firstName ?? '', user?.lastName)}
+   942→        </div>
+   943→        <div>
+   944→          <h2 className="text-xl font-bold">{user?.firstName} {user?.lastName}</h2>
+   945→          <p className="text-sm text-muted-foreground">{user?.email}</p>
+   946→        </div>
+   947→      </div>
+   948→      <div className="mt-6 grid grid-cols-2 gap-4 border-t pt-4">
+   949→        <div><p className="text-xs text-muted-foreground">Teléfono</p><p className="text-sm font-medium">{user?.phone ?? '—'}</p></div>
+   950→        <div><p className="text-xs text-muted-foreground">Rol</p><p className="text-sm font-medium">{user?.role}</p></div>
+   951→      </div>
+   952→    </CardContent></Card>
+   953→  )
+   954→}
+   955→
+   956→// === Create Request Dialog (with optional prefill from catalog) ===
+   957→function CreateRequestDialog({ open, onOpenChange, prefill }: { open: boolean; onOpenChange: (o: boolean) => void; prefill: PrefillData | null }) {
+   958→  const qc = useQueryClient()
+   959→  const [form, setForm] = useState({
+   960→    productName: '', description: '', category: '', purpose: 'personal',
+   961→    quantity: 1, budget: '', referenceUrl: '', referenceImages: '', details: '', priority: 'MEDIUM',
+   962→  })
+   963→  const [imageInput, setImageInput] = useState('')
+   964→  const [error, setError] = useState('')
+   965→  const [loading, setLoading] = useState(false)
+   966→  const [showSuccess, setShowSuccess] = useState(false)
+   967→
+   968→  // Prefill from catalog product when dialog opens
+   969→  useEffect(() => {
+   970→    if (open && prefill) {
+   971→      setForm((f) => ({
+   972→        ...f,
+   973→        productName: prefill.name ?? f.productName,
+   974→        description: prefill.description ?? f.description,
+   975→        category: prefill.category ?? f.category,
+   976→        referenceUrl: prefill.referenceUrl ?? f.referenceUrl,
+   977→      }))
+   978→    } else if (open && !prefill) {
+   979→      setForm({ productName: '', description: '', category: '', purpose: 'personal', quantity: 1, budget: '', referenceUrl: '', referenceImages: '', details: '', priority: 'MEDIUM' })
+   980→    }
+   981→  }, [open, prefill])
+   982→
+   983→  const create = useMutation({
+   984→    mutationFn: async (data: Record<string, unknown>) => {
+   985→      const res = await fetch('/api/requests', {
+   986→        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+   987→      })
+   988→      if (!res.ok) throw new Error((await res.json()).error || 'Error')
+   989→      return res.json()
+   990→    },
+   991→    onSuccess: () => {
+   992→      qc.invalidateQueries({ queryKey: ['client-requests'] })
+   993→      fireConfetti()
+   994→      setShowSuccess(true)
+   995→      setForm({ productName: '', description: '', category: '', purpose: 'personal', quantity: 1, budget: '', referenceUrl: '', referenceImages: '', details: '', priority: 'MEDIUM' })
+   996→    },
+   997→  })
+   998→
+   999→  const handleSubmit = async (e: React.FormEvent) => {
+  1000→    e.preventDefault()
+  1001→    setError('')
+  1002→    setLoading(true)
+  1003→    try {
+  1004→      await create.mutateAsync({
+  1005→        ...form,
+  1006→        quantity: Number(form.quantity),
+  1007→        budget: form.budget ? Number(form.budget) : undefined,
+  1008→        currencyCode: 'USD',
+  1009→      })
+  1010→    } catch (err) {
+  1011→      setError(err instanceof Error ? err.message : 'Error')
+  1012→    } finally {
+  1013→      setLoading(false)
+  1014→    }
+  1015→  }
+  1016→
+  1017→  return (
+  1018→    <Dialog open={open} onOpenChange={onOpenChange}>
+  1019→      <DialogContent className="nexora-scroll max-h-[92vh] overflow-y-auto sm:max-w-lg">
+  1020→        <DialogHeader>
+  1021→          <DialogTitle className="flex items-center gap-2"><Package className="h-5 w-5 text-primary" /> {prefill ? 'Solicitar importación' : 'Nueva solicitud de importación'}</DialogTitle>
+  1022→          <DialogDescription>{prefill ? `Solicitando: ${prefill.name}` : 'Describe el producto que quieres importar desde China'}</DialogDescription>
+  1023→        </DialogHeader>
+  1024→        <form onSubmit={handleSubmit} className="space-y-4">
+  1025→          <div className="space-y-1.5">
+  1026→            <Label className="text-xs">¿Qué producto quieres importar? *</Label>
+  1027→            <Input value={form.productName} onChange={(e) => setForm({ ...form, productName: e.target.value })} placeholder="Ej: AirPods Pro 2, Zapatillas Nike, Fundas iPhone..." required autoFocus />
+  1028→          </div>
+  1029→          <div className="grid grid-cols-2 gap-3">
+  1030→            <div className="space-y-1.5">
+  1031→              <Label className="text-xs">Categoría</Label>
+  1032→              <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="h-9 w-full rounded-md border bg-background px-3 text-sm">
+  1033→                <option value="">Seleccionar...</option>
+  1034→                <option value="Tecnología">Tecnología</option>
+  1035→                <option value="Hogar">Hogar</option>
+  1036→                <option value="Moda">Moda</option>
+  1037→                <option value="Belleza">Belleza</option>
+  1038→                <option value="Herramientas">Herramientas</option>
+  1039→                <option value="Mascotas">Mascotas</option>
+  1040→                <option value="Automotriz">Automotriz</option>
+  1041→                <option value="Otro">Otro</option>
+  1042→              </select>
+  1043→            </div>
+  1044→            <div className="space-y-1.5">
+  1045→              <Label className="text-xs">¿Para qué?</Label>
+  1046→              <select value={form.purpose} onChange={(e) => setForm({ ...form, purpose: e.target.value })} className="h-9 w-full rounded-md border bg-background px-3 text-sm">
+  1047→                <option value="personal">Uso personal</option>
+  1048→                <option value="resale">Reventa</option>
+  1049→                <option value="business">Empresa</option>
+  1050→              </select>
+  1051→            </div>
+  1052→          </div>
+  1053→          <div className="grid grid-cols-2 gap-3">
+  1054→            <div className="space-y-1.5">
+  1055→              <Label className="text-xs">Cantidad *</Label>
+  1056→              <Input type="number" min={1} value={form.quantity} onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })} required />
+  1057→            </div>
+  1058→            <div className="space-y-1.5">
+  1059→              <Label className="text-xs">Presupuesto (USD)</Label>
+  1060→              <Input type="number" min={0} value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} placeholder="Opcional" />
+  1061→            </div>
+  1062→          </div>
+  1063→          <div className="space-y-1.5">
+  1064→            <Label className="text-xs">Link de referencia (Alibaba, AliExpress, TikTok, etc.)</Label>
+  1065→            <Input type="url" value={form.referenceUrl} onChange={(e) => setForm({ ...form, referenceUrl: e.target.value })} placeholder="https://..." />
+  1066→          </div>
+  1067→          {/* Image references */}
+  1068→          <div className="space-y-2">
+  1069→            <Label className="text-xs">Imágenes de referencia (pega URLs de fotos del producto)</Label>
+  1070→            <div className="flex gap-2">
+  1071→              <Input
+  1072→                value={imageInput}
+  1073→                onChange={(e) => setImageInput(e.target.value)}
+  1074→                placeholder="https://imagen.com/foto.jpg"
+  1075→                onKeyDown={(e) => {
+  1076→                  if (e.key === 'Enter') {
+  1077→                    e.preventDefault()
+  1078→                    if (imageInput.trim()) {
+  1079→                      const imgs = form.referenceImages ? JSON.parse(form.referenceImages) : []
+  1080→                      imgs.push(imageInput.trim())
+  1081→                      setForm({ ...form, referenceImages: JSON.stringify(imgs) })
+  1082→                      setImageInput('')
+  1083→                    }
+  1084→                  }
+  1085→                }}
+  1086→              />
+  1087→              <Button
+  1088→                type="button"
+  1089→                variant="outline"
+  1090→                size="sm"
+  1091→                onClick={() => {
+  1092→                  if (imageInput.trim()) {
+  1093→                    const imgs = form.referenceImages ? JSON.parse(form.referenceImages) : []
+  1094→                    imgs.push(imageInput.trim())
+  1095→                    setForm({ ...form, referenceImages: JSON.stringify(imgs) })
+  1096→                    setImageInput('')
+  1097→                  }
+  1098→                }}
+  1099→              >
+  1100→                <Plus className="h-4 w-4" />
+  1101→              </Button>
+  1102→            </div>
+  1103→            {/* Image previews */}
+  1104→            {form.referenceImages && (() => {
+  1105→              const imgs = JSON.parse(form.referenceImages)
+  1106→              if (!Array.isArray(imgs) || imgs.length === 0) return null
+  1107→              return (
+  1108→                <div className="flex flex-wrap gap-2">
+  1109→                  {imgs.map((url: string, i: number) => (
+  1110→                    <div key={i} className="group relative h-20 w-20 overflow-hidden rounded-lg border">
+  1111→                      <img src={url} alt={`Referencia ${i + 1}`} className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+  1112→                      <button
+  1113→                        type="button"
+  1114→                        onClick={() => {
+  1115→                          const filtered = imgs.filter((_: string, idx: number) => idx !== i)
+  1116→                          setForm({ ...form, referenceImages: filtered.length > 0 ? JSON.stringify(filtered) : '' })
+  1117→                        }}
+  1118→                        className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-white opacity-0 transition-opacity group-hover:opacity-100"
+  1119→                      >
+  1120→                        ✕
+  1121→                      </button>
+  1122→                    </div>
+  1123→                  ))}
+  1124→                </div>
+  1125→              )
+  1126→            })()}
+  1127→            <p className="text-[10px] text-muted-foreground">Pega URLs de imágenes del producto (Alibaba, Amazon, TikTok, etc.)</p>
+  1128→          </div>
+  1129→          <div className="space-y-1.5">
+  1130→            <Label className="text-xs">Descripción y detalles</Label>
+  1131→            <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} placeholder="Color, talla, material, marca, empaque, cualquier detalle importante..." />
+  1132→          </div>
+  1133→          {error && <p className="rounded-lg bg-rose-50 p-2.5 text-xs text-rose-600 dark:bg-rose-950/30 dark:text-rose-400">{error}</p>}
+  1134→          <DialogFooter>
+  1135→            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+  1136→            <Button type="submit" disabled={loading} className="gap-1.5"><Sparkles className="h-4 w-4" /> Enviar solicitud</Button>
+  1137→          </DialogFooter>
+  1138→        </form>
+  1139→      </DialogContent>
+  1140→      <SuccessOverlay show={showSuccess} title="¡Solicitud enviada! 🎉" subtitle="Nuestro equipo empezará a buscar el mejor proveedor" onDone={() => { setShowSuccess(false); onOpenChange(false) }} />
+  1141→    </Dialog>
+  1142→  )
+  1143→}
+  1144→

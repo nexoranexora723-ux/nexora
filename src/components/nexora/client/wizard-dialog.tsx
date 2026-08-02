@@ -256,7 +256,14 @@ export function WizardDialog({ open, onOpenChange }: WizardDialogProps) {
                     <div className="flex flex-wrap gap-2">
                       {imgs.map((url: string, i: number) => (
                         <div key={i} className="group relative h-16 w-16 overflow-hidden rounded-lg border">
-                          <img src={url} alt="" className="h-full w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                          <img
+                            src={url}
+                            alt={`Imagen de referencia ${i + 1}`}
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/products/placeholder.svg' }}
+                          />
                           <button type="button" onClick={() => {
                             const filtered = imgs.filter((_: string, idx: number) => idx !== i)
                             setData({ ...data, referenceImages: filtered.length > 0 ? JSON.stringify(filtered) : '' })

@@ -140,9 +140,22 @@ export function ProductDetailPage({ productId, onBack, onRequest }: ProductDetai
                   title={product.name}
                 />
               ) : allImages[selectedImage] ? (
-                <img src={allImages[selectedImage]} alt={product.name} className="h-full w-full object-cover" />
+                <img
+                  src={allImages[selectedImage]}
+                  alt={product.name}
+                  className="h-full w-full object-cover"
+                  loading="eager"
+                  decoding="async"
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/products/placeholder.svg' }}
+                />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-7xl">📦</div>
+                <img
+                  src="/products/placeholder.svg"
+                  alt={product.name}
+                  className="h-full w-full object-cover"
+                  loading="eager"
+                  decoding="async"
+                />
               )}
 
               {/* Badges sobre imagen */}
@@ -189,7 +202,14 @@ export function ProductDetailPage({ productId, onBack, onRequest }: ProductDetai
                       selectedImage === i ? 'border-primary' : 'border-transparent hover:border-muted-foreground/30',
                     )}
                   >
-                    <img src={img} alt={`Vista ${i + 1}`} className="h-full w-full object-cover" />
+                    <img
+                      src={img}
+                      alt={`Vista ${i + 1} de ${product.name}`}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/products/placeholder.svg' }}
+                    />
                   </button>
                 ))}
                 {product.videoUrl && (
@@ -395,9 +415,22 @@ function RelatedProducts({ currentProductId, category, onRequest }: { currentPro
               <div className="group cursor-pointer overflow-hidden rounded-xl border bg-card shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg" onClick={onRequest}>
                 <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                   {p.imageUrl ? (
-                    <img src={p.imageUrl} alt={p.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                    <img
+                      src={p.imageUrl}
+                      alt={p.name}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      loading="lazy"
+                      decoding="async"
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/products/placeholder.svg' }}
+                    />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center text-4xl">📦</div>
+                    <img
+                      src="/products/placeholder.svg"
+                      alt={p.name}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                    />
                   )}
                   {savings && savings > 0 && (
                     <div className="absolute right-2 top-2 rounded-full bg-rose-500 px-2 py-0.5 text-[10px] font-bold text-white shadow">{savings}% OFF</div>

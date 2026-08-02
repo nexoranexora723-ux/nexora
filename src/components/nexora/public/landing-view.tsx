@@ -229,9 +229,22 @@ function ProductCard({ product, onClick }: { product: Product; onClick: () => vo
     <Card className="group cursor-pointer overflow-hidden transition-all hover:-translate-y-1 hover:shadow-lg" onClick={onClick}>
       <div className="relative aspect-square overflow-hidden bg-muted">
         {product.imageUrl ? (
-          <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
+            decoding="async"
+            onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/products/placeholder.svg' }}
+          />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-4xl">📦</div>
+          <img
+            src="/products/placeholder.svg"
+            alt={product.name}
+            className="h-full w-full object-cover"
+            loading="lazy"
+            decoding="async"
+          />
         )}
         {product.category?.icon && (
           <Badge className="absolute left-2 top-2 bg-background/90 text-foreground shadow-sm backdrop-blur">

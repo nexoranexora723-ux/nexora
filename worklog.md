@@ -781,3 +781,23 @@ Stage Summary:
   11. AI chatbot: floating NAIOS widget with greeting, 4 quick replies, typing indicator, history in state, uses existing /api/naios/chat.
 - 18 new files created, 9 existing files modified. 0 lint errors, 0 tsc errors in src/.
 - All Phase 3 nice-to-have items complete and verified.
+
+---
+Task ID: PHASE-1-FIX-BROKEN
+Agent: main (Z.ai Code)
+Task: Fix 3 critical issues — catalog crash when logged in, image loading, dark mode
+
+Work Log:
+- ROOT CAUSE of catalog crash found: `ClientCatalog` (inside `src/components/nexora/client/client-portal.tsx`) called `/api/products` and treated the response as a bare `Product[]`, but the API returns `{ products, total, page, totalPages }`. As soon as data loaded, `products.map(...)` threw `TypeError: products.map is not a function` → bubbled to global error boundary → "Algo salió mal". Fixed by typing the query as the wrapper shape, defensively handling both shapes, and extracting `productsData?.products ?? []`.
+- Secondary cause: hydration mismatch from auth-store. `useAuth` persisted EVERYTHING (including `isLoading`, `isAuthenticated`) with no `partialize`. SSR rendered with defaults while client hydrated with persisted auth → React discarded SSR tree. Fixed by adding `partialize: (state) => ({ user: state.user })` so only `user` is persisted; `isLoading`/`isAuthenticated`/`portal` are ephemeral.
+- Rewrote `src/app/page.tsx`: added `mounted` guard (stable loading spinner until mounted && !isLoading) so SSR and client first paint match exactly; removed `if (isAuthenticated) return` from the deep-link query-param reader so `/?view=catalog` works for authenticated users (makes the partial fall-through fix actually reachable); made session fetch defensive.
+- Image loading hardened: created `public/products/placeholder.svg` (clean SVG with image icon + "NEXORA · Imagen no disponible"). Added `onError` fallback to `/products/placeholder.svg` on ALL product images. Replaced emoji `📦` divs with real `<img>` placeholder. Added `loading="lazy"` + `decoding="async"` to below-fold images; `loading="eager"` for above-fold hero/dialog images. Fixed empty `alt=""` → descriptive alt text. Updated 7 component files: catalog-view, client-portal, product-detail-page, compare-products, landing-view, admin-products, wizard-dialog.
+- Verified `/api/yupoo-img/[hash]/[size]` route: proper Content-Type/Length/ETag/Cache-Control/304 support, placeholder fallback. Verified ~150 top20 product images exist at `/public/products/top20/`.
+- Dark mode fixed: changed `defaultTheme="light"` → `defaultTheme="system"` in layout.tsx (respects OS preference on first visit). Updated `viewport.themeColor` to a media-query array (#ffffff light / #0a0a0a dark) so mobile browser UI matches. Fixed `ClientPortal` theme toggle: was using `theme === 'dark'` (broken when theme==='system'), changed to `resolvedTheme === 'dark'` so the toggle always flips the actual resolved theme. Verified shared `ThemeToggle` component already uses `resolvedTheme` + `mounted` guard. Verified `globals.css` has complete `.dark` variable overrides.
+- `bun run lint`: 0 errors, 0 warnings.
+- `npx tsc --noEmit`: 0 errors in src/ (pre-existing errors only in examples/ and skills/).
+
+Stage Summary:
+- 3 critical issues resolved: catalog no longer crashes for authenticated users, all product images have lazy loading + fallback placeholder + descriptive alt text, dark mode toggle works instantly on all pages.
+- 10 files modified, 1 new file (placeholder.svg). No DB changes, no new dependencies.
+- Root cause of catalog crash was a type mismatch between API response shape and client expectation — a classic bug that only manifested for authenticated users (because only they reach `ClientCatalog`; unauthenticated users use the public `CatalogView` which correctly handles the wrapper shape).
