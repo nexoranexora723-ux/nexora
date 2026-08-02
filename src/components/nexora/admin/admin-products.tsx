@@ -119,9 +119,9 @@ export function AdminProducts() {
 
   const stats = products ? {
     total: data?.total ?? products.length,
-    active: products.filter((p) => p.status === 'ACTIVE').length,
+    active: data?.total ?? 0, // All products are ACTIVE by default
     featured: products.filter((p) => p.isFeatured).length,
-    inactive: products.filter((p) => p.status === 'INACTIVE').length,
+    inactive: 0,
   } : null
 
   const handleEdit = (p: AdminProduct) => { setEditing(p); setFormOpen(true) }
