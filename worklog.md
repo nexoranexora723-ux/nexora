@@ -1031,3 +1031,93 @@ Stage Summary:
 - 0 errores de lint, 0 errores de TypeScript en src/
 - Listo para commit + push a origin/main.
 
+
+---
+Task ID: PHASE-5-ADMIN
+Agent: main (Z.ai Code)
+Task: Panel de administración de pedidos, gestión real de pedidos y editor masivo de precios
+
+Work Log:
+- Leído worklog.md para conocer el trabajo previo: arquitectura NEXORA (Next.js 16 + TypeScript + Prisma + PostgreSQL en Neon), ImportRequest usado como entidad de "pedido" (no existe model Order separado), componentes en src/components/nexora/admin/, API /api/orders existente que mapea ImportRequest → order plano.
+- Inspeccionado prisma/schema.prisma (modelos ImportRequest, Import, Product, Brand, Category), src/lib/format.ts, src/lib/types.ts, src/lib/auth-middleware.ts (requireAdmin), admin-portal.tsx actual y admin-products.tsx.
+
+### 1. Schema Prisma — extendido ImportRequest
+Añadidos 4 campos opcionales en `prisma/schema.prisma > ImportRequest`:
+- `adminStatus String? @map("admin_status")` — PENDING|CONFIRMED|PROCESSING|SHIPPED|DELIVERED|CANCELLED
+- `trackingNumber String? @map("tracking_number")`
+- `paymentMethod String? @map("payment_method")`
+- `shippingAddress String? @map("shipping_address")`
+`bun run db:push --accept-data-loss` ejecutado exitosamente.
+
+### 2. API /api/orders GET (admin mode)
+Reescrito `src/app/api/orders/route.ts`:
+- Modo admin (`?scope=admin` + rol ADMIN/SUPER_ADMIN/EMPLOYEE): lista TODOS los pedidos con `?status=`, `?search=` (número o email), `?page=&limit=` paginación. Retorna `{orders,total,page,totalPages,stats}` con stats={total,pending,confirmed,processing,shipped,delivered,cancelled,revenue}.
+- Modo cliente (sin scope=admin): mantiene el comportamiento previo (array, soporta `?email=`).
+- Helper `mapRequestToOrder` convierte ImportRequest con relaciones a objeto order plano (status, customer, items, total, paymentMethod, shippingAddress, trackingNumber).
+- Helper `parseItemsFromDescription` reconstruye items[] desde la description multilinea generada por POST.
+- Trata `adminStatus=null` como PENDING (pedidos sembrados antiguos).
+- POST actualizado para setear adminStatus='PENDING', paymentMethod, shippingAddress al crear.
+
+### 3. API /api/orders/[id] PATCH
+Añadido método PATCH en `src/app/api/orders/[id]/route.ts`:
+- Body `{status?, trackingNumber?}`. Valida status ∈ [PENDING,CONFIRMED,PROCESSING,SHIPPED,DELIVERED,CANCELLED].
+- Solo ADMIN/SUPER_ADMIN/EMPLOYEE.
+- Sincroniza trackingNumber al Import vinculado (si existe).
+- Retorna el pedido actualizado en formato plano.
+
+### 4. API /api/admin/products-list GET (filtros + sort + paginación real)
+Reescrito `src/app/api/admin/products-list/route.ts`:
+- Query params: search (name|SKU), categoryId, brandId, status, sortBy (createdAt|name|price|cost|sku), sortOrder (asc|desc), page, limit (default 50, max 100).
+- Retorna `{products,total,page,totalPages}` con total REAL (antes hardcoded 64345).
+- Products incluyen todos los campos necesarios para el editor de precios.
+
+### 5. API /api/admin/products/bulk-update-prices POST (nuevo)
+Creado `src/app/api/admin/products/bulk-update-prices/route.ts`:
+- Body `{updates: Array<{id?, sku?, estimatedCost}>}`. Acepta id O sku.
+- Transacción Prisma para actualizar `suggestedPrice` de todos en bulk.
+- Máximo 500 por lote. Retorna `{success, updated: count}`.
+
+### 6. Componente AdminOrders (nuevo)
+Creado `src/components/nexora/admin/admin-orders.tsx` (~580 líneas):
+- Stats cards (5): Total pedidos, Pendientes, En tránsito (shipped+processing), Entregados, Ingresos totales.
+- Toolbar: búsqueda debounced (350ms) por número NX-… o email + Exportar CSV (BOM para Excel).
+- Tabs: Todos, Pendientes, Confirmados, En proceso, Enviados, Entregados, Cancelados (con count por status).
+- Tabla: Pedido (número+tracking), Cliente (nombre+email), Productos (primer item+count), Total, Estado (badge con dot color), Fecha, Acciones.
+- Status badges con colores exactos del spec: PENDING=amber, CONFIRMED=blue, PROCESSING=violet, SHIPPED=cyan, DELIVERED=emerald, CANCELLED=rose.
+- Click en fila → Dialog detalle con: estado actual + Select de cambio, tracking number editable (visible cuando SHIPPED), info cliente (nombre/email/teléfono), envío, pago, items[] con SKU, total, notas.
+- DropdownMenu en Acciones para cambio rápido de estado.
+- Pagination 20/page. Toast feedback. placeholderData para evitar flasheo.
+
+### 7. Componente BulkPriceEditor (nuevo)
+Creado `src/components/nexora/admin/bulk-price-editor.tsx` (~470 líneas):
+- Tabla con edición inline: Imagen, Nombre+SKU, Marca, Categoría (badge), Precio actual, Nuevo precio (input editable), Δ (cambio % vs actual).
+- Filas editadas resaltadas con bg-amber-50/40. Botón ✕ revertir individual. Sort clickable en headers Nombre/Precio.
+- Toolbar: búsqueda debounced, Select de categoría, Acciones masivas (DropdownMenu), CSV download, CSV upload, Guardar (N).
+- Acciones masivas vía Dialog: Aumentar X%, Disminuir X%, Aplicar precio base. Aplican a los productos visibles en la página actual.
+- Guardar: POST bulk-update-prices con edits reales, invalida queries, toast "✓ N producto(s) actualizado(s)".
+- Download CSV: columnas sku,name,brand,category,price (BOM).
+- Upload CSV: parsea sku+price, aplica directo vía POST (no requiere Guardar), parser robusto respeta comillas dobles.
+- Pagination 50/page. Indicador "N cambio(s) sin guardar" en header.
+
+### 8. AdminPortal actualizado
+- Importado AdminOrders + BulkPriceEditor, iconos Receipt+Tags.
+- View type ampliado: 'orders' | 'price-editor'.
+- Sidebar grupo "Operación" (siguiendo spec "Pedidos entre Productos y Proveedores"): Productos → Editor de precios (Tags) → Pedidos (Receipt) → Proveedores → Cotizaciones → Importaciones → Finanzas.
+- Header title + renderizadas las 2 nuevas vistas.
+
+### Verificación
+- `bun run lint` → 0 errors, 0 warnings ✓
+- `npx tsc --noEmit` → 0 errors en src/ (solo errors pre-existentes en examples/ y skills/) ✓
+- `bun run db:push` exitoso contra Neon PostgreSQL ✓
+- Dev log muestra compilación exitosa ✓
+
+Stage Summary:
+- 3 entregables completados según spec:
+  1. Admin panel más completo con sección "Pedidos" en sidebar (entre Productos y Proveedores)
+  2. Vista real de pedidos con cambio de estado PENDING→CONFIRMED→PROCESSING→SHIPPED→DELIVERED→CANCELLED, tracking number, filtros, búsqueda, paginación, stats, export CSV y dialog de detalle con items/cliente/envío/pago
+  3. Editor masivo de precios en línea con bulk actions (Aumentar/Disminuir X%, Precio base) + CSV upload/download
+- 4 archivos API: orders/route.ts (GET admin + POST con adminStatus), orders/[id]/route.ts (PATCH), admin/products-list/route.ts (filtros+sort+paginación real), admin/products/bulk-update-prices/route.ts (POST bulk)
+- 3 archivos frontend: admin-orders.tsx (~580 líneas), bulk-price-editor.tsx (~470 líneas), admin-portal.tsx (sidebar+routing)
+- 1 archivo schema: 4 campos nuevos en ImportRequest
+- Arquitectura: TanStack Query + shadcn/ui + auth middleware (AuthService.validate) + toast feedback + Spanish UI throughout + responsive design.
+- Agent ctx guardado en /agent-ctx/PHASE-5-ADMIN-main.md

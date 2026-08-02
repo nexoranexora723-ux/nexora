@@ -18,17 +18,20 @@ import {
   LayoutDashboard, Package, Truck, Users, Wallet, Sparkles, Settings,
   LogOut, Search, MoreHorizontal, ChevronRight, TrendingUp, AlertCircle,
   FileText, Bell, Globe, ShieldCheck, Plus, ArrowRight, Bot,
+  Receipt, Tags,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import ReactMarkdown from 'react-markdown'
 import { NotificationBell } from '@/components/nexora/shared/notification-bell'
 import { AdminProducts } from '@/components/nexora/admin/admin-products'
+import { AdminOrders } from '@/components/nexora/admin/admin-orders'
+import { BulkPriceEditor } from '@/components/nexora/admin/bulk-price-editor'
 import { AnimatedCounter, staggerContainer, staggerItem, BreathingAvatar, NaiosTyping, messageSlideIn } from '@/components/nexora/shared/animations'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AreaChart, Area, ResponsiveContainer } from 'recharts'
 import { TypewriterText } from '@/components/nexora/shared/typewriter'
 
-type View = 'dashboard' | 'requests' | 'products' | 'suppliers' | 'quotes' | 'imports' | 'finance' | 'naios'
+type View = 'dashboard' | 'requests' | 'products' | 'orders' | 'price-editor' | 'suppliers' | 'quotes' | 'imports' | 'finance' | 'naios'
 
 export function AdminPortal() {
   const { user, logout } = useAuth()
@@ -68,6 +71,8 @@ export function AdminPortal() {
           <p className="mb-1 mt-4 px-3 text-[10px] font-semibold uppercase tracking-wider text-sidebar-foreground/40">Operación</p>
           {[
             { key: 'products' as View, icon: Package, label: 'Productos' },
+            { key: 'price-editor' as View, icon: Tags, label: 'Editor de precios' },
+            { key: 'orders' as View, icon: Receipt, label: 'Pedidos' },
             { key: 'suppliers' as View, icon: Truck, label: 'Proveedores' },
             { key: 'quotes' as View, icon: FileText, label: 'Cotizaciones' },
             { key: 'imports' as View, icon: Globe, label: 'Importaciones' },
@@ -99,6 +104,8 @@ export function AdminPortal() {
             {view === 'dashboard' && 'Dashboard'}
             {view === 'requests' && 'Solicitudes de Importación'}
             {view === 'products' && 'Productos'}
+            {view === 'price-editor' && 'Editor de Precios'}
+            {view === 'orders' && 'Pedidos'}
             {view === 'suppliers' && 'Proveedores'}
             {view === 'quotes' && 'Cotizaciones'}
             {view === 'imports' && 'Importaciones'}
@@ -118,6 +125,8 @@ export function AdminPortal() {
             {view === 'dashboard' && <AdminDashboard onViewRequest={(id) => { setSelectedRequest(id); setView('requests') }} onNavigate={setView} />}
             {view === 'requests' && <AdminRequests selectedId={selectedRequest} onSelect={setSelectedRequest} />}
             {view === 'products' && <AdminProducts />}
+            {view === 'price-editor' && <BulkPriceEditor />}
+            {view === 'orders' && <AdminOrders />}
             {view === 'suppliers' && <AdminSuppliers />}
             {view === 'quotes' && <AdminQuotes />}
             {view === 'imports' && <AdminImports />}

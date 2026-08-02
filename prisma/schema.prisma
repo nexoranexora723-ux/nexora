@@ -311,6 +311,14 @@ model ImportRequest {
   // COMPRA_REALIZADA | PRODUCCION | EN_TRANSITO | ENTREGADO | CERRADO
 
   notes           String?   // notas internas del admin
+
+  // Estado del panel admin (flujo simplificado de pedidos)
+  // PENDING | CONFIRMED | PROCESSING | SHIPPED | DELIVERED | CANCELLED
+  adminStatus     String?  @map("admin_status")
+  trackingNumber  String?  @map("tracking_number")
+  paymentMethod   String?  @map("payment_method")
+  shippingAddress String?  @map("shipping_address")
+
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")
   closedAt        DateTime? @map("closed_at")
