@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { QueryProvider } from "@/components/query-provider";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { WhatsAppFloating } from "@/components/nexora/public/whatsapp-floating";
+import { AiChatbot } from "@/components/nexora/public/ai-chatbot";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -118,6 +119,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <Toaster />
             {/* WhatsApp floating button — visible on ALL routes */}
             <WhatsAppFloating />
+            {/* AI Chatbot — visible on ALL routes */}
+            <AiChatbot />
           </QueryProvider>
         </ThemeProvider>
         {/* Google Analytics 4 — solo carga si NEXT_PUBLIC_GA_ID está configurado */}
