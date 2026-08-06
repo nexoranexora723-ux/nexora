@@ -43,6 +43,38 @@ export const COUPONS: CouponDef[] = [
     percentage: 25,
     description: '25% de descuento para clientes VIP',
   },
+  {
+    code: 'NEXORA15',
+    percentage: 15,
+    description: '15% de descuento en tu segunda compra',
+  },
+  {
+    code: 'PRIMAVERA20',
+    percentage: 20,
+    description: '20% de descuento por primavera',
+    validMonth: 3, // March
+  },
+  {
+    code: 'VERANO10',
+    percentage: 10,
+    description: '10% de descuento de verano',
+    validMonth: 6, // June
+  },
+  {
+    code: 'RESPONDER5',
+    percentage: 5,
+    description: '5% de descuento por responder encuesta',
+  },
+  {
+    code: 'REFERIDO10',
+    percentage: 10,
+    description: '10% de descuento por venir referido',
+  },
+  {
+    code: 'MAYORISTA15',
+    percentage: 15,
+    description: '15% de descuento para mayoristas (compras +$500)',
+  },
 ]
 
 export interface AppliedCoupon {

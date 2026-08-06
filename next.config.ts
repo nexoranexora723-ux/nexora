@@ -4,10 +4,8 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  } as any,
   reactStrictMode: false,
+  allowedDevOrigins: ['*.space-z.ai', '*.z.ai'],
   images: {
     remotePatterns: [
       {
@@ -20,6 +18,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-} as NextConfig;
+};
 
 export default nextConfig;
