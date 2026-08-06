@@ -348,3 +348,114 @@ export function AnimatedTimeline({ currentStep, totalSteps }: { currentStep: num
 }
 
 import { cn } from '@/lib/utils'
+
+// ============================================================================
+// NEXORA — Nuevas animaciones de transición (FASE 3)
+// ============================================================================
+
+import { useInView as useInViewFramer } from 'framer-motion'
+import { motion as motionFramer, type Variants as VariantsFramer } from 'framer-motion'
+
+export const fadeInUp: VariantsFramer = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] }
+  }
+}
+
+export const fadeInDown: VariantsFramer = {
+  hidden: { opacity: 0, y: -20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: 'easeOut' }
+  }
+}
+
+export const fadeInScale: VariantsFramer = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.3, ease: 'easeOut' }
+  }
+}
+
+export const slideInRight: VariantsFramer = {
+  hidden: { opacity: 0, x: 30 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.4, ease: 'easeOut' }
+  }
+}
+
+export const slideInLeft: VariantsFramer = {
+  hidden: { opacity: 0, x: -30 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.4, ease: 'easeOut' }
+  }
+}
+
+// Reemplazo staggerContainer (el viejo no usaba delayChildren)
+export { motionFramer as motion }
+
+export function ScrollReveal({
+  children,
+  delay = 0,
+  className,
+  variant = 'up'
+}: {
+  children: React.ReactNode
+  delay?: number
+  className?: string
+  variant?: 'up' | 'down' | 'left' | 'right' | 'scale'
+}) {
+  const ref = useRef(null)
+  const isInView = useInViewFramer(ref, { once: true, margin: '-50px' })
+
+  const variants: VariantsFramer = {
+    up: fadeInUp,
+    down: fadeInDown,
+    left: slideInLeft,
+    right: slideInRight,
+    scale: fadeInScale,
+  }[variant] as VariantsFramer
+
+  return (
+    <motionFramer.div
+      ref={ref}
+      variants={variants}
+      initial="hidden"
+      animate={isInView ? 'visible' : 'hidden'}
+      transition={{ delay }}
+      className={className}
+    >
+      {children}
+    </motionFramer.div>
+  )
+}
+
+export function PageTransition({
+  children,
+  className,
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <motionFramer.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+      className={className}
+    >
+      {children}
+    </motionFramer.div>
+  )
+}
