@@ -38,6 +38,8 @@ import {
 } from 'lucide-react'
 import { useCart, selectCartCount, selectCartTotal, selectVolumeDiscountPct, selectVolumeDiscountAmount, selectDiscountedSubtotal } from '@/lib/cart-store'
 import { useCoupon, computeCouponDiscount, type AppliedCoupon } from '@/lib/coupon-store'
+import { CouponsShowcase } from '@/components/nexora/public/coupons-showcase'
+import { PaymentSelector } from '@/components/nexora/public/payment-selector'
 import { useAuth } from '@/lib/auth-store'
 import { ShippingCalculator, computeShippingQuote, COLOMBIAN_CITIES, getCityShipping } from '@/components/nexora/public/shipping-calculator'
 import { formatCurrency } from '@/lib/format'
@@ -940,6 +942,9 @@ function Step4Review({
           <span className="font-semibold">{paymentMethodName}</span>
         </div>
       )}
+
+      {/* Cupones disponibles - showcase visual */}
+      <CouponsShowcase compact />
     </div>
   )
 }
@@ -961,6 +966,7 @@ function SuccessScreen({
   onTrack: () => void
   onClose: () => void
 }) {
+  const [paymentOpen, setPaymentOpen] = React.useState(false)
   return (
     <ScrollArea className="flex-1 overflow-y-auto">
       <div className="flex flex-col items-center gap-4 px-6 py-8 text-center">
@@ -1003,14 +1009,30 @@ function SuccessScreen({
         )}
 
         <div className="flex w-full max-w-sm flex-col gap-2">
-          <Button onClick={onTrack} className="gap-2">
+          <Button onClick={() => setPaymentOpen(true)} className="gap-2">
+            <CreditCard className="h-4 w-4" /> Pagar ahora con tarjeta
+          </Button>
+          <Button onClick={onTrack} variant="outline" className="gap-2">
             <Truck className="h-4 w-4" /> Rastrear mi pedido
           </Button>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose}>
             Seguir comprando
           </Button>
         </div>
       </div>
+
+      <PaymentSelector
+        isOpen={paymentOpen}
+        onOpenChange={setPaymentOpen}
+        amount={total}
+        currency="USD"
+        reference={orderNumber}
+        customer={{
+          name: 'Cliente NEXORA',
+          email: 'cliente@nexora.co',
+          phone: '3247583173',
+        }}
+      />
     </ScrollArea>
   )
 }

@@ -28,6 +28,9 @@ import { toCompareItem } from '@/lib/compare-store'
 import { SiteFooter } from '@/components/nexora/public/site-footer'
 import { MobileBottomNav } from '@/components/nexora/public/mobile-bottom-nav'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { VoiceSearch } from '@/components/nexora/public/voice-search'
+import { CurrencyToggle } from '@/components/nexora/shared/currency-toggle'
+import { LanguageToggle } from '@/components/nexora/shared/language-toggle'
 import { useWishlist } from '@/lib/wishlist-store'
 import { useCart } from '@/lib/cart-store'
 import { useToast } from '@/hooks/use-toast'
@@ -288,6 +291,8 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
           <div className="flex items-center gap-1 sm:gap-2">
             <WishlistCounter />
             <CartCounter />
+            <CurrencyToggle compact />
+            <LanguageToggle compact />
             <ThemeToggle />
             <Button size="sm" onClick={onRegister} className="hidden sm:inline-flex">Registrarse</Button>
           </div>
@@ -304,7 +309,7 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
           <p className="mt-2 text-muted-foreground">Productos verificados desde China con precios de fabricante. Tú eliges, nosotros importamos.</p>
         </div>
 
-        {/* Búsqueda con autocomplete */}
+        {/* Búsqueda con autocomplete + voice search */}
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center">
           <div className="relative max-w-md flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -326,6 +331,15 @@ export function CatalogView({ onNavigate, onRegister, onProductClick }: CatalogV
                 <X className="h-4 w-4" />
               </button>
             )}
+            <div className="absolute right-9 top-1/2 -translate-y-1/2">
+              <VoiceSearch
+                compact
+                onResult={(transcript) => {
+                  setQuery(transcript)
+                  setShowSuggestions(true)
+                }}
+              />
+            </div>
             {/* Autocomplete dropdown */}
             {showSuggestions && suggestions.length > 0 && (
               <div className="absolute z-50 mt-1 w-full overflow-hidden rounded-xl border bg-background shadow-lg">

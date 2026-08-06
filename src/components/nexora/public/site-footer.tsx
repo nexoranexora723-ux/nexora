@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
-import { Mail, MessageCircle, MapPin, Send, Loader2, ShieldCheck } from 'lucide-react'
+import { Mail, MessageCircle, MapPin, Send, Loader2, ShieldCheck, Gift } from 'lucide-react'
+import { NewsletterSignup } from '@/components/nexora/public/newsletter-signup'
 
 /**
  * SiteFooter — Pie de página completo y reutilizable para todas las páginas
@@ -212,27 +213,19 @@ export function SiteFooter({ onNavigate }: SiteFooterProps) {
             <p className="mb-3 text-sm text-muted-foreground">
               Ofertas, novedades y guías de importación directo en tu correo.
             </p>
-            <form onSubmit={handleNewsletter} className="space-y-2">
-              <Input
-                type="email"
-                placeholder="tu@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                aria-label="Email para newsletter"
-                className="h-9"
-              />
-              <Button type="submit" size="sm" className="w-full gap-1.5" disabled={submitting}>
-                {submitting ? (
-                  <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Suscribiendo…</>
-                ) : (
-                  <>Suscribirse <Send className="h-3.5 w-3.5" /></>
-                )}
-              </Button>
-            </form>
-            <p className="mt-2 text-[11px] text-muted-foreground">
-              Sin spam. Cancela cuando quieras.
-            </p>
+            <NewsletterSignup compact />
+            <div className="mt-4 pt-3 border-t">
+              <button
+                onClick={() => onNavigate?.('about')}
+                className="text-xs text-primary hover:underline flex items-center gap-1"
+              >
+                <Gift className="h-3 w-3" />
+                Programa de afiliados
+              </button>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Gana 10% por cada venta referida
+              </p>
+            </div>
           </div>
         </div>
 

@@ -17,6 +17,8 @@ import { CartCounter, CartDrawer } from '@/components/nexora/public/cart-drawer'
 import { WishlistCounter, WishlistDrawer } from '@/components/nexora/public/wishlist-button'
 import { SiteFooter } from '@/components/nexora/public/site-footer'
 import { MobileBottomNav } from '@/components/nexora/public/mobile-bottom-nav'
+import { InstagramFeed } from '@/components/nexora/public/instagram-feed'
+import { NewsletterSignup } from '@/components/nexora/public/newsletter-signup'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { motion } from 'framer-motion'
 
@@ -410,6 +412,16 @@ export function LandingView({ onNavigate, onLogin, onRegister }: LandingViewProp
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* ===== INSTAGRAM FEED ===== */}
+      <InstagramFeed limit={6} />
+
+      {/* ===== NEWSLETTER ===== */}
+      <section className="py-12 px-4 bg-muted/30">
+        <div className="max-w-4xl mx-auto">
+          <NewsletterSignup />
         </div>
       </section>
 
