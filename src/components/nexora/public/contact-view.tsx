@@ -102,9 +102,9 @@ export function ContactView({ onNavigate, onLogin }: { onNavigate: (v: string) =
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary"><Mail className="h-5 w-5" /></div>
                   <div><p className="text-xs text-muted-foreground">Correo</p><p className="text-sm font-medium">info@nexora.co</p></div>
                 </a>
-                <a href="https://wa.me/573105550100" target="_blank" rel="noreferrer" className="flex items-center gap-3 transition-colors hover:text-primary">
+                <a href="https://wa.me/573247583173" target="_blank" rel="noreferrer" className="flex items-center gap-3 transition-colors hover:text-primary">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600"><MessageCircle className="h-5 w-5" /></div>
-                  <div><p className="text-xs text-muted-foreground">WhatsApp</p><p className="text-sm font-medium">+57 310 555 0100</p></div>
+                  <div><p className="text-xs text-muted-foreground">WhatsApp</p><p className="text-sm font-medium">+57 324 758 3173</p></div>
                 </a>
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary"><MapPin className="h-5 w-5" /></div>

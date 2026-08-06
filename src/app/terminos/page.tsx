@@ -27,7 +27,7 @@ export default function TerminosPage() {
           <a className="text-primary hover:underline" href="mailto:info@nexora.co">
             info@nexora.co
           </a>{' '}
-          · WhatsApp: +57 310 555 0100.
+          · WhatsApp: +57 324 758 3173.
         </p>
         <p>
           En adelante, “NEXORA”, “nosotros” o “la plataforma” se refieren a NEXORA Importaciones S.A.S. “El usuario”,
@@ -124,8 +124,8 @@ export default function TerminosPage() {
         <p>NEXORA acepta los siguientes métodos de pago:</p>
         <LegalList
           items={[
-            <><strong>Nequi</strong> — transferencia a número +57 310 555 0100.</>,
-            <><strong>Daviplata</strong> — transferencia a número +57 310 555 0100.</>,
+            <><strong>Nequi</strong> — transferencia a número +57 324 758 3173.</>,
+            <><strong>Daviplata</strong> — transferencia a número +57 324 758 3173.</>,
             <><strong>PayPal</strong> — para pagos internacionales o clientes en el exterior.</>,
             <><strong>Transferencia bancaria</strong> — cuenta de ahorros Bancolombia (datos se comparten al confirmar el pedido).</>,
           ]}

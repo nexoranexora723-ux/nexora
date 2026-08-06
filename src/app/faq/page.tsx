@@ -423,7 +423,7 @@ export default function FAQPage() {
                 variant="outline"
                 className="gap-2 border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
               >
-                <a href="https://wa.me/573105550100" target="_blank" rel="noreferrer">
+                <a href="https://wa.me/573247583173" target="_blank" rel="noreferrer">
                   <MessageCircle className="h-4 w-4" /> WhatsApp
                 </a>
               </Button>
@@ -479,7 +479,7 @@ export default function FAQPage() {
                   <Mail className="h-3.5 w-3.5" /> info@nexora.co
                 </li>
                 <li className="flex items-center gap-2">
-                  <MessageCircle className="h-3.5 w-3.5" /> +57 310 555 0100
+                  <MessageCircle className="h-3.5 w-3.5" /> +57 324 758 3173
                 </li>
                 <li className="flex items-center gap-2">
                   <HomeIcon className="h-3.5 w-3.5" /> Bogotá, Colombia

@@ -16,6 +16,7 @@ import { AdminPortal } from '@/components/nexora/admin/admin-portal'
 import { AiChatbot } from '@/components/nexora/public/ai-chatbot'
 import { LiveChat } from '@/components/nexora/public/live-chat'
 import { CheckoutDialog } from '@/components/nexora/public/checkout-dialog'
+import { AbandonedCartReminder } from '@/components/nexora/public/abandoned-cart-reminder'
 import { Loader2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -141,6 +142,8 @@ export default function NexoraPage() {
       <LiveChat />
       {/* Multi-step checkout dialog — globally mounted, opens from the cart drawer */}
       <CheckoutDialog />
+      {/* Abandoned cart WhatsApp reminder — appears after 3min of inactivity with items in cart */}
+      <AbandonedCartReminder />
     </>
   )
 }

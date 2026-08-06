@@ -206,7 +206,7 @@ export default function PrivacidadPage() {
         <LegalList
           items={[
             <><strong>Correo:</strong>{' '}<a className="text-primary hover:underline" href="mailto:privacidad@nexora.co">privacidad@nexora.co</a></>,
-            <><strong>WhatsApp:</strong>{' '}+57 310 555 0100</>,
+            <><strong>WhatsApp:</strong>{' '}+57 324 758 3173</>,
             <><strong>Empresa:</strong>{' '}NEXORA Importaciones S.A.S. — NIT 901.234.567-8</>,
             <><strong>Dirección:</strong>{' '}Bogotá D.C., Colombia</>,
           ]}

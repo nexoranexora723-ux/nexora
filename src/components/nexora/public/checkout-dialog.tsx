@@ -67,15 +67,15 @@ const PAYMENT_METHODS: PaymentMethodDef[] = [
     name: 'Nequi',
     emoji: '💚',
     accent: 'border-pink-200 bg-pink-50 data-[state=checked]:border-pink-500 data-[state=checked]:bg-pink-100 dark:border-pink-900/50 dark:bg-pink-950/30 dark:data-[state=checked]:border-pink-500 dark:data-[state=checked]:bg-pink-950/60',
-    summary: 'Pago móvil al 310 555 0100',
+    summary: 'Pago móvil al 324 758 3173',
     instructions: [
       'Abre la app de Nequi en tu celular.',
       'Ve a "Enviar dinero" → "A un número de celular".',
-      'Envía el monto total al número: 310 555 0100.',
+      'Envía el monto total al número: 324 758 3173.',
       'Nombre del beneficiario: NEXORA Importaciones.',
       'Toma captura del comprobante y envíala por WhatsApp al mismo número.',
     ],
-    contact: '310 555 0100',
+    contact: '324 758 3173',
     contactLabel: 'Número Nequi',
   },
   {
@@ -83,14 +83,14 @@ const PAYMENT_METHODS: PaymentMethodDef[] = [
     name: 'Daviplata',
     emoji: '💜',
     accent: 'border-purple-200 bg-purple-50 data-[state=checked]:border-purple-500 data-[state=checked]:bg-purple-100 dark:border-purple-900/50 dark:bg-purple-950/30 dark:data-[state=checked]:border-purple-500 dark:data-[state=checked]:bg-purple-950/60',
-    summary: 'Pago móvil al 310 555 0100',
+    summary: 'Pago móvil al 324 758 3173',
     instructions: [
       'Abre la app de Daviplata en tu celular.',
       'Ve a "Enviar dinero" → "A un número de celular".',
-      'Envía el monto total al número: 310 555 0100.',
+      'Envía el monto total al número: 324 758 3173.',
       'Toma captura del comprobante y envíala por WhatsApp al mismo número.',
     ],
-    contact: '310 555 0100',
+    contact: '324 758 3173',
     contactLabel: 'Número Daviplata',
   },
   {
@@ -121,7 +121,7 @@ const PAYMENT_METHODS: PaymentMethodDef[] = [
       'Número de cuenta: 001-123456-78.',
       'Titular: NEXORA Importaciones S.A.S.',
       'NIT: 901.234.567-8.',
-      'Envía el comprobante por WhatsApp al 310 555 0100.',
+      'Envía el comprobante por WhatsApp al 324 758 3173.',
     ],
     contact: '001-123456-78',
     contactLabel: 'Cuenta Bancolombia',
@@ -584,7 +584,7 @@ function Step1CustomerInfo({
             type="tel"
             value={form.phone}
             onChange={(e) => update('phone', e.target.value)}
-            placeholder="Ej. 310 555 0100"
+            placeholder="Ej. 324 758 3173"
             autoComplete="tel"
           />
         </Field>
@@ -997,7 +997,7 @@ function SuccessScreen({
             </p>
             <p className="mt-1 text-[11px] text-amber-700 dark:text-amber-500">
               Realiza el pago de <strong>{formatCurrency(total)}</strong> vía {paymentMethod.name} ({paymentMethod.contact})
-              y envía el comprobante por WhatsApp al <strong>310 555 0100</strong> para confirmar tu pedido.
+              y envía el comprobante por WhatsApp al <strong>324 758 3173</strong> para confirmar tu pedido.
             </p>
           </div>
         )}

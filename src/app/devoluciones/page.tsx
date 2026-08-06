@@ -168,7 +168,7 @@ export default function DevolucionesPage() {
           <a className="text-primary hover:underline" href="mailto:info@nexora.co">
             info@nexora.co
           </a>{' '}
-          o por WhatsApp al +57 310 555 0100.
+          o por WhatsApp al +57 324 758 3173.
         </p>
       </LegalSection>
     </LegalLayout>

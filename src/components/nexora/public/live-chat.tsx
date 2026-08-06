@@ -137,7 +137,7 @@ export function LiveChat() {
                 className="gap-1.5"
               >
                 <a
-                  href={`https://wa.me/573105550100`}
+                  href={`https://wa.me/573247583173`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >

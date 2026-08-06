@@ -98,7 +98,7 @@ export async function sendOrderConfirmation(order: OrderEmailData) {
             
             <p style="color: #999; font-size: 12px; text-align: center; margin-top: 30px;">
               NEXORA Importaciones S.A.S. | NIT 901.234.567-8 | Bogotá, Colombia<br/>
-              info@nexora.co | +57 310 555 0100
+              info@nexora.co | +57 324 758 3173
             </p>
           </div>
         </div>
@@ -173,7 +173,7 @@ export async function sendOrderStatusUpdate(
             </div>
             
             <p style="color: #999; font-size: 12px; text-align: center; margin-top: 30px;">
-              NEXORA Importaciones S.A.S. | info@nexora.co | +57 310 555 0100
+              NEXORA Importaciones S.A.S. | info@nexora.co | +57 324 758 3173
             </p>
           </div>
         </div>
@@ -228,7 +228,7 @@ export async function sendWelcomeEmail(email: string, name: string) {
             </div>
             
             <p style="color: #999; font-size: 12px; text-align: center;">
-              NEXORA Importaciones S.A.S. | info@nexora.co | +57 310 555 0100
+              NEXORA Importaciones S.A.S. | info@nexora.co | +57 324 758 3173
             </p>
           </div>
         </div>

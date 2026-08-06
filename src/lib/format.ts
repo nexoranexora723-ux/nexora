@@ -7,6 +7,9 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   MXN: '$',
 }
 
+// Tasa de cambio fallback (COP por USD)
+const USD_TO_COP_FALLBACK = 4100
+
 export function formatCurrency(amount: number, currency = 'USD'): string {
   const symbol = CURRENCY_SYMBOLS[currency] ?? '$'
   const value = new Intl.NumberFormat('en-US', {
@@ -14,6 +17,41 @@ export function formatCurrency(amount: number, currency = 'USD'): string {
     maximumFractionDigits: 2,
   }).format(amount)
   return `${symbol}${value}`
+}
+
+/**
+ * Formatear precio en COP (Pesos colombianos) — sin decimales, con separador de miles
+ */
+export function formatCOP(amountCop: number): string {
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amountCop)
+}
+
+/**
+ * Convertir USD → COP usando tasa actual (fallback si no hay store)
+ */
+export function usdToCop(amountUsd: number, rate?: number): number {
+  const r = rate ?? USD_TO_COP_FALLBACK
+  return Math.round(amountUsd * r)
+}
+
+/**
+ * Formatear precio de forma adaptable: si el amount es > 1000 asume COP, si no USD
+ */
+export function formatPriceAdaptive(amountUsd: number, currency: 'USD' | 'COP' = 'USD', rate?: number): string {
+  if (currency === 'COP') {
+    return formatCOP(usdToCop(amountUsd, rate))
+  }
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amountUsd)
 }
 
 export function formatCompact(amount: number, currency = 'USD'): string {
@@ -49,16 +87,33 @@ export function timeAgo(date: string | Date): string {
   if (days < 30) return `hace ${days} d`
   const months = Math.floor(days / 30)
   if (months < 12) return `hace ${months} mes${months > 1 ? 'es' : ''}`
-  return `hace ${Math.floor(months / 12)} año(s)`
+  return `hace ${Math.floor(months / 12)} año${months >= 24 ? 's' : ''}`
 }
 
 export function formatDate(date: string | Date): string {
   const d = typeof date === 'string' ? new Date(date) : date
-  return d.toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' })
+  return new Intl.DateTimeFormat('es-CO', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(d)
+}
+
+export function formatDateTime(date: string | Date): string {
+  const d = typeof date === 'string' ? new Date(date) : date
+  return new Intl.DateTimeFormat('es-CO', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(d)
 }
 
 export function initials(first: string, last?: string): string {
-  return `${first.charAt(0)}${last ? last.charAt(0) : ''}`.toUpperCase()
+  const f = first?.trim()?.charAt(0) ?? ''
+  const l = last?.trim()?.charAt(0) ?? ''
+  return (f + l).toUpperCase() || '?'
 }
 
 export function inventoryStatus(stock: number, minStock: number): 'OUT' | 'LOW' | 'OK' {

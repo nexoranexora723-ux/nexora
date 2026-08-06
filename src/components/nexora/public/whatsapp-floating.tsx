@@ -13,7 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
  * - Responsive: smaller (h-12 w-12) on mobile, larger (h-14 w-14) on sm+.
  * - Clicking opens a pre-filled WhatsApp chat with the NEXORA business number.
  */
-const WHATSAPP_NUMBER = '573105550100'
+const WHATSAPP_NUMBER = '573247583173'
 const WHATSAPP_MESSAGE = 'Hola NEXORA, quiero hacer una consulta'
 const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`
 
