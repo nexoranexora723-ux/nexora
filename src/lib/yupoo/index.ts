@@ -183,6 +183,7 @@ export {
   scanCategories,
   scanAlbumsFromCategory,
   scanAll,
+  isValidAlbumHref,
 } from './scanner'
 
 // ============================================================================

@@ -158,7 +158,11 @@ async function main() {
         // (por ahora siempre procesamos — el caché se activa en runs futuros)
       }
 
-      // Parsear álbum
+      // Log info del álbum antes de procesar
+      logger.debug(`  href: ${albumRef.href}`)
+      logger.debug(`  title: ${albumRef.title}`)
+
+      // Parsear álbum usando EXCLUSIVAMENTE albumRef.url (href exacto del DOM)
       const parseResult = await parseAlbum(albumRef, opts.strategy)
 
       if (!parseResult.success || !parseResult.album) {
@@ -213,21 +217,23 @@ async function main() {
           albumId: albumRef.id,
           contentHash: albumHash,
           processedAt: new Date().toISOString(),
-          fetchMethod: parseResult.success ? 'http' : 'playwright',
+          fetchMethod: album.fetchMethod,
           imageCount: album.images.length,
           videoCount: album.videos.length,
-          albumName: album.name,
+          albumName: album.title || album.name,
           productFile: productFileName(productNum),
         })
       }
 
       totalSuccess++
 
-      // Log progreso
+      // Log progreso con nombre real del producto
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(0)
+      const displayName = album.title || album.name
       process.stdout.write(
-        `\r   ✓ [${albIdx + 1}/${albumsToProcess.length}] ${product.name.substring(0, 40).padEnd(42)} | ` +
-        `${album.images.length} imgs | total: ${totalSuccess} ok, ${totalFailed} fail | ${elapsed}s   `
+        `\r   ✓ [${albIdx + 1}/${albumsToProcess.length}] ${displayName.substring(0, 40).padEnd(42)} | ` +
+        `${album.images.length} imgs | ${album.videos.length} vids | ${parseResult.durationMs}ms | ` +
+        `total: ${totalSuccess} ok, ${totalFailed} fail | ${elapsed}s   `
       )
     }
     console.log('')

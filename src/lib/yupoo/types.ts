@@ -69,24 +69,44 @@ export interface YupooCategory {
  * Esta referencia es lo que el parser usará para visitar el álbum
  * individual y extraer su contenido completo.
  *
+ * CAMPOS OBLIGATORIOS (extraídos del DOM, nunca construidos manualmente):
+ * - href: href EXACTO del enlace <a> en el listado de categoría
+ * - url: URL completa (href + base) lista para navegar
+ * - title: atributo title del <a> (nombre original del producto)
+ * - id: ID numérico extraído del href
+ * - categoryId: ID de la categoría donde se encontró
+ *
+ * CAMPOS OPCIONALES (extraídos del card del álbum):
+ * - thumbnailHash: hash de la imagen thumbnail
+ * - photoCount: número de fotos mostrado en la tarjeta
+ *
  * Ejemplo:
  *   {
- *     id: "192510415",
- *     url: "https://paypalshop.x.yupoo.com/albums/192510415",
- *     categoryId: "3787147",
- *     thumbnailHash: "cd7d8bf4",  // hash de la miniatura en el listado
+ *     id: "182425674",
+ *     href: "/albums/182425674?uid=1&isSubCate=false&referrercate=3478225",
+ *     url: "https://paypalshop.x.yupoo.com/albums/182425674?uid=1&isSubCate=false&referrercate=3478225",
+ *     title: "Gucci bags yupoo Gucci tote bag(D6B3)",
+ *     categoryId: "3478225",
+ *     thumbnailHash: "780e18d4",
+ *     photoCount: 10,
  *     pageNumber: 1
  *   }
  */
 export interface YupooAlbumRef {
-  /** ID numérico del álbum en Yupoo */
+  /** ID numérico del álbum extraído del href */
   id: string
-  /** URL completa del álbum individual */
+  /** href EXACTO del DOM (relativo, ej: /albums/182425674?uid=1&isSubCate=false&referrercate=3478225) */
+  href: string
+  /** URL completa lista para navegar (base + href) */
   url: string
+  /** Atributo title del <a> — nombre original del producto */
+  title: string
   /** ID de la categoría donde se encontró */
   categoryId: string
-  /** Hash de la imagen thumbnail mostrada en el listado (opcional) */
-  thumbnailHash?: string
+  /** Hash de la imagen thumbnail mostrada en el listado */
+  thumbnailHash: string | null
+  /** Número de fotos mostrado en la tarjeta (.album__photonumber) */
+  photoCount: number | null
   /** Número de página donde se descubrió (1-based) */
   pageNumber: number
   /** Fecha de descubrimiento ISO */
@@ -155,9 +175,13 @@ export interface YupooVideo {
 export interface YupooAlbum {
   /** ID numérico del álbum en Yupoo */
   id: string
-  /** URL completa del álbum */
+  /** URL completa del álbum (href exacto del DOM, nunca reconstruido) */
   url: string
-  /** Nombre original extraído del HTML (title o h1) */
+  /** href exacto del DOM (relativo) */
+  href: string
+  /** Nombre original del producto — del atributo title del <a> en el card */
+  title: string
+  /** Nombre limpio extraído del title o h1 (sin "yupoo", sin sufijos) */
   name: string
   /** Descripción extraída del HTML si existe */
   description: string | null
@@ -165,12 +189,18 @@ export interface YupooAlbum {
   categoryId: string
   /** Nombre de la categoría (para referencia) */
   categoryName: string | null
+  /** Número de fotos mostrado en la tarjeta del listado */
+  photoCount: number | null
+  /** Hash de la thumbnail del listado */
+  thumbnailHash: string | null
   /** Lista de imágenes extraídas (ordenadas por posición en el DOM) */
   images: YupooImage[]
   /** Lista de videos extraídos si los hay */
   videos: YupooVideo[]
   /** Precio si está visible en el álbum (string, formato original) */
   priceRaw: string | null
+  /** Método de fetch usado: 'http' o 'playwright' */
+  fetchMethod: 'http' | 'playwright'
   /** Fecha de scrapeo ISO */
   scrapedAt: string
   /** Indica si el álbum existe (false si Yupoo devolvió 404) */

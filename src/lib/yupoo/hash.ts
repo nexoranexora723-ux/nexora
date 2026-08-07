@@ -37,6 +37,7 @@ import type { YupooAlbum } from './types'
  */
 export function computeAlbumHash(album: YupooAlbum): string {
   const parts = [
+    album.title || '',
     album.name || '',
     album.description || '',
     album.images.map((img) => img.hash).join(','),

@@ -1,29 +1,13 @@
 /**
- * NEXORA — Yupoo Importer · Parser (Extracción) — IMPLEMENTADO
- * ===============================================================
+ * NEXORA — Yupoo Importer · Parser (Extracción) — v2.1 FIXED
+ * ====================================================================
  *
- * Módulo: src/lib/yupoo/parser.ts
- *
- * RESPONSABILIDAD
- * ---------------
- * Extraer el contenido completo de un álbum individual de Yupoo:
- *   - Nombre original (del title o h1 del HTML)
- *   - Descripción (si existe)
- *   - TODAS las imágenes (hashes en orden del DOM)
- *   - TODOS los videos (si los hay)
- *   - Precio (si está visible)
- *
- * REGLAS ESTRICTAS
- * ----------------
- * 1. Toda la información proviene del HTML del álbum
- * 2. NO se usa IA, OCR, ni visión artificial
- * 3. NO se inventan nombres
- * 4. Cada álbum = exactamente UN producto
- *
- * ARQUITECTURA HÍBRIDA
- * --------------------
- * - HTTP + Cheerio primero
- * - Playwright solo si HTTP no obtiene imágenes
+ * CAMBIOS IMPORTANTES vs v2.0:
+ * - Usa EXCLUSIVAMENTE el href guardado por scanner.ts
+ * - NUNCA reconstruye la URL del álbum
+ * - Usa el title del <a> como nombre principal (no depende del H1)
+ * - Si el title ya tiene el nombre, no necesita parsear el H1
+ * - Conserva todos los metadatos del card (photoCount, thumbnailHash)
  */
 
 import {
@@ -49,6 +33,9 @@ import type { YupooAlbumRef, YupooAlbum, AlbumParseResult, YupooImage, YupooVide
 
 /**
  * Parsea un álbum individual de Yupoo y extrae TODO su contenido.
+ *
+ * USA EXCLUSIVAMENTE albumRef.url (que viene del href exacto del DOM).
+ * NUNCA reconstruye la URL.
  */
 export async function parseAlbum(
   albumRef: YupooAlbumRef,
@@ -56,9 +43,11 @@ export async function parseAlbum(
 ): Promise<AlbumParseResult> {
   const startTime = Date.now()
   logger.debug(`Parseando álbum ${albumRef.id}...`)
+  logger.debug(`  URL: ${albumRef.url}`)
+  logger.debug(`  Title del card: ${albumRef.title}`)
 
+  // Usar EXCLUSIVAMENTE la URL del albumRef (que viene del href exacto del DOM)
   const result = await fetchPage(albumRef.url, strategy, (html) => {
-    // Verificar que el HTML tiene imágenes del álbum
     const $ = loadHtml(html)
     return $(`img[src*="photo.yupoo.com/paypalshop/"]`).length > 0 ||
            $(`[data-src*="photo.yupoo.com/paypalshop/"]`).length > 0
@@ -106,9 +95,6 @@ export async function parseAlbum(
 // PARSER DE HTML (con Cheerio)
 // ============================================================================
 
-/**
- * Parsea el HTML de un álbum y extrae todos los datos.
- */
 function parseAlbumHtml(
   html: string,
   albumRef: YupooAlbumRef,
@@ -117,37 +103,68 @@ function parseAlbumHtml(
   const $ = loadHtml(html)
   const now = new Date().toISOString()
 
-  // 1. Extraer nombre
-  const name = extractName($)
+  // === 1. NOMBRE ===
+  // PRIORIDAD 1: title del card (albumRef.title) — ya extraído por scanner
+  // PRIORIDAD 2: title del document
+  // PRIORIDAD 3: h1
+  let title = albumRef.title // nombre original del card
+  let name = ''
+
+  if (title) {
+    // Limpiar el title del card
+    name = cleanAlbumName(title) || title
+  } else {
+    // Fallback: title del document
+    const docTitle = $('title').first().text().trim()
+    if (docTitle) {
+      title = docTitle.split(' | ')[0]
+      name = cleanAlbumName(docTitle) || title
+    }
+  }
+
+  // Si todavía no hay name, intentar h1
+  if (!name) {
+    const h1 = $('h1').first().text().trim()
+    if (h1 && !h1.includes('又拍图片管家')) {
+      title = title || h1
+      name = cleanAlbumName(h1) || h1
+    }
+  }
+
   if (!name) {
     logger.warn(`Álbum ${albumRef.id}: no se pudo extraer nombre`)
   }
 
-  // 2. Extraer descripción
+  // === 2. DESCRIPCIÓN ===
   const description = extractDescription($)
 
-  // 3. Extraer imágenes (hashes en orden del DOM)
+  // === 3. IMÁGENES ===
   const hashes = extractImageHashes($)
   const images: YupooImage[] = hashes.slice(0, MAX_IMAGES_PER_ALBUM).map((hash, order) =>
     buildYupooImage(hash, order)
   )
 
-  // 4. Extraer videos
+  // === 4. VIDEOS ===
   const videos = extractVideos($).slice(0, MAX_VIDEOS_PER_ALBUM)
 
-  // 5. Extraer precio (si existe)
+  // === 5. PRECIO ===
   const priceRaw = extractPrice($)
 
   return {
     id: albumRef.id,
-    url: albumRef.url,
-    name: name || '',
+    url: albumRef.url, // URL exacta del scanner
+    href: albumRef.href, // href exacto del DOM
+    title, // nombre original (del card o document)
+    name, // nombre limpio
     description,
     categoryId: albumRef.categoryId,
-    categoryName: null, // se llenará desde el scanner
+    categoryName: null,
+    photoCount: albumRef.photoCount, // del card
+    thumbnailHash: albumRef.thumbnailHash, // del card
     images,
     videos,
     priceRaw,
+    fetchMethod,
     scrapedAt: now,
     exists: true,
   }
@@ -157,38 +174,6 @@ function parseAlbumHtml(
 // EXTRACTORES INDIVIDUALES
 // ============================================================================
 
-/**
- * Extrae el nombre del álbum.
- * Busca en: <title>, h1, .show-index__albumName
- */
-function extractName($: ReturnType<typeof loadHtml>): string | null {
-  // Intentar 1: title del document
-  const title = $('title').first().text().trim()
-  if (title) {
-    const cleaned = cleanAlbumName(title)
-    if (cleaned) return cleaned
-  }
-
-  // Intentar 2: h1
-  const h1 = $('h1').first().text().trim()
-  if (h1 && !h1.includes('又拍图片管家')) {
-    const cleaned = cleanAlbumName(h1)
-    if (cleaned) return cleaned
-  }
-
-  // Intentar 3: .show-index__albumName
-  const albumName = $('.show-index__albumName').first().text().trim()
-  if (albumName) {
-    const cleaned = cleanAlbumName(albumName)
-    if (cleaned) return cleaned
-  }
-
-  return null
-}
-
-/**
- * Extrae la descripción del álbum si existe.
- */
 function extractDescription($: ReturnType<typeof loadHtml>): string | null {
   const selectors = [
     '.show-index__albumDescription',
@@ -208,28 +193,21 @@ function extractDescription($: ReturnType<typeof loadHtml>): string | null {
   return null
 }
 
-/**
- * Extrae todos los hashes de imágenes del álbum.
- * Busca en img[src] y [data-src] que apunten a photo.yupoo.com/paypalshop/
- */
 function extractImageHashes($: ReturnType<typeof loadHtml>): string[] {
   const hashes: string[] = []
 
-  // Buscar en img[src]
   $('img[src*="photo.yupoo.com/paypalshop/"]').each((_, el) => {
     const src = $(el).attr('src') || ''
     const hash = extractHash(src)
     if (hash) hashes.push(hash)
   })
 
-  // Buscar en [data-src] (lazy load)
   $('[data-src*="photo.yupoo.com/paypalshop/"]').each((_, el) => {
     const src = $(el).attr('data-src') || ''
     const hash = extractHash(src)
     if (hash) hashes.push(hash)
   })
 
-  // Buscar en cualquier atributo que contenga la URL de Yupoo
   $('[style*="photo.yupoo.com/paypalshop/"]').each((_, el) => {
     const style = $(el).attr('style') || ''
     const matches = style.matchAll(HASH_REGEX)
@@ -241,14 +219,10 @@ function extractImageHashes($: ReturnType<typeof loadHtml>): string[] {
   return dedupeHashes(hashes)
 }
 
-/**
- * Extrae videos del álbum si los hay.
- */
 function extractVideos($: ReturnType<typeof loadHtml>): YupooVideo[] {
   const videos: YupooVideo[] = []
   let order = 0
 
-  // Buscar elementos <video>
   $('video').each((_, el) => {
     const src = $(el).attr('src') || $(el).find('source').attr('src') || ''
     if (src.includes('paypalshop') || src.includes('yupoo')) {
@@ -261,7 +235,6 @@ function extractVideos($: ReturnType<typeof loadHtml>): YupooVideo[] {
     }
   })
 
-  // Buscar [data-video-url]
   $('[data-video-url]').each((_, el) => {
     const url = $(el).attr('data-video-url') || ''
     if (url) {
@@ -276,9 +249,6 @@ function extractVideos($: ReturnType<typeof loadHtml>): YupooVideo[] {
   return videos
 }
 
-/**
- * Extrae el precio si está visible en el álbum.
- */
 function extractPrice($: ReturnType<typeof loadHtml>): string | null {
   const selectors = [
     '.show-index__albumPrice',
@@ -299,19 +269,16 @@ function extractPrice($: ReturnType<typeof loadHtml>): string | null {
 }
 
 // ============================================================================
-// PARSEO BATCH (múltiples álbumes)
+// PARSEO BATCH
 // ============================================================================
 
-/**
- * Parsea múltiples álbumes en paralelo (con límite de concurrencia).
- */
 export async function parseAlbumsBatch(
   albumRefs: YupooAlbumRef[],
   strategy: FetchStrategy = DEFAULT_FETCH_STRATEGY,
   onProgress?: (index: number, total: number, result: AlbumParseResult) => void
 ): Promise<AlbumParseResult[]> {
   const results: AlbumParseResult[] = []
-  const CONCURRENT = 3 // procesar 3 a la vez
+  const CONCURRENT = 3
 
   for (let i = 0; i < albumRefs.length; i += CONCURRENT) {
     const batch = albumRefs.slice(i, i + CONCURRENT)

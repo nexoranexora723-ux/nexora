@@ -27,6 +27,7 @@
 import { isValidAlbumId, isValidCategoryId } from './config'
 import type { YupooAlbum, ScrapedProduct, ValidationResult, ValidationError, FailedProduct } from './types'
 import { addFailedProduct } from './storage'
+import { isValidAlbumHref } from './scanner'
 
 // ============================================================================
 // VALIDACIÓN PRINCIPAL
@@ -41,12 +42,12 @@ import { addFailedProduct } from './storage'
 export function validateAlbum(album: YupooAlbum): ValidationResult {
   const errors: ValidationError[] = []
 
-  // 1. Validar nombre
+  // 1. Validar nombre (title del card o name limpio)
   if (!album.name || album.name.trim().length < 3) {
     errors.push({
       type: 'MISSING_NAME',
       message: 'El álbum no tiene nombre o es muy corto (mínimo 3 caracteres)',
-      value: album.name || '(vacío)',
+      value: album.name || album.title || '(vacío)',
     })
   }
 
@@ -76,7 +77,16 @@ export function validateAlbum(album: YupooAlbum): ValidationResult {
     })
   }
 
-  // 5. Validar que el álbum existe
+  // 5. Validar que el href tenga uid= y referrercate=
+  if (!isValidAlbumHref(album.href)) {
+    errors.push({
+      type: 'INVALID_URL',
+      message: 'El href del álbum no contiene los parámetros obligatorios (uid= y referrercate=)',
+      value: album.href || '(vacío)',
+    })
+  }
+
+  // 6. Validar que el álbum existe
   if (!album.exists) {
     errors.push({
       type: 'ALBUM_NOT_FOUND',
@@ -84,7 +94,7 @@ export function validateAlbum(album: YupooAlbum): ValidationResult {
     })
   }
 
-  // 6. Validar ID del álbum
+  // 7. Validar ID del álbum
   if (!isValidAlbumId(album.id)) {
     errors.push({
       type: 'INVALID_URL',
@@ -116,7 +126,7 @@ export function validateAlbum(album: YupooAlbum): ValidationResult {
     galleryUrls: album.images.map((img) => img.proxyUrl),
     videoUrls: album.videos.map((v) => v.url),
     priceRaw: album.priceRaw,
-    imageMode: 'proxy', // default, se puede cambiar
+    imageMode: 'proxy',
     albumHash: '', // se calcula fuera de esta función
     scrapedAt: album.scrapedAt,
   }
@@ -200,19 +210,24 @@ export function recordParseFailure(
  * Útil cuando no se pudo parsear pero queremos registrar el fallo.
  */
 export function createEmptyAlbum(
-  albumRef: { id: string; url: string; categoryId: string },
+  albumRef: { id: string; url: string; categoryId: string; href?: string; title?: string },
   error?: string
 ): YupooAlbum {
   return {
     id: albumRef.id,
     url: albumRef.url,
+    href: albumRef.href || '',
+    title: albumRef.title || '',
     name: '',
     description: null,
     categoryId: albumRef.categoryId,
     categoryName: null,
+    photoCount: null,
+    thumbnailHash: null,
     images: [],
     videos: [],
     priceRaw: null,
+    fetchMethod: 'http',
     scrapedAt: new Date().toISOString(),
     exists: false,
   }
