@@ -27,13 +27,14 @@
  * - Indexación rápida sin leer todos los archivos
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, renameSync } from 'fs'
 import {
   DATA_DIR,
   PRODUCTS_DIR,
   INDEX_FILE,
   FAILED_FILE,
   PRODUCT_FILE_PADDING,
+  STATE_FILE,
 } from './config'
 import type { ScrapedProduct, ProductIndex, ProductIndexEntry, FailedProduct } from './types'
 
@@ -278,4 +279,40 @@ export function getStorageStats(): {
     totalCached: 0, // se calcula desde cache.ts
     indexSize: index.entries.length,
   }
+}
+
+// ============================================================================
+// ESTADO DE SCRAPING (Resume System — FASE A)
+// ============================================================================
+
+import type { ScrapeState } from './types'
+
+/**
+ * Carga el estado del scraper desde data/.scrape-state.json.
+ * Si no existe o está corrupto, retorna null.
+ *
+ * @returns ScrapeState o null si no existe
+ */
+export function loadState(): ScrapeState | null {
+  if (!existsSync(STATE_FILE)) return null
+  try {
+    return JSON.parse(readFileSync(STATE_FILE, 'utf8')) as ScrapeState
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Guarda el estado del scraper en data/.scrape-state.json.
+ *
+ * ESCRITURA ATÓMICA: escribe a .scrape-state.json.tmp y luego renombra.
+ * Esto previene corrupción si el proceso se interrumpe a mitad de escritura.
+ *
+ * @param state - Estado a guardar
+ */
+export function saveState(state: ScrapeState): void {
+  ensureDirs()
+  const tmpFile = `${STATE_FILE}.tmp`
+  writeFileSync(tmpFile, JSON.stringify(state, null, 2))
+  renameSync(tmpFile, STATE_FILE)
 }

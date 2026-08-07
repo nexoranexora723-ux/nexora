@@ -41,11 +41,14 @@ import {
   countFailed,
   closeBrowser,
   logger,
+  loadState,
+  saveState,
   DEFAULT_FETCH_STRATEGY,
   DEFAULT_IMAGE_MODE,
   type FetchStrategy,
   type ImageMode,
   type YupooAlbumRef,
+  type ScrapeState,
 } from '../src/lib/yupoo'
 
 // ============================================================================
@@ -58,6 +61,10 @@ function parseArgs(): {
   strategy: FetchStrategy
   imageMode: ImageMode
   useCache: boolean
+  startCategory: number | null
+  endCategory: number | null
+  batchSize: number | null
+  resume: boolean
 } {
   const args = process.argv.slice(2)
   const result = {
@@ -66,6 +73,10 @@ function parseArgs(): {
     strategy: DEFAULT_FETCH_STRATEGY as FetchStrategy,
     imageMode: DEFAULT_IMAGE_MODE as ImageMode,
     useCache: true,
+    startCategory: null as number | null,
+    endCategory: null as number | null,
+    batchSize: null as number | null,
+    resume: false,
   }
 
   for (const arg of args) {
@@ -79,6 +90,14 @@ function parseArgs(): {
       result.imageMode = arg.split('=')[1] as ImageMode
     } else if (arg === '--no-cache') {
       result.useCache = false
+    } else if (arg.startsWith('--start-category=')) {
+      result.startCategory = parseInt(arg.split('=')[1])
+    } else if (arg.startsWith('--end-category=')) {
+      result.endCategory = parseInt(arg.split('=')[1])
+    } else if (arg.startsWith('--batch-size=')) {
+      result.batchSize = parseInt(arg.split('=')[1])
+    } else if (arg === '--resume') {
+      result.resume = true
     }
   }
 
@@ -101,10 +120,50 @@ async function main() {
   console.log(`  Caché: ${opts.useCache ? 'activada' : 'desactivada'}`)
   console.log(`  Max categorías: ${opts.maxCategories || 'todas'}`)
   console.log(`  Max álbumes/cat: ${opts.maxAlbumsPerCategory || 'todos'}`)
+  if (opts.startCategory || opts.endCategory) {
+    console.log(`  Batch: categorías ${opts.startCategory || 1}-${opts.endCategory || 'final'}`)
+  }
+  if (opts.resume) {
+    console.log(`  Resume: activado`)
+  }
   console.log('')
 
   // Asegurar que los directorios existen
   ensureDirs()
+
+  // === FASE A: RESUME SYSTEM ===
+  // Si --resume es utilizado, cargar estado previo y validar compatibilidad
+  let resumeState: ScrapeState | null = null
+  if (opts.resume) {
+    resumeState = loadState()
+    if (!resumeState) {
+      console.log('❌ --resume solicitado pero NO existe data/.scrape-state.json')
+      console.log('   No se puede continuar desde un estado previo.')
+      console.log('   Ejecuta sin --resume para iniciar un nuevo scraping.')
+      process.exit(1)
+    }
+
+    // Validar compatibilidad del batch
+    const stateStart = resumeState.startCategoryIndex
+    const stateEnd = resumeState.endCategoryIndex
+    const currentStart = opts.startCategory ? opts.startCategory - 1 : 0 // convertir a 0-based
+    const currentEnd = opts.endCategory ? opts.endCategory - 1 : undefined
+
+    if (stateStart !== undefined && stateStart !== currentStart) {
+      console.log(`❌ Incompatibilidad de batch: estado tiene startCategoryIndex=${stateStart}, actual=${currentStart}`)
+      console.log('   No se puede mezclar estados de batches diferentes.')
+      process.exit(1)
+    }
+    if (stateEnd !== undefined && currentEnd !== undefined && stateEnd !== currentEnd) {
+      console.log(`❌ Incompatibilidad de batch: estado tiene endCategoryIndex=${stateEnd}, actual=${currentEnd}`)
+      console.log('   No se puede mezclar estados de batches diferentes.')
+      process.exit(1)
+    }
+
+    console.log(`↩️  Reanudando desde: categoría ${resumeState.lastCategoryIndex + 1}, álbum ${resumeState.lastAlbumId || 'inicio'}`)
+    console.log(`   Procesados previamente: ${resumeState.totalProcessed} (${resumeState.totalSuccess} ok, ${resumeState.totalFailed} fail)`)
+    console.log('')
+  }
 
   // 1. ESCANEAR CATEGORÍAS
   console.log('📂 FASE 1: Escaneando categorías...')
@@ -117,19 +176,34 @@ async function main() {
     return
   }
 
-  // Limitar categorías si se especificó
-  const catsToProcess = opts.maxCategories
-    ? categories.slice(0, opts.maxCategories)
-    : categories
+  // === FASE A: BATCH PROCESSING ===
+  // Seleccionar rango de categorías según --start-category y --end-category
+  // (1-based para el usuario, 0-based internamente)
+  let catsToProcess: typeof categories
+  if (opts.startCategory || opts.endCategory) {
+    const start = (opts.startCategory ? opts.startCategory - 1 : 0) // 0-based
+    const end = opts.endCategory ? opts.endCategory : categories.length // 1-based inclusive
+    catsToProcess = categories.slice(start, end)
+  } else if (opts.maxCategories) {
+    catsToProcess = categories.slice(0, opts.maxCategories)
+  } else {
+    catsToProcess = categories
+  }
 
-  const startTime = Date.now()
-  let totalProcessed = 0
-  let totalSuccess = 0
-  let totalFailed = 0
+  // Si hay resume, continuar desde la última categoría procesada
+  const startCatIdx = resumeState ? resumeState.lastCategoryIndex : 0
+  // Índice de álbum dentro de la categoría para resume granular
+  let resumeAlbumIdx = resumeState?.currentAlbumIndex ?? 0
+
+  const startTime = resumeState?.startedAt ? new Date(resumeState.startedAt).getTime() : Date.now()
+  let totalProcessed = resumeState?.totalProcessed ?? 0
+  let totalSuccess = resumeState?.totalSuccess ?? 0
+  let totalFailed = resumeState?.totalFailed ?? 0
   let totalCached = 0
+  let productsSinceCheckpoint = 0 // contador para guardar estado cada 100 productos
 
   // 2. PROCESAR CADA CATEGORÍA
-  for (let catIdx = 0; catIdx < catsToProcess.length; catIdx++) {
+  for (let catIdx = startCatIdx; catIdx < catsToProcess.length; catIdx++) {
     const cat = catsToProcess[catIdx]
     console.log(`\n📂 [${catIdx + 1}/${catsToProcess.length}] ${cat.name} (${cat.id})`)
 
@@ -148,7 +222,10 @@ async function main() {
       : scanResult.albums
 
     // 3. PROCESAR CADA ÁLBUM
-    for (let albIdx = 0; albIdx < albumsToProcess.length; albIdx++) {
+    // Si es la primera categoría después de resume, comenzar desde el álbum guardado
+    const albStart = (catIdx === startCatIdx) ? resumeAlbumIdx : 0
+    resumeAlbumIdx = 0 // solo aplicar en la primera categoría
+    for (let albIdx = albStart; albIdx < albumsToProcess.length; albIdx++) {
       const albumRef = albumsToProcess[albIdx]
       totalProcessed++
 
@@ -226,18 +303,68 @@ async function main() {
       }
 
       totalSuccess++
+      productsSinceCheckpoint++
 
-      // Log progreso con nombre real del producto
+      // === FASE A: GUARDAR ESTADO CADA 100 PRODUCTOS ===
+      if (productsSinceCheckpoint >= 100) {
+        productsSinceCheckpoint = 0
+        const stateData: ScrapeState = {
+          lastCategoryIndex: catIdx,
+          lastAlbumId: albumRef.id,
+          totalProcessed,
+          totalSuccess,
+          totalFailed,
+          lastUpdate: new Date().toISOString(),
+          startCategoryIndex: opts.startCategory ? opts.startCategory - 1 : 0,
+          endCategoryIndex: opts.endCategory ? opts.endCategory - 1 : undefined,
+          batchSize: opts.batchSize ?? undefined,
+          currentAlbumIndex: albIdx,
+          totalAlbumsInBatch: catsToProcess.length,
+          percentComplete: Math.round((totalProcessed / (catsToProcess.length * (opts.maxAlbumsPerCategory || 120))) * 100),
+          elapsedSeconds: Math.round((Date.now() - startTime) / 1000),
+          startedAt: new Date(startTime).toISOString(),
+        }
+        saveState(stateData)
+      }
+
+      // === FASE A: PROGRESS DASHBOARD ===
       const elapsed = ((Date.now() - startTime) / 1000).toFixed(0)
       const displayName = album.title || album.name
+      const albumsProcessed = albIdx + 1 - albStart
+      const albumsPending = albumsToProcess.length - albumsProcessed
+      const speedMs = parseResult.durationMs
+      const speedSec = (speedMs / 1000).toFixed(2)
+      const memMB = (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(0)
+      const remainingAlbums = albumsPending
+      const etaSec = (remainingAlbums * speedMs / 1000).toFixed(0)
+      const etaMin = Math.round(parseFloat(etaSec.toString()) / 60)
       process.stdout.write(
         `\r   ✓ [${albIdx + 1}/${albumsToProcess.length}] ${displayName.substring(0, 40).padEnd(42)} | ` +
-        `${album.images.length} imgs | ${album.videos.length} vids | ${parseResult.durationMs}ms | ` +
-        `total: ${totalSuccess} ok, ${totalFailed} fail | ${elapsed}s   `
+        `${album.images.length} imgs | ${album.videos.length} vids | ${speedSec}s/álbum | ` +
+        `ETA: ${etaMin}min | ok:${totalSuccess} err:${totalFailed} | ${memMB}MB   `
       )
     }
     console.log('')
   }
+
+  // === FASE A: GUARDAR ESTADO FINAL ===
+  const finalState: ScrapeState = {
+    lastCategoryIndex: catsToProcess.length,
+    lastAlbumId: null,
+    totalProcessed,
+    totalSuccess,
+    totalFailed,
+    lastUpdate: new Date().toISOString(),
+    startCategoryIndex: opts.startCategory ? opts.startCategory - 1 : 0,
+    endCategoryIndex: opts.endCategory ? opts.endCategory - 1 : undefined,
+    batchSize: opts.batchSize ?? undefined,
+    currentAlbumIndex: 0,
+    totalAlbumsInBatch: catsToProcess.length,
+    percentComplete: 100,
+    elapsedSeconds: Math.round((Date.now() - startTime) / 1000),
+    startedAt: new Date(startTime).toISOString(),
+  }
+  saveState(finalState)
 
   // Cerrar browser
   await closeBrowser()

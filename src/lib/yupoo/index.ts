@@ -149,6 +149,8 @@ export {
   addFailedProduct,
   countFailed,
   getStorageStats,
+  loadState,
+  saveState,
 } from './storage'
 
 // ============================================================================

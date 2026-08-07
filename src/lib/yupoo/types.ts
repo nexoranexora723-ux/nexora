@@ -414,6 +414,27 @@ export interface ScrapeState {
   totalFailed: number
   /** Timestamp del último procesamiento */
   lastUpdate: string
+
+  // === Campos FASE A (usados EXCLUSIVAMENTE por Resume/Dashboard) ===
+  // Estos campos NO son utilizados por la lógica de extracción.
+  // Solo los leen/escriben el sistema Resume y el Progress Dashboard.
+
+  /** Índice de categoría inicial del batch actual */
+  startCategoryIndex?: number
+  /** Índice de categoría final del batch actual */
+  endCategoryIndex?: number
+  /** Tamaño del batch (número de categorías en este lote) */
+  batchSize?: number
+  /** Índice del álbum actual dentro de la categoría (para resume granular) */
+  currentAlbumIndex?: number
+  /** Total de álbumes en el batch actual */
+  totalAlbumsInBatch?: number
+  /** Porcentaje completado (0-100) — calculado por Dashboard */
+  percentComplete?: number
+  /** Tiempo transcurrido en segundos — calculado por Dashboard */
+  elapsedSeconds?: number
+  /** Timestamp de inicio del scraping (ISO) */
+  startedAt?: string
 }
 
 // ============================================================================
