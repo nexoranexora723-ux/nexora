@@ -4,21 +4,7 @@
  *
  * Módulo: src/lib/yupoo/index.ts
  *
- * RESPONSABILIDAD
- * ---------------
- * Centralizar las exportaciones del módulo Yupoo.
- * Cualquier consumidor externo debe importar desde '@/lib/yupoo'
- * (no desde archivos individuales).
- *
- * USO
- * ---
- * ```ts
- * // ✅ Correcto
- * import { scanCategories, parseAlbum, type YupooAlbum } from '@/lib/yupoo'
- *
- * // ❌ Incorrecto (no acceder a archivos internos directamente)
- * import { scanCategories } from '@/lib/yupoo/scanner'
- * ```
+ * Cualquier consumidor externo debe importar desde '@/lib/yupoo'.
  */
 
 // ============================================================================
@@ -41,9 +27,18 @@ export {
   CONCURRENT_ALBUMS,
   MAX_IMAGES_PER_ALBUM,
   MAX_VIDEOS_PER_ALBUM,
-  OUTPUT_DIR,
-  OUTPUT_FILE,
+  DATA_DIR,
+  PRODUCTS_DIR,
+  INDEX_FILE,
+  FAILED_FILE,
   STATE_FILE,
+  PRODUCT_FILE_PADDING,
+  CACHE_DIR,
+  LOCAL_IMAGES_DIR,
+  HTTP_TIMEOUT_MS,
+  PLAYWRIGHT_TIMEOUT_MS,
+  HTTP_MAX_RETRIES,
+  HASH_ALGORITHM,
   IMAGE_PROXY_PATH,
   HASH_REGEX,
   ALBUM_ID_REGEX,
@@ -53,6 +48,13 @@ export {
   isValidAlbumId,
   isValidCategoryId,
   type YupooImageSize,
+  type ImageMode,
+  type FetchStrategy,
+} from './config'
+
+export {
+  DEFAULT_IMAGE_MODE,
+  DEFAULT_FETCH_STRATEGY,
 } from './config'
 
 // ============================================================================
@@ -65,7 +67,12 @@ export type {
   YupooVideo,
   YupooAlbum,
   ScrapedProduct,
-  ProductsJsonFile,
+  ProductIndex,
+  ProductIndexEntry,
+  AlbumCacheEntry,
+  FailedProduct,
+  ValidationError,
+  ValidationResult,
   ScrapeState,
   CategoryScanResult,
   AlbumParseResult,
@@ -99,6 +106,77 @@ export {
 } from './utils'
 
 // ============================================================================
+// HASHING
+// ============================================================================
+export {
+  computeAlbumHash,
+  hashString,
+  albumChanged,
+} from './hash'
+
+// ============================================================================
+// CACHÉ
+// ============================================================================
+export {
+  ensureCacheDir,
+  getAlbumCache,
+  setAlbumCache,
+  isAlbumCached,
+  hasAlbumCache,
+  clearAlbumCache,
+  countCachedAlbums,
+  listCachedAlbumIds,
+} from './cache'
+
+// ============================================================================
+// STORAGE (Productos divididos)
+// ============================================================================
+export {
+  ensureDirs,
+  productFileName,
+  productFilePath,
+  saveProduct,
+  loadProduct,
+  loadProductByName,
+  countProducts,
+  getNextProductNumber,
+  loadIndex,
+  saveIndex,
+  upsertIndexEntry,
+  findInIndex,
+  loadFailed,
+  saveFailed,
+  addFailedProduct,
+  countFailed,
+  getStorageStats,
+} from './storage'
+
+// ============================================================================
+// VALIDACIÓN (FASE 2.5)
+// ============================================================================
+export {
+  validateAlbum,
+  recordFailedAlbum,
+  recordParseFailure,
+  createEmptyAlbum,
+} from './validation'
+
+// ============================================================================
+// FETCHER (Híbrido HTTP + Playwright)
+// ============================================================================
+export {
+  fetchHtml,
+  fetchHtmlWithPlaywright,
+  fetchPage,
+  loadHtml,
+  hasAlbumContent,
+  hasCategoryContent,
+  isAlbumNotFound,
+  closeBrowser,
+  type FetchResult,
+} from './fetcher'
+
+// ============================================================================
 // SCANNER (Descubrimiento)
 // ============================================================================
 export {
@@ -119,5 +197,5 @@ export {
 // METADATOS DEL MÓDULO
 // ============================================================================
 export const MODULE_NAME = 'yupoo-importer' as const
-export const MODULE_VERSION = '1.0.0' as const
-export const MODULE_DESCRIPTION = 'Importador profesional de catálogos Yupoo para NEXORA' as const
+export const MODULE_VERSION = '2.0.0' as const
+export const MODULE_DESCRIPTION = 'Importador profesional híbrido de catálogos Yupoo para NEXORA' as const

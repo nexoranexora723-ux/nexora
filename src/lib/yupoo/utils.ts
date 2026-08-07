@@ -13,8 +13,9 @@
  * No acceden a red, DB ni sistema de archivos.
  */
 
-import { buildProxyUrl, isValidHash, isValidAlbumId, isValidCategoryId } from './config'
-import type { YupooAlbum, ScrapedProduct, YupooImage } from './types'
+import { buildProxyUrl, isValidHash, isValidAlbumId, isValidCategoryId, DEFAULT_IMAGE_MODE } from './config'
+import type { YupooAlbum, ScrapedProduct, YupooImage, ImageMode } from './types'
+import { computeAlbumHash } from './hash'
 
 // ============================================================================
 // NORMALIZACIÓN DE NOMBRES
@@ -168,19 +169,26 @@ export function extractHash(url: string): string | null {
 
 /**
  * Convierte un YupooAlbum scrapeado a ScrapedProduct
- * listo para guardar en data/products.json.
+ * listo para guardar en data/products/{numero}.json.
  *
  * Esta función NO hace ninguna transformación de IA.
  * Solo reorganiza los datos del álbum en el formato final.
  *
+ * Calcula el hash SHA-256 del álbum para detección de cambios.
+ *
  * @param album - Álbum scrapeado completo
+ * @param imageMode - Modo de imagen: 'proxy' (default) o 'local'
  * @returns ScrapedProduct listo para persistir
  */
-export function toScrapedProduct(album: YupooAlbum): ScrapedProduct {
+export function toScrapedProduct(
+  album: YupooAlbum,
+  imageMode: ImageMode = DEFAULT_IMAGE_MODE
+): ScrapedProduct {
   const imageHashes = album.images.map((img) => img.hash)
-  const galleryProxyUrls = album.images.map((img) => img.proxyUrl)
-  const mainImageProxyUrl = galleryProxyUrls[0] || ''
+  const galleryUrls = album.images.map((img) => img.proxyUrl)
+  const mainImageUrl = galleryUrls[0] || ''
   const videoUrls = album.videos.map((v) => v.url)
+  const albumHash = computeAlbumHash(album)
 
   return {
     sku: `YP-${album.id}`,
@@ -191,10 +199,12 @@ export function toScrapedProduct(album: YupooAlbum): ScrapedProduct {
     yupooCategoryId: album.categoryId,
     yupooCategoryName: album.categoryName,
     imageHashes,
-    mainImageProxyUrl,
-    galleryProxyUrls,
+    mainImageUrl,
+    galleryUrls,
     videoUrls,
     priceRaw: album.priceRaw,
+    imageMode,
+    albumHash,
     scrapedAt: album.scrapedAt,
   }
 }

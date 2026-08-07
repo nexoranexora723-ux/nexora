@@ -154,28 +154,53 @@ export const MAX_IMAGES_PER_ALBUM = 30 as const
 export const MAX_VIDEOS_PER_ALBUM = 5 as const
 
 // ============================================================================
-// ALMACENAMIENTO (Output)
+// ALMACENAMIENTO (Output) — Productos divididos en archivos individuales
 // ============================================================================
 
 /**
- * Directorio donde se almacenará el JSON con todos los productos
- * extraídos. Cumple con FASE 3: "data/products.json".
- *
- * Este directorio NO se commitea a git (debe estar en .gitignore).
+ * Directorio raíz para todos los datos de salida.
+ * NO se commitea a git (debe estar en .gitignore).
  */
-export const OUTPUT_DIR = 'data' as const
+export const DATA_DIR = 'data' as const
 
 /**
- * Archivo JSON principal con todos los productos scrapeados.
- * Estructura: { metadata, products: ScrapedProduct[] }
+ * Directorio donde se guardan los productos individuales.
+ * Cada producto es un archivo JSON separado:
+ *   data/products/000001.json
+ *   data/products/000002.json
+ *   ...
+ *
+ * Ventajas:
+ * - Reanudación granular (saber exactamente cuál falta)
+ * - Procesamiento incremental
+ * - No recargar todo en memoria
  */
-export const OUTPUT_FILE = 'data/products.json' as const
+export const PRODUCTS_DIR = 'data/products' as const
+
+/**
+ * Archivo índice con metadatos de todos los productos.
+ * Estructura: ProductIndex (ver types.ts)
+ * Contiene: lista de { sku, albumId, file, hash } sin el contenido completo
+ */
+export const INDEX_FILE = 'data/products/index.json' as const
+
+/**
+ * Archivo con productos que fallaron validación (FASE 2.5).
+ * Estructura: FailedProduct[] (ver types.ts)
+ */
+export const FAILED_FILE = 'data/failed.json' as const
 
 /**
  * Archivo de estado para resumir el scraping si se interrumpe.
  * Guarda el último álbum procesado.
  */
 export const STATE_FILE = 'data/.scrape-state.json' as const
+
+/**
+ * Número de dígitos para el nombre de archivo de producto.
+ * Ej: 6 dígitos → 000001.json, 000002.json, ... hasta 999999
+ */
+export const PRODUCT_FILE_PADDING = 6 as const
 
 // ============================================================================
 // PROXY DE IMÁGENES (Existente en NEXORA)
@@ -256,3 +281,101 @@ export function isValidAlbumId(albumId: string): boolean {
 export function isValidCategoryId(categoryId: string): boolean {
   return /^\d{4,12}$/.test(categoryId)
 }
+
+// ============================================================================
+// CACHÉ (Sistema de caché por álbum)
+// ============================================================================
+
+/**
+ * Directorio donde se guarda la caché de álbumes procesados.
+ * Cada álbum tiene su propio archivo: cache/{albumId}.json
+ *
+ * La caché contiene:
+ * - Hash SHA-256 del contenido del álbum
+ * - Fecha de procesamiento
+ * - Datos del álbum parseado
+ *
+ * Si el hash no cambia, no se re-procesa el álbum.
+ */
+export const CACHE_DIR = 'cache' as const
+
+// ============================================================================
+// MODOS DE IMAGEN (proxy | local)
+// ============================================================================
+
+/**
+ * Modo de manejo de imágenes:
+ *
+ * - 'proxy': Las URLs de imágenes apuntan al proxy interno
+ *            /api/yupoo-img/{hash}/{size}
+ *            El proxy resuelve desde Yupoo en tiempo real.
+ *            Ventaja: no requiere descargar nada.
+ *            Desventaja: depende de Yupoo online.
+ *
+ * - 'local': Las URLs de imágenes apuntan a archivos descargados
+ *            en /public/yupoo-images/{hash}.jpg
+ *            Ventaja: independiente de Yupoo, más rápido.
+ *            Desventaja: requiere paso adicional de descarga.
+ *
+ * Por defecto usamos 'proxy' (el proxy ya está implementado).
+ */
+export type ImageMode = 'proxy' | 'local'
+
+export const DEFAULT_IMAGE_MODE: ImageMode = 'proxy'
+
+/**
+ * Directorio donde se descargan las imágenes en modo 'local'.
+ * (FASE futura — por ahora solo proxy)
+ */
+export const LOCAL_IMAGES_DIR = 'public/yupoo-images' as const
+
+// ============================================================================
+// ARQUITECTURA HÍBRIDA (HTTP+Cheerio | Playwright)
+// ============================================================================
+
+/**
+ * Estrategia de fetching:
+ *
+ * - 'http-first': Intentar HTTP + Cheerio primero.
+ *                 Si no encuentra el contenido esperado, usar Playwright.
+ *                 Ventaja: rápido, ligero, paralelizable.
+ *
+ * - 'playwright-only': Usar siempre Playwright (renderiza JS).
+ *                      Ventaja: captura todo el contenido dinámico.
+ *                      Desventaja: lento, pesado en memoria.
+ *
+ * - 'http-only': Solo HTTP + Cheerio, sin fallback.
+ *                Ventaja: máximo rendimiento.
+ *                Desventaja: puede perder contenido JS-rendered.
+ *
+ * Por defecto: 'http-first' (híbrido, lo mejor de ambos mundos)
+ */
+export type FetchStrategy = 'http-first' | 'playwright-only' | 'http-only'
+
+export const DEFAULT_FETCH_STRATEGY: FetchStrategy = 'http-first'
+
+/**
+ * Timeout para requests HTTP (ms).
+ * Si excede, se intenta con Playwright (en modo http-first).
+ */
+export const HTTP_TIMEOUT_MS = 15_000 as const
+
+/**
+ * Timeout para fetch con Playwright (ms).
+ */
+export const PLAYWRIGHT_TIMEOUT_MS = 30_000 as const
+
+/**
+ * Número de retries HTTP antes de pasar a Playwright.
+ */
+export const HTTP_MAX_RETRIES = 2 as const
+
+// ============================================================================
+// HASHING (Detección de cambios)
+// ============================================================================
+
+/**
+ * Algoritmo de hash para detectar cambios en álbumes.
+ * SHA-256 — estándar, sin colisiones conocidas.
+ */
+export const HASH_ALGORITHM = 'sha256' as const

@@ -31,7 +31,7 @@
  *     → ScrapedProduct (lista para guardar en data/products.json)
  */
 
-import type { YupooImageSize } from './config'
+import type { YupooImageSize, ImageMode, FetchStrategy } from './config'
 
 // ============================================================================
 // ENTIDADES DE DESCUBRIMIENTO (Scanner)
@@ -178,15 +178,16 @@ export interface YupooAlbum {
 }
 
 // ============================================================================
-// ENTIDAD FINAL (Output para data/products.json)
+// ENTIDAD FINAL (Output para data/products/{numero}.json)
 // ============================================================================
 
 /**
- * Producto scrapeado listo para guardar en data/products.json.
+ * Producto scrapeado listo para guardar en data/products/{numero}.json.
  *
- * Esta es la estructura final que se persiste en disco.
- * Es una versión "limpia" de YupooAlbum, optimizada para
- * posterior importación a Prisma (en una fase futura).
+ * Cada producto se guarda en su propio archivo individual para:
+ * - Reanudación granular
+ * - Procesamiento incremental
+ * - No recargar todo en memoria
  *
  * NO se incluye lógica de Prisma aquí — solo datos serializables.
  */
@@ -212,44 +213,154 @@ export interface ScrapedProduct {
   // === Multimedia ===
   /** Lista de hashes de imágenes (ordenados) */
   imageHashes: string[]
-  /** URL del proxy de la imagen principal (primera) */
-  mainImageProxyUrl: string
-  /** Lista de URLs del proxy para la galería */
-  galleryProxyUrls: string[]
+  /** URL de la imagen principal (formato depende de imageMode) */
+  mainImageUrl: string
+  /** Lista de URLs para la galería (formato depende de imageMode) */
+  galleryUrls: string[]
   /** Lista de URLs de videos si los hay */
   videoUrls: string[]
 
   // === Metadata ===
   /** Precio crudo si estaba visible */
   priceRaw: string | null
+  /** Modo de imagen usado: 'proxy' o 'local' */
+  imageMode: ImageMode
+  /** Hash SHA-256 del álbum (para detección de cambios) */
+  albumHash: string
   /** Fecha de scrapeo ISO */
   scrapedAt: string
 }
 
+// ============================================================================
+// ÍNDICE DE PRODUCTOS (data/products/index.json)
+// ============================================================================
+
 /**
- * Estructura del archivo data/products.json.
- * Contiene metadata del scraping + array de productos.
+ * Entrada individual en el índice de productos.
+ * NO contiene el producto completo, solo metadatos.
  */
-export interface ProductsJsonFile {
-  /** Metadata del scraping */
-  metadata: {
-    /** Versión del esquema del JSON */
-    schemaVersion: 1
-    /** Fecha de inicio del scraping */
-    startedAt: string
-    /** Fecha de finalización (null si aún en progreso) */
-    finishedAt: string | null
-    /** Total de productos en el archivo */
-    totalProducts: number
-    /** Total de categorías scrapeadas */
-    totalCategories: number
-    /** Fuente del scraping */
-    source: string
-    /** Versión del módulo Yupoo */
-    moduleVersion: string
+export interface ProductIndexEntry {
+  /** SKU del producto: YP-{albumId} */
+  sku: string
+  /** ID del álbum en Yupoo */
+  albumId: string
+  /** Nombre del archivo: 000001.json */
+  file: string
+  /** Hash SHA-256 del álbum (para detectar cambios) */
+  hash: string
+  /** Nombre del producto (para búsqueda rápida) */
+  name: string
+  /** Categoría Yupoo */
+  categoryId: string
+  /** Número de imágenes */
+  imageCount: number
+  /** Fecha de creación ISO */
+  createdAt: string
+}
+
+/**
+ * Estructura del archivo index.json.
+ * Contiene metadatos de TODOS los productos sin el contenido completo.
+ * Permite saber qué productos existen sin leer cada archivo individual.
+ */
+export interface ProductIndex {
+  /** Versión del esquema */
+  schemaVersion: 1
+  /** Fecha de última actualización */
+  updatedAt: string
+  /** Total de productos indexados */
+  total: number
+  /** Lista de entradas del índice */
+  entries: ProductIndexEntry[]
+}
+
+// ============================================================================
+// CACHÉ DE ÁLBUMES (cache/{albumId}.json)
+// ============================================================================
+
+/**
+ * Entrada de caché para un álbum procesado.
+ * Se guarda en cache/{albumId}.json después de cada parseAlbum exitoso.
+ *
+ * Si el álbum no cambia (hash igual), se puede saltar el re-procesamiento.
+ */
+export interface AlbumCacheEntry {
+  /** ID del álbum */
+  albumId: string
+  /** Hash SHA-256 del contenido (name + description + imageHashes) */
+  contentHash: string
+  /** Fecha de procesamiento ISO */
+  processedAt: string
+  /** Método usado para extraer: 'http' o 'playwright' */
+  fetchMethod: 'http' | 'playwright'
+  /** Número de imágenes encontradas */
+  imageCount: number
+  /** Número de videos encontrados */
+  videoCount: number
+  /** Nombre del álbum (para referencia) */
+  albumName: string
+  /** Archivo de producto generado (ej: 000001.json) o null si falló */
+  productFile: string | null
+}
+
+// ============================================================================
+// PRODUCTOS FALLIDOS (data/failed.json — FASE 2.5 Validation)
+// ============================================================================
+
+/**
+ * Producto que falló la validación de FASE 2.5.
+ * Se guarda en data/failed.json para revisión manual.
+ */
+export interface FailedProduct {
+  /** SKU generado: YP-{albumId} */
+  sku: string
+  /** ID del álbum */
+  albumId: string
+  /** URL del álbum */
+  url: string
+  /** Nombre extraído (puede estar vacío) */
+  name: string | null
+  /** Lista de errores de validación */
+  errors: ValidationError[]
+  /** Fecha del intento ISO */
+  failedAt: string
+  /** Datos parciales extraídos (para debug) */
+  partialData: {
+    imageCount: number
+    videoCount: number
+    hasDescription: boolean
+    categoryId: string | null
   }
-  /** Array de productos scrapeados */
-  products: ScrapedProduct[]
+}
+
+/**
+ * Error de validación tipado.
+ */
+export interface ValidationError {
+  /** Tipo de error */
+  type:
+    | 'MISSING_NAME'
+    | 'MISSING_IMAGES'
+    | 'INVALID_CATEGORY'
+    | 'INVALID_URL'
+    | 'ALBUM_NOT_FOUND'
+    | 'PARSE_ERROR'
+  /** Mensaje descriptivo */
+  message: string
+  /** Valor problemático (si aplica) */
+  value?: string
+}
+
+/**
+ * Resultado de la validación de un producto.
+ */
+export interface ValidationResult {
+  /** true si el producto es válido */
+  valid: boolean
+  /** Lista de errores (vacía si es válido) */
+  errors: ValidationError[]
+  /** Producto validado (solo si valid=true) */
+  product: ScrapedProduct | null
 }
 
 // ============================================================================
@@ -347,6 +458,14 @@ export interface ScrapeOptions {
   resume?: boolean
   /** Si guardar estado cada N álbumes */
   checkpointEvery?: number
+  /** Estrategia de fetching: 'http-first' | 'playwright-only' | 'http-only' */
+  fetchStrategy?: FetchStrategy
+  /** Modo de imagen: 'proxy' | 'local' */
+  imageMode?: ImageMode
+  /** Si usar caché (saltar álbumes sin cambios) */
+  useCache?: boolean
+  /** Si ejecutar validación FASE 2.5 */
+  validate?: boolean
   /** Callback de progreso (se llama después de cada álbum) */
   onProgress?: (progress: ScrapeProgress) => void
 }
